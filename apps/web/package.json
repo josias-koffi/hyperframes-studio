@@ -6,7 +6,7 @@
     "build": "next build",
     "start": "next start --port 3000",
     "lint": "eslint . --max-warnings=0",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
