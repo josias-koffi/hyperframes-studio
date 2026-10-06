@@ -1,0 +1,94 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/josias-koffi/infra/main/schema/manifest.v1.json
+# HyperFrames Studio — deployed by the josias-koffi/infra platform: one Dokploy project `studio`,
+# environments production (main, manual) and staging (develop, auto). Mode services: one Dokploy
+# service per component.
+#
+# The `workspace` volume (<volumePrefix>_workspace) is mounted by api, claude-runner and
+# render-worker: the three images run as uid 1000. `claude_sessions` keeps the Claude Code session
+# transcripts so a checkpoint can resume (`claude --resume`) after a redeploy.
+#
+# TODO (lot 0): replace <domaine>; check the internal hostname of the `minio` app from the workers
+# (S3_ENDPOINT) — otherwise point it at the public domain.
+apiVersion: deploy/v1
+name: studio
+description: HyperFrames Studio — projets vidéo, templates, génération Claude, publication Postiz
+server: vps20
+
+secrets:
+  - DB_PASSWORD
+  - CACHE_PASSWORD
+  - MINIO_ROOT_USER
+  - MINIO_ROOT_PASSWORD
+  - CLAUDE_CODE_OAUTH_TOKEN
+  - OPENROUTER_API_KEY
+optionalSecrets:
+  - POSTIZ_API_KEY
+
+vars:
+  WORKSPACE_DIR: /workspace
+  S3_ENDPOINT: 'http://${app}${env == "production" ? "" : "-${env}"}-minio:9000'
+  S3_PUBLIC_ENDPOINT: 'https://${domains.files}'
+  S3_BUCKET: studio
+  OPENROUTER_BASE_URL: https://openrouter.ai/api/v1
+  TTS_MODEL: mistralai/voxtral-mini-tts-2603
+  TTS_VOICE: fr_marie_neutral
+  TTS_PEAK_DB: "-1"
+  MUSIC_MODEL: google/lyria-3-clip-preview
+
+apps:
+  web:
+    image: ghcr.io/josias-koffi/studio-web
+    port: 3000
+    domain: web
+    uses: [api]               # injects API_URL=https://<api domain>
+    secrets: []
+    resources: { cpus: 0.5, memory: 512m }
+  api:
+    image: ghcr.io/josias-koffi/studio-api
+    port: 3333
+    domain: api
+    healthcheck: /health
+    uses: [db, cache]
+    volumes: { workspace: /workspace }
+    vars: { WEB_URL: 'https://${domains.web}' }
+    secrets: [DB_PASSWORD, CACHE_PASSWORD, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD, POSTIZ_API_KEY]
+    resources: { cpus: 1, memory: 1g }
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    port: 9000
+    domain: files
+    command: minio
+    args: [server, /data]
+    volumes: { data: /data }
+    secrets: [MINIO_ROOT_USER, MINIO_ROOT_PASSWORD]
+    resources: { cpus: 0.5, memory: 512m }
+
+workers:
+  claude-runner:
+    image: ghcr.io/josias-koffi/studio-claude-runner
+    uses: [db, cache]
+    volumes: { workspace: /workspace, claude_sessions: /home/node/.claude/projects }
+    secrets: [DB_PASSWORD, CACHE_PASSWORD, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD, CLAUDE_CODE_OAUTH_TOKEN, OPENROUTER_API_KEY]
+    resources: { cpus: 2, memory: 4g }
+  render-worker:
+    image: ghcr.io/josias-koffi/studio-render-worker
+    uses: [db, cache]
+    volumes: { workspace: /workspace }
+    secrets: [DB_PASSWORD, CACHE_PASSWORD, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD]
+    resources: { cpus: 3, memory: 6g }
+
+databases:
+  db: { type: postgres, version: 16-alpine, database: studio, user: studio }
+caches:
+  cache: { type: redis, version: 7-alpine }
+
+environments:
+  production:
+    branch: main
+    deploy: manual
+    domains: { web: studio.<domaine>, api: studio-api.<domaine>, files: studio-files.<domaine> }
+  staging:
+    branch: develop
+    domains: { web: studio-staging.<domaine>, api: studio-api-staging.<domaine>, files: studio-files-staging.<domaine> }
+    # Staging shares the Claude subscription quota with production: no Claude jobs by default.
+    vars: { CLAUDE_JOBS_ENABLED: "false" }

@@ -1,0 +1,10 @@
+packages:
+  - apps/*
+  - packages/*
+
+allowBuilds:
+  esbuild: true
+  # Optional native accelerators: the pure-JS fallbacks are enough here.
+  msgpackr-extract: false
+  sharp: false
+  unrs-resolver: false

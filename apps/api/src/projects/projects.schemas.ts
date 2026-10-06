@@ -1,0 +1,26 @@
+import { RENDER_FORMATS } from "@studio/shared";
+import { z } from "zod";
+
+export const createProjectSchema = z.object({
+  name: z.string().min(1).max(120),
+  slug: z.string().regex(/^[a-z0-9][a-z0-9-]{0,62}$/, "lettres minuscules, chiffres et tirets"),
+  workflow: z
+    .enum(["product-launch-video", "faceless-explainer", "motion-graphics", "music-to-video", "general-video"])
+    .default("general-video"),
+  brandId: z.string().uuid().optional(),
+  brief: z.record(z.string(), z.unknown()).default({}),
+});
+export type CreateProject = z.infer<typeof createProjectSchema>;
+
+export const updateProjectSchema = createProjectSchema.pick({ name: true, brief: true, brandId: true }).partial();
+export type UpdateProject = z.infer<typeof updateProjectSchema>;
+
+export const feedbackSchema = z.object({ text: z.string().min(1).max(10_000) });
+
+export const renderRequestSchema = z.object({
+  format: z.enum(RENDER_FORMATS).default("mp4"),
+  variables: z.record(z.string(), z.unknown()).optional(),
+  at: z.array(z.number().nonnegative()).max(20).optional(),
+  frames: z.number().int().min(1).max(10).optional(),
+});
+export type RenderRequest = z.infer<typeof renderRequestSchema>;

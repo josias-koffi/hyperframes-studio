@@ -1,0 +1,6 @@
+{
+  "extends": "@studio/config/tsconfig/node",
+  "compilerOptions": { "rootDir": "src", "outDir": "dist" },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts"]
+}

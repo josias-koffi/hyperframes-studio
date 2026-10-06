@@ -1,0 +1,17 @@
+{
+  "name": "hyperframes-videos",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "new": "sh scripts/new-video.sh",
+    "preview": "npx --yes hyperframes@0.8.134 preview --background",
+    "preview:stop": "npx --yes hyperframes@0.8.134 preview --kill-all",
+    "dev": "npx --yes hyperframes@0.8.134 preview",
+    "check": "npx --yes hyperframes@0.8.134 check",
+    "render": "npx --yes hyperframes@0.8.134 render",
+    "publish": "npx --yes hyperframes@0.8.134 publish"
+  },
+  "devDependencies": {
+    "@hyperframes/core": "0.8.134"
+  }
+}

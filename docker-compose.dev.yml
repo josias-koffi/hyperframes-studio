@@ -1,0 +1,26 @@
+# Local development only: the backing services. Apps run on the host (`pnpm dev`).
+# Production is described by .deploy/manifest.yaml (josias-koffi/infra).
+# Ports are offset (5447, 6390, 9120) so the stack runs next to the other projects of this machine.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: studio
+      POSTGRES_PASSWORD: studio
+      POSTGRES_DB: studio
+    ports: ["127.0.0.1:5447:5432"]
+    volumes: [postgres_data:/var/lib/postgresql/data]
+  redis:
+    image: redis:7-alpine
+    ports: ["127.0.0.1:6390:6379"]
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: studio
+      MINIO_ROOT_PASSWORD: studio-secret
+    ports: ["127.0.0.1:9120:9000", "127.0.0.1:9121:9001"]
+    volumes: [minio_data:/data]
+volumes:
+  postgres_data:
+  minio_data:

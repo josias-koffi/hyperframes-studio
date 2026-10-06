@@ -1,0 +1,23 @@
+{
+  "name": "@studio/claude-runner",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "lint": "eslint src test --max-warnings=0",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@studio/db": "workspace:*",
+    "@studio/shared": "workspace:*",
+    "@studio/storage": "workspace:*",
+    "bullmq": "^5.61.0",
+    "drizzle-orm": "0.45.2",
+    "ioredis": "^5.8.2"
+  },
+  "devDependencies": {
+    "@studio/config": "workspace:*"
+  }
+}

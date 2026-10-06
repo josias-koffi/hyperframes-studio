@@ -1,0 +1,21 @@
+# Rendered videos, per video folder (regenerate with `npm run render -- videos/<nom>`)
+renders/
+
+# Dependencies
+node_modules/
+
+# HyperFrames local caches / Studio state (regenerated automatically)
+.hyperframes/
+.thumbnails/
+.waveform-cache/
+snapshots/
+
+# Raw provider responses (decoded result is in assets/music/)
+.media/
+
+# IDE / OS
+.idea/
+.DS_Store
+
+# Secrets (modèle versionné : .env.example)
+.env
