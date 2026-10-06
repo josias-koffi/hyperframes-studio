@@ -22,7 +22,7 @@ RUN pnpm --filter @studio/render-worker... build
 FROM node:22-bookworm-slim AS runner
 ARG HYPERFRAMES_VERSION
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      ffmpeg git ca-certificates fonts-liberation fonts-noto-color-emoji \
+      ffmpeg git ca-certificates unzip fonts-liberation fonts-noto-color-emoji \
       libnss3 libatk-bridge2.0-0 libatk1.0-0 libcups2 libdrm2 libgbm1 libxkbcommon0 libxcomposite1 \
       libxdamage1 libxfixes3 libxrandr2 libasound2 libpango-1.0-0 libcairo2 \
     && rm -rf /var/lib/apt/lists/* \
