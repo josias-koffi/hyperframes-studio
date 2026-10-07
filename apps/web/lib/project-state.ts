@@ -15,6 +15,15 @@ export type StepState = "done" | "current" | "running" | "review" | "failed" | "
 
 export type PipelineStep = GenerationStep | "export";
 
+/** URL segment of each step page. Lives here, not in a "use client" module, so server pages can read it. */
+export const STEP_SEGMENTS: Record<PipelineStep, string> = {
+  brief: "brief",
+  storyboard: "storyboard",
+  media: "media",
+  build: "build",
+  export: "exports",
+};
+
 export type ProjectState = {
   phase: ProjectPhase;
   /** Newest Claude job, which drives the workbench. */

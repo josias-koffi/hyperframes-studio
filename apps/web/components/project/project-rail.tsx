@@ -4,17 +4,8 @@ import { CheckIcon, FolderOpenIcon, LayoutDashboardIcon, XIcon } from "lucide-re
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PIPELINE } from "@/components/studio/labels";
-import type { PipelineStep, ProjectState, StepState } from "@/lib/project-state";
+import { STEP_SEGMENTS, type ProjectState, type StepState } from "@/lib/project-state";
 import { cn } from "@/lib/utils";
-
-/** URL segment of each step page. */
-export const STEP_SEGMENTS: Record<PipelineStep, string> = {
-  brief: "brief",
-  storyboard: "storyboard",
-  media: "media",
-  build: "build",
-  export: "exports",
-};
 
 const MARK: Record<StepState, string> = {
   done: "border-success bg-success text-white dark:text-background",

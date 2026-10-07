@@ -1,7 +1,6 @@
 import { ArrowRightIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { STEP_SEGMENTS } from "@/components/project/project-rail";
 import { StepAction } from "@/components/project/step-action";
 import { PIPELINE, workflowMeta } from "@/components/studio/labels";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { serverApi, type Project } from "@/lib/api";
 import { formatRelative } from "@/lib/format";
 import { loadProject } from "@/lib/project-data";
-import { stepJob, type StepState } from "@/lib/project-state";
+import { STEP_SEGMENTS, stepJob, type StepState } from "@/lib/project-state";
 import { cn } from "@/lib/utils";
 
 export async function generateMetadata({ params }: PageProps<"/projects/[id]">): Promise<Metadata> {
