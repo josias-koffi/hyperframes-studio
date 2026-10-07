@@ -7,8 +7,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -46,75 +46,145 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --color-rec: var(--rec);
+  --color-rec-foreground: var(--rec-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+
+  /* Elevation: page → surface → raised → overlay */
+  --shadow-surface: var(--elevation-surface);
+  --shadow-raised: var(--elevation-raised);
+  --shadow-overlay: var(--elevation-overlay);
+
+  /* Motion */
+  --ease-studio: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-rise-in: rise-in 400ms var(--ease-studio) both;
+  --animate-live-shimmer: live-shimmer 1.6s linear infinite;
+  --animate-rec-pulse: rec-pulse 1.4s ease-in-out infinite;
+
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes live-shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+
+  @keyframes rec-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in oklch, var(--rec) 60%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 5px color-mix(in oklch, var(--rec) 0%, transparent);
+    }
+  }
 }
 
+
+/* Framesmith design system: the cvforge token structure, an indigo-violet primary and a coral "rec"
+   accent reserved for live work (Claude generating, a render running). */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.979 0.003 264.5); /* #F7F8FA */
+  --foreground: oklch(0.21 0.032 264.7); /* #111827 */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.21 0.032 264.7);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --popover-foreground: oklch(0.21 0.032 264.7);
+  --primary: oklch(0.53 0.235 283); /* #5B4BFF-ish */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.957 0.01 280);
+  --secondary-foreground: oklch(0.21 0.032 264.7);
+  --muted: oklch(0.957 0.007 270);
+  --muted-foreground: oklch(0.551 0.023 264.4); /* #6B7280 */
+  --accent: oklch(0.955 0.025 285); /* indigo hover tint */
+  --accent-foreground: oklch(0.21 0.032 264.7);
+  --destructive: oklch(0.577 0.215 27.3); /* #DC2626 */
+  --border: oklch(0.921 0.008 270); /* #E2E5EA */
+  --input: oklch(0.87 0.012 270);
+  --ring: oklch(0.53 0.235 283);
+  --rec: oklch(0.66 0.2 33); /* #F2603F, live work */
+  --rec-foreground: oklch(1 0 0);
+  --success: oklch(0.527 0.137 150.1); /* #15803D, AA on white */
+  --warning: oklch(0.555 0.146 49); /* #B45309, AA on white */
+  --info: oklch(0.546 0.215 262.9); /* #2563EB */
+  --chart-1: oklch(0.53 0.235 283);
+  --chart-2: oklch(0.72 0.14 285);
+  --chart-3: oklch(0.66 0.2 33);
+  --chart-4: oklch(0.627 0.17 149.2);
+  --chart-5: oklch(0.7 0.15 230);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.21 0.032 264.7);
+  --sidebar-primary: oklch(0.53 0.235 283);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.955 0.025 285);
+  --sidebar-accent-foreground: oklch(0.46 0.22 283);
+  --sidebar-border: oklch(0.921 0.008 270);
+  --sidebar-ring: oklch(0.53 0.235 283);
+
+  --elevation-surface: 0 1px 2px 0 oklch(0.21 0.032 264.7 / 5%);
+  --elevation-raised:
+    0 2px 4px -1px oklch(0.21 0.032 264.7 / 6%), 0 8px 20px -4px oklch(0.21 0.032 264.7 / 10%);
+  --elevation-overlay:
+    0 4px 8px -2px oklch(0.21 0.032 264.7 / 8%), 0 20px 40px -8px oklch(0.21 0.032 264.7 / 18%);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: oklch(0.183 0.031 263.4); /* #0B1220 */
+  --foreground: oklch(0.967 0.003 264.5);
+  --card: oklch(0.226 0.039 267.9); /* #141B2E */
+  --card-foreground: oklch(0.967 0.003 264.5);
+  --popover: oklch(0.255 0.045 267.9);
+  --popover-foreground: oklch(0.967 0.003 264.5);
+  --primary: oklch(0.68 0.17 285);
+  --primary-foreground: oklch(0.183 0.031 263.4);
+  --secondary: oklch(0.267 0.054 272);
+  --secondary-foreground: oklch(0.967 0.003 264.5);
+  --muted: oklch(0.267 0.054 269.1);
+  --muted-foreground: oklch(0.714 0.019 261.3);
+  --accent: oklch(0.29 0.07 280);
+  --accent-foreground: oklch(0.967 0.003 264.5);
+  --destructive: oklch(0.711 0.166 22.2);
+  --border: oklch(0.312 0.049 266.1);
+  --input: oklch(0.34 0.05 266.1);
+  --ring: oklch(0.68 0.17 285);
+  --rec: oklch(0.74 0.16 38);
+  --rec-foreground: oklch(0.183 0.031 263.4);
+  --success: oklch(0.8 0.182 151.7);
+  --warning: oklch(0.837 0.164 84.4);
+  --info: oklch(0.714 0.143 254.6);
+  --chart-1: oklch(0.68 0.17 285);
+  --chart-2: oklch(0.78 0.11 285);
+  --chart-3: oklch(0.74 0.16 38);
+  --chart-4: oklch(0.8 0.182 151.7);
+  --chart-5: oklch(0.75 0.12 230);
+  --sidebar: oklch(0.204 0.04 267.5); /* #0F1629 */
+  --sidebar-foreground: oklch(0.967 0.003 264.5);
+  --sidebar-primary: oklch(0.68 0.17 285);
+  --sidebar-primary-foreground: oklch(0.183 0.031 263.4);
+  --sidebar-accent: oklch(0.29 0.07 280);
+  --sidebar-accent-foreground: oklch(0.967 0.003 264.5);
+  --sidebar-border: oklch(0.312 0.049 266.1);
+  --sidebar-ring: oklch(0.68 0.17 285);
+
+  /* In dark mode surfaces rise through lighter fills; shadows only add depth. */
+  --elevation-surface: 0 1px 2px 0 oklch(0 0 0 / 30%);
+  --elevation-raised: 0 0 0 1px oklch(0.68 0.17 285 / 18%), 0 10px 24px -6px oklch(0 0 0 / 50%);
+  --elevation-overlay: 0 0 0 1px oklch(1 0 0 / 6%), 0 24px 48px -12px oklch(0 0 0 / 60%);
 }
 
 @layer base {
@@ -126,5 +196,45 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* Moving highlight on whatever is being generated. */
+@utility live-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    transparent 20%,
+    color-mix(in oklch, var(--card) 55%, transparent) 50%,
+    transparent 80%
+  );
+  background-size: 200% 100%;
+  animation: var(--animate-live-shimmer);
+}
+
+/* Staggered entrance: set --stagger on the element (0, 1, 2…). */
+@utility rise-in {
+  animation: var(--animate-rise-in);
+  animation-delay: calc(var(--stagger, 0) * 50ms);
+}
+
+/* The red "recording" dot shown on live work. */
+@utility rec-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background-color: var(--rec);
+  animation: var(--animate-rec-pulse);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

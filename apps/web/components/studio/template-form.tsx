@@ -1,25 +1,33 @@
 "use client";
 
 import type { CompositionVariable } from "@studio/shared/browser";
+import { FilmIcon, ImageIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { clientApi, type Template } from "@/lib/api";
 
 type Values = Record<string, string | number | boolean>;
 
-function Field({ variable, value, onChange }: { variable: CompositionVariable; value: Values[string]; onChange: (v: Values[string]) => void }) {
+function VariableInput({ variable, value, onChange }: { variable: CompositionVariable; value: Values[string]; onChange: (v: Values[string]) => void }) {
   const id = `var-${variable.id}`;
   switch (variable.type) {
     case "number":
       return <Input id={id} type="number" min={variable.min} max={variable.max} step={variable.step} value={Number(value)} onChange={(e) => onChange(e.target.valueAsNumber)} />;
     case "color":
-      return <Input id={id} type="color" className="h-9 w-20 p-1" value={String(value)} onChange={(e) => onChange(e.target.value)} />;
+      return (
+        <div className="flex items-center gap-2">
+          <Input id={id} type="color" className="h-9 w-14 p-1" value={String(value)} onChange={(e) => onChange(e.target.value)} />
+          <span className="font-mono text-xs text-muted-foreground uppercase">{String(value)}</span>
+        </div>
+      );
     case "boolean":
-      return <input id={id} type="checkbox" className="size-4" checked={Boolean(value)} onChange={(e) => onChange(e.target.checked)} />;
+      return <Switch id={id} checked={Boolean(value)} onCheckedChange={onChange} />;
     case "enum":
       return (
         <Select value={String(value)} onValueChange={onChange}>
@@ -41,7 +49,8 @@ function Field({ variable, value, onChange }: { variable: CompositionVariable; v
 }
 
 /** Form generated from the composition's `data-composition-variables`: filling it renders without Claude. */
-export function TemplateForm({ template }: { template: Template }) {
+export function TemplateForm({ template, disabled }: { template: Template; disabled?: boolean }) {
+  const router = useRouter();
   const [values, setValues] = useState<Values>(() => Object.fromEntries(template.variables.map((v) => [v.id, v.default])));
   const [pending, setPending] = useState(false);
 
@@ -49,7 +58,8 @@ export function TemplateForm({ template }: { template: Template }) {
     setPending(true);
     try {
       await clientApi(`/templates/${template.id}/render`, { method: "POST", body: JSON.stringify({ format, variables: values, ...(format === "png" && { frames: 1 }) }) });
-      toast.success("Rendu lancé : il apparaîtra dans les exports du projet source.");
+      toast.success("Rendu lancé");
+      router.refresh();
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
@@ -58,19 +68,23 @@ export function TemplateForm({ template }: { template: Template }) {
   }
 
   return (
-    <div className="space-y-4">
-      {template.variables.map((variable) => (
-        <div key={variable.id} className="space-y-2">
-          <Label htmlFor={`var-${variable.id}`}>{variable.label}</Label>
-          <Field variable={variable} value={values[variable.id]} onChange={(v) => setValues((current) => ({ ...current, [variable.id]: v }))} />
-        </div>
-      ))}
-      <div className="flex gap-2">
-        <Button disabled={pending} onClick={() => render("mp4")}>
+    <div className="flex flex-col gap-6">
+      <FieldGroup>
+        {template.variables.map((variable) => (
+          <Field key={variable.id} orientation={variable.type === "boolean" ? "horizontal" : "vertical"}>
+            <FieldLabel htmlFor={`var-${variable.id}`}>{variable.label}</FieldLabel>
+            <VariableInput variable={variable} value={values[variable.id]} onChange={(v) => setValues((current) => ({ ...current, [variable.id]: v }))} />
+          </Field>
+        ))}
+      </FieldGroup>
+      <div className="flex flex-wrap gap-2">
+        <Button disabled={pending || disabled} onClick={() => render("mp4")}>
+          <FilmIcon />
           Générer la vidéo
         </Button>
-        <Button variant="outline" disabled={pending} onClick={() => render("png")}>
-          Générer l&apos;image
+        <Button variant="outline" disabled={pending || disabled} onClick={() => render("png")}>
+          <ImageIcon />
+          Générer une image
         </Button>
       </div>
     </div>
