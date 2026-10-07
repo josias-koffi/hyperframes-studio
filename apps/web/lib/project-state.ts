@@ -81,3 +81,10 @@ export function stepReached(project: Pick<Project, "currentStep">, state: Pick<P
   const current = GENERATION_STEPS.indexOf(project.currentStep);
   return index < current || (index === current && (state.phase === "review" || state.phase === "done"));
 }
+
+/** Why the Studio HyperFrames cannot be opened right now, or null when it can. */
+export function studioBlockedReason(project: Pick<Project, "currentStep">, state: Pick<ProjectState, "phase">) {
+  if (state.phase === "running") return "Claude travaille sur ce projet : attends la fin de l'étape.";
+  if (!stepReached(project, state, "build")) return "Disponible une fois le build terminé.";
+  return null;
+}

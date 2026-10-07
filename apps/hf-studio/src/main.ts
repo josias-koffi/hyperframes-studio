@@ -10,6 +10,7 @@ const gateway = createGateway({
   previewPort: Number.parseInt(process.env.HF_PREVIEW_PORT ?? "", 10) || 3402,
   token: process.env.HF_STUDIO_TOKEN?.trim() ?? "",
   readyTimeoutMs: 120_000,
+  frameAncestors: process.env.HF_STUDIO_FRAME_ANCESTORS?.trim() ?? "",
 });
 
 gateway.server.listen(port, "0.0.0.0", () => console.log(`hf-studio gateway on :${port}`));

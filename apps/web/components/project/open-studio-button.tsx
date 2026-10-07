@@ -1,47 +1,48 @@
 "use client";
 
-import { ExternalLinkIcon, PencilRulerIcon } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import { ArrowLeftIcon, PencilRulerIcon } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { clientApi } from "@/lib/api";
 
 /**
- * Opens the project in the HyperFrames Studio editor (timeline, captions, keyframes…).
- * The tab is opened before the request so the browser does not treat it as a popup.
+ * Leads to the project's Studio HyperFrames page (timeline, captions, keyframes…), and back out of it.
  */
 export function OpenStudioButton({ projectId, disabledReason }: { projectId: string; disabledReason: string | null }) {
-  const [pending, setPending] = useState(false);
+  const pathname = usePathname();
+  const base = `/projects/${projectId}`;
 
-  async function open() {
-    const tab = window.open("about:blank", "_blank");
-    setPending(true);
-    try {
-      const { url } = await clientApi<{ url: string }>(`/projects/${projectId}/studio`, { method: "POST" });
-      if (tab) tab.location.href = url;
-      else window.open(url, "_blank");
-    } catch (error) {
-      tab?.close();
-      toast.error((error as Error).message);
-    } finally {
-      setPending(false);
-    }
+  if (pathname === `${base}/studio`) {
+    return (
+      <Button variant="outline" asChild>
+        <Link href={base}>
+          <ArrowLeftIcon />
+          Fermer le Studio
+        </Link>
+      </Button>
+    );
   }
-
-  const button = (
-    <Button variant="outline" onClick={open} disabled={pending || disabledReason !== null}>
-      <PencilRulerIcon />
-      {pending ? "Ouverture du Studio…" : "Ouvrir dans le Studio HyperFrames"}
-      <ExternalLinkIcon className="opacity-60" />
-    </Button>
-  );
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         {/* A disabled button gets no pointer events: the span keeps the tooltip alive. */}
-        <span tabIndex={disabledReason ? 0 : -1}>{button}</span>
+        <span tabIndex={disabledReason ? 0 : -1}>
+          {disabledReason ? (
+            <Button variant="outline" disabled>
+              <PencilRulerIcon />
+              Ouvrir dans le Studio HyperFrames
+            </Button>
+          ) : (
+            <Button variant="outline" asChild>
+              <Link href={`${base}/studio`}>
+                <PencilRulerIcon />
+                Ouvrir dans le Studio HyperFrames
+              </Link>
+            </Button>
+          )}
+        </span>
       </TooltipTrigger>
       <TooltipContent className="max-w-72">
         {disabledReason ?? "L'éditeur complet : timeline, textes, animations. Tes modifications seront dans le prochain rendu."}

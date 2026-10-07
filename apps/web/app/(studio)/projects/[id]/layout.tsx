@@ -5,7 +5,7 @@ import { workflowMeta } from "@/components/studio/labels";
 import { PhaseBadge } from "@/components/studio/status-badge";
 import { formatRelative } from "@/lib/format";
 import { loadProject } from "@/lib/project-data";
-import { stepReached } from "@/lib/project-state";
+import { studioBlockedReason } from "@/lib/project-state";
 
 export const dynamic = "force-dynamic";
 
@@ -14,12 +14,7 @@ export default async function ProjectLayout({ children, params }: LayoutProps<"/
   const { id } = await params;
   const { project, state, assets } = await loadProject(id);
   const { label, icon: Icon } = workflowMeta(project.workflow);
-  const studioBlocked =
-    state.phase === "running"
-      ? "Claude travaille sur ce projet : attends la fin de l'étape."
-      : !stepReached(project, state, "build")
-        ? "Disponible une fois le build terminé."
-        : null;
+  const studioBlocked = studioBlockedReason(project, state);
 
   return (
     <>

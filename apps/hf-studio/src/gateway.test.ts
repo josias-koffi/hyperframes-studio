@@ -12,13 +12,14 @@ describe("hf-studio gateway", () => {
     gateway = null;
   });
 
-  async function start(token = "") {
+  async function start(token = "", frameAncestors = "") {
     gateway = createGateway({
       workspaceDir: __dirname,
       hyperframes: [process.execPath, fake],
       previewPort: 34000 + Math.floor(Math.random() * 1000),
       token,
       readyTimeoutMs: 10_000,
+      frameAncestors,
     });
     await new Promise<void>((resolve) => gateway!.server.listen(0, "127.0.0.1", resolve));
     return `http://127.0.0.1:${(gateway.server.address() as AddressInfo).port}`;
@@ -50,5 +51,18 @@ describe("hf-studio gateway", () => {
     const base = await start("secret");
     expect((await open(base, "demo")).status).toBe(401);
     expect((await open(base, "../etc", "secret")).status).toBe(400);
+  });
+
+  it("lets only the web app frame the studio", async () => {
+    const framed = await start("", "https://studio.example");
+    await open(framed, "demo");
+    expect((await fetch(`${framed}/`)).headers.get("content-security-policy")).toBe(
+      "frame-ancestors 'self' https://studio.example",
+    );
+    await gateway!.close();
+
+    const unframed = await start();
+    await open(unframed, "demo");
+    expect((await fetch(`${unframed}/`)).headers.get("content-security-policy")).toBeNull();
   });
 });

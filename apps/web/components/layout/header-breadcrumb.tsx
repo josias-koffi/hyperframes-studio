@@ -23,6 +23,7 @@ const SEGMENTS: Record<string, string> = {
   media: "Voix et musique",
   build: "Build",
   exports: "Exports",
+  studio: "Studio HyperFrames",
 };
 
 /** Derived from the path; an id segment shows the label its page published (the project name). */

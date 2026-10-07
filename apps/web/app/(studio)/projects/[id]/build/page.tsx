@@ -19,8 +19,8 @@ export default async function BuildPage({ params }: PageProps<"/projects/[id]/bu
         <CardHeader>
           <CardTitle>Captures de la composition</CardTitle>
           <CardDescription>
-            Une image au milieu de chaque frame. Pour la voir en mouvement ou la retoucher, utilise « Ouvrir dans le Studio
-            HyperFrames » en haut de la page.
+            Une image au milieu de chaque frame. Pour la voir en mouvement ou la retoucher, ouvre-la dans le Studio
+            HyperFrames (bouton en haut de la page).
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -47,6 +47,8 @@ function RailLink({ href, active, children }: { href: string; active: boolean; c
 export function ProjectRail({ projectId, steps, assetCount }: { projectId: string; steps: ProjectState["steps"]; assetCount: number }) {
   const pathname = usePathname();
   const base = `/projects/${projectId}`;
+  // The Studio editor takes the whole width: the header's button leads back.
+  if (pathname === `${base}/studio`) return null;
 
   return (
     <nav

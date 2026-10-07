@@ -12,6 +12,8 @@ export type GatewayConfig = {
   token: string;
   /** How long a preview may take to answer after spawning (npx may download the CLI first). */
   readyTimeoutMs: number;
+  /** Origins allowed to frame the Studio (the web app), as a CSP `frame-ancestors` list; empty sends no policy. */
+  frameAncestors?: string;
 };
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/;
@@ -26,6 +28,11 @@ export function createGateway(config: GatewayConfig) {
   let current: { slug: string; child: ChildProcess } | null = null;
   const target = `http://127.0.0.1:${config.previewPort}`;
   const proxy = httpProxy.createProxyServer({ target, ws: true, xfwd: true });
+  proxy.on("proxyRes", (proxyRes) => {
+    if (!config.frameAncestors) return;
+    delete proxyRes.headers["x-frame-options"];
+    proxyRes.headers["content-security-policy"] = `frame-ancestors 'self' ${config.frameAncestors}`;
+  });
   proxy.on("error", (_error, _req, res) => {
     if ("writeHead" in res && !res.headersSent) {
       res.writeHead(502, { "content-type": "text/plain; charset=utf-8" });

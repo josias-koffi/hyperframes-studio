@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Job, Render } from "./api";
-import { projectState, stepJob, stepReached } from "./project-state";
+import { projectState, stepJob, stepReached, studioBlockedReason } from "./project-state";
 
 function job(overrides: Partial<Job>): Job {
   return {
@@ -65,5 +65,12 @@ describe("step helpers", () => {
     expect(stepReached({ currentStep: "storyboard" }, { phase: "running" }, "storyboard")).toBe(false);
     expect(stepReached({ currentStep: "storyboard" }, { phase: "review" }, "storyboard")).toBe(true);
     expect(stepReached({ currentStep: "storyboard" }, { phase: "review" }, "media")).toBe(false);
+  });
+
+  it("opens the Studio once the build exists, never while Claude works", () => {
+    expect(studioBlockedReason({ currentStep: "build" }, { phase: "done" })).toBeNull();
+    expect(studioBlockedReason({ currentStep: "build" }, { phase: "review" })).toBeNull();
+    expect(studioBlockedReason({ currentStep: "build" }, { phase: "running" })).toMatch(/Claude travaille/);
+    expect(studioBlockedReason({ currentStep: "media" }, { phase: "review" })).toMatch(/build terminé/);
   });
 });
