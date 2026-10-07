@@ -14,6 +14,8 @@ export type GatewayConfig = {
   frameAncestors?: string;
   /** Holds `overrides.css` and `overrides.js`, the Framesmith layer injected into the Studio page. */
   overridesDir: string;
+  /** How the gateway reaches itself (`127.0.0.1:<port>`), for the Studio's thumbnail browser. */
+  internalHost?: string;
 };
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/;
@@ -75,8 +77,8 @@ export function createGateway(config: GatewayConfig) {
   }
 
   /** Forwards to a project's server; HTML pages get the Framesmith layer. */
-  async function forward(c: Context, server: StudioServer) {
-    const response = await server.app.fetch(c.req.raw);
+  async function forward(c: Context, server: StudioServer, request: Request = c.req.raw) {
+    const response = await server.app.fetch(request);
     if (!response.headers.get("content-type")?.startsWith("text/html")) return response;
     const html = (await response.text()).replace("</head>", `${OVERRIDES}</head>`);
     const headers = new Headers(response.headers);
@@ -156,6 +158,13 @@ export function createGateway(config: GatewayConfig) {
   function routeToProject(c: Context) {
     const studio = studios.get(c.req.param("slug") ?? "");
     if (!studio) return c.json({ error: "Projet non ouvert : rouvre le Studio depuis Framesmith." }, 404);
+    // A thumbnail is shot by a headless Chrome next to the server, sent to `http://<Host>/…`: the public host is
+    // not reachable from inside the container, the gateway's own address is.
+    if (config.internalHost && /^\/api\/projects\/[^/]+\/thumbnail\//.test(c.req.path)) {
+      const headers = new Headers(c.req.raw.headers);
+      headers.set("host", config.internalHost);
+      return forward(c, studio.server, new Request(c.req.raw, { headers }));
+    }
     return forward(c, studio.server);
   }
 

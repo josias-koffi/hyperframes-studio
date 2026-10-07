@@ -18,6 +18,7 @@ function fakeStudios() {
     app.get("/", (c) => c.html(`<html><head><title>${projectName}</title></head><body></body></html>`));
     app.get("/api/projects", (c) => c.json({ projects: [{ id: projectName }] }));
     app.get("/api/projects/:id/files", (c) => c.json({ project: projectName, asked: c.req.param("id") }));
+    app.get("/api/projects/:id/thumbnail/*", (c) => c.json({ host: c.req.header("host") }));
     app.get("/api/events", (c) =>
       streamSSE(c, async (stream) => {
         emitters.set(projectName, (path) => {
@@ -42,11 +43,18 @@ describe("hf-studio gateway", () => {
     for (const cleanup of cleanups.splice(0).reverse()) await cleanup();
   });
 
-  function start({ token = "", frameAncestors = "" } = {}) {
+  function start({ token = "", frameAncestors = "", internalHost = "127.0.0.1:3000" } = {}) {
     const workspaceDir = mkdtempSync(join(tmpdir(), "hf-gateway-"));
     for (const slug of ["demo", "other"]) mkdirSync(join(workspaceDir, "videos", slug), { recursive: true });
     const studios = fakeStudios();
-    const gateway = createGateway({ workspaceDir, createStudio: studios.createStudio, token, frameAncestors, overridesDir });
+    const gateway = createGateway({
+      workspaceDir,
+      createStudio: studios.createStudio,
+      token,
+      frameAncestors,
+      overridesDir,
+      internalHost,
+    });
     cleanups.push(() => rmSync(workspaceDir, { recursive: true, force: true }));
     cleanups.push(() => gateway.close());
     const request = (path: string, init?: RequestInit) => gateway.app.fetch(new Request(`http://gateway${path}`, init));
@@ -83,6 +91,15 @@ describe("hf-studio gateway", () => {
     expect(page).toContain('<script src="/__framesmith/overrides.js"></script></head>');
     expect((await request("/__framesmith/overrides.css")).headers.get("content-type")).toMatch(/text\/css/);
     expect(await (await request("/__framesmith/overrides.js")).text()).toContain("hf-dock-tab");
+  });
+
+  it("points the thumbnail browser at the gateway itself, not the public host", async () => {
+    const { request, open } = start();
+    await open("demo");
+    const headers = { host: "studio-preview.example" };
+    expect(await (await request("/api/projects/demo/thumbnail/index.html", { headers })).json()).toEqual({
+      host: "127.0.0.1:3000",
+    });
   });
 
   it("leaves the desktop app hand-off out", async () => {

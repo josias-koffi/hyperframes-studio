@@ -14,6 +14,7 @@ async function main() {
     token: process.env.HF_STUDIO_TOKEN?.trim() ?? "",
     frameAncestors: process.env.HF_STUDIO_FRAME_ANCESTORS?.trim() ?? "",
     overridesDir: join(__dirname, "..", "public"),
+    internalHost: `127.0.0.1:${port}`,
   });
   const server = createAdaptorServer({ fetch: gateway.app.fetch });
   server.listen(port, "0.0.0.0", () => console.log(`hf-studio gateway on :${port}`));

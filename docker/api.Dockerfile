@@ -1,6 +1,8 @@
 # HyperFrames Studio API (NestJS). Runs the SQL migrations, then serves on 3333.
 
 FROM node:22-alpine AS deps
+# The filtered install is the image's whole node_modules: no full install before `pnpm run`/`exec`.
+ENV pnpm_config_verify_deps_before_run=false
 WORKDIR /repo
 RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
