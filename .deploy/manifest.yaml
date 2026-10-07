@@ -57,7 +57,7 @@ apps:
       HF_STUDIO_PUBLIC_URL: 'https://${domains.preview}'
     secrets: [DB_PASSWORD, CACHE_PASSWORD, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD, POSTIZ_API_KEY, HF_STUDIO_TOKEN]
     resources: { cpus: 1, memory: 1g }
-  # HyperFrames Studio editor (apps/hf-studio): one project at a time, opened by the API and framed by the web
+  # HyperFrames Studio editor (apps/hf-studio): every project opened by the API, in process; framed by the web
   # app (/projects/<id>/studio).
   # TODO: no auth yet, like the rest of the app — protect this domain when authentication lands.
   hf-studio:

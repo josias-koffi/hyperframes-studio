@@ -1,0 +1,21 @@
+/*
+ * Framesmith layer over the HyperFrames Studio (injected by the gateway, src/gateway.ts).
+ * Only the Studio's own tokens are redefined (its styles/theme.css): unlayered, so they win over its theme layer.
+ * The colours are the web app's --primary (apps/web/app/globals.css), light then dark.
+ */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --color-accent: light-dark(oklch(0.53 0.235 283), oklch(0.68 0.17 285));
+  --color-accent-hover: light-dark(oklch(0.48 0.22 283), oklch(0.74 0.16 285));
+  --color-on-accent: light-dark(oklch(1 0 0), oklch(0.183 0.031 263.4));
+  --color-accent-ink: light-dark(oklch(0.5 0.22 283), oklch(0.76 0.15 285));
+  --color-brand-gradient-from: oklch(0.53 0.235 283);
+  --color-brand-gradient-to: oklch(0.68 0.17 285);
+}
+
+/* Exports are rendered by Framesmith (render worker), not inside the Studio. */
+[data-testid="header-export"] {
+  display: none !important;
+}

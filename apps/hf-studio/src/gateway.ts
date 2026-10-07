@@ -1,147 +1,179 @@
-import { spawn, type ChildProcess } from "node:child_process";
-import { createServer, request, type IncomingMessage, type Server, type ServerResponse } from "node:http";
-import httpProxy from "http-proxy";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { Hono, type Context } from "hono";
+import { streamSSE } from "hono/streaming";
+import type { CreateStudio, StudioServer } from "./studio-cli";
 
 export type GatewayConfig = {
   workspaceDir: string;
-  /** The HyperFrames CLI, possibly with a prefix (`npx --yes hyperframes@0.8.134`). */
-  hyperframes: string[];
-  /** Loopback port of the one `hyperframes preview` this gateway runs. */
-  previewPort: number;
+  /** Builds one project's Studio server (`loadCreateStudio()`, a fake in tests). */
+  createStudio: CreateStudio;
   /** Shared secret the API sends on control calls; empty disables the check (local dev). */
   token: string;
-  /** How long a preview may take to answer after spawning (npx may download the CLI first). */
-  readyTimeoutMs: number;
   /** Origins allowed to frame the Studio (the web app), as a CSP `frame-ancestors` list; empty sends no policy. */
   frameAncestors?: string;
+  /** Holds `overrides.css` and `overrides.js`, the Framesmith layer injected into the Studio page. */
+  overridesDir: string;
 };
 
 const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/;
-const CONTROL = "/__gateway/";
+const OVERRIDES = '<link rel="stylesheet" href="/__framesmith/overrides.css" /><script src="/__framesmith/overrides.js"></script>';
+
+type StudioEvent = { event: string; data: string };
 
 /**
- * Runs the HyperFrames Studio (`hyperframes preview`) of one project at a time and exposes it.
- * The Studio only listens on 127.0.0.1 and serves its files from `/`, so it gets a whole host (or port) to
- * itself: everything but `/__gateway/*` is proxied to it, WebSockets included.
+ * Serves the HyperFrames Studio of every opened project from one origin, in process.
+ *
+ * Each project gets the CLI's own Studio server (`createStudioServer`, what `hyperframes preview` runs). The Studio
+ * page picks its project from the URL hash (`#project/<slug>`) and calls `/api/projects/<slug>/…`, so those requests
+ * go to that project's server; the page, its assets and the project-less routes are the same for all of them.
+ * `/api/events` is one stream per page for every project: their events are merged, the page drops other projects'.
  */
 export function createGateway(config: GatewayConfig) {
-  let current: { slug: string; child: ChildProcess } | null = null;
-  const target = `http://127.0.0.1:${config.previewPort}`;
-  const proxy = httpProxy.createProxyServer({ target, ws: true, xfwd: true });
-  proxy.on("proxyRes", (proxyRes) => {
-    if (!config.frameAncestors) return;
-    delete proxyRes.headers["x-frame-options"];
-    proxyRes.headers["content-security-policy"] = `frame-ancestors 'self' ${config.frameAncestors}`;
-  });
-  proxy.on("error", (_error, _req, res) => {
-    if ("writeHead" in res && !res.headersSent) {
-      res.writeHead(502, { "content-type": "text/plain; charset=utf-8" });
-      res.end("Le Studio HyperFrames ne répond pas. Rouvre-le depuis le projet.");
-    }
-  });
+  const studios = new Map<string, { server: StudioServer; follow: AbortController }>();
+  let latest: StudioServer | null = null;
+  const subscribers = new Set<(event: StudioEvent) => void>();
 
-  function stop(): Promise<void> {
-    const running = current;
-    current = null;
-    if (!running || running.child.exitCode !== null) return Promise.resolve();
-    return new Promise((resolve) => {
-      running.child.once("exit", () => resolve());
-      // The CLI spawns its own server: kill the whole process group.
-      try {
-        process.kill(-running.child.pid!, "SIGTERM");
-      } catch {
-        running.child.kill("SIGTERM");
-      }
-      setTimeout(() => {
-        try {
-          process.kill(-running.child.pid!, "SIGKILL");
-        } catch {
-          /* already gone */
+  /** Relays one project's `/api/events` stream to every page connected to the gateway. */
+  function follow(server: StudioServer) {
+    const abort = new AbortController();
+    (async () => {
+      const response = await server.app.fetch(new Request("http://studio/api/events", { signal: abort.signal }));
+      if (!response.body) return;
+      let buffer = "";
+      for await (const chunk of response.body.pipeThrough(new TextDecoderStream())) {
+        buffer += chunk.replace(/\r\n?/g, "\n");
+        let end: number;
+        while ((end = buffer.indexOf("\n\n")) >= 0) {
+          const block = buffer.slice(0, end).split("\n");
+          buffer = buffer.slice(end + 2);
+          const field = (name: string) =>
+            block.filter((line) => line.startsWith(`${name}:`)).map((line) => line.slice(name.length + 1).replace(/^ /, ""));
+          const [event] = field("event");
+          if (event) for (const notify of subscribers) notify({ event, data: field("data").join("\n") });
         }
-      }, 5000).unref();
-    });
-  }
-
-  function answers(): Promise<boolean> {
-    return new Promise((resolve) => {
-      const req = request(`${target}/`, { method: "GET", timeout: 2000 }, (res) => {
-        res.resume();
-        resolve((res.statusCode ?? 500) < 500);
-      });
-      req.on("error", () => resolve(false));
-      req.on("timeout", () => req.destroy());
-      req.end();
-    });
-  }
-
-  async function open(slug: string): Promise<void> {
-    if (current?.slug === slug && current.child.exitCode === null && (await answers())) return;
-    await stop();
-    const [bin, ...prefix] = config.hyperframes;
-    const child = spawn(
-      bin,
-      [...prefix, "preview", `videos/${slug}`, "--foreground", "--no-open", "--force-new", `--port=${config.previewPort}`],
-      { cwd: config.workspaceDir, detached: true, stdio: ["ignore", "inherit", "inherit"] },
-    );
-    current = { slug, child };
-    const deadline = Date.now() + config.readyTimeoutMs;
-    while (Date.now() < deadline) {
-      if (child.exitCode !== null) throw new Error(`hyperframes preview s'est arrêté (code ${child.exitCode})`);
-      if (await answers()) return;
-      await new Promise((resolve) => setTimeout(resolve, 300));
-    }
-    await stop();
-    throw new Error("Le Studio HyperFrames n'a pas démarré à temps");
-  }
-
-  function json(res: ServerResponse, status: number, body: unknown) {
-    res.writeHead(status, { "content-type": "application/json" });
-    res.end(JSON.stringify(body));
-  }
-
-  async function control(req: IncomingMessage, res: ServerResponse) {
-    const action = req.url!.slice(CONTROL.length).split("?")[0];
-    if (action === "status" && req.method === "GET") return json(res, 200, { slug: current?.slug ?? null });
-    if (config.token && req.headers.authorization !== `Bearer ${config.token}`) return json(res, 401, { message: "unauthorized" });
-    if (action === "open" && req.method === "POST") {
-      let raw = "";
-      for await (const chunk of req) raw += chunk;
-      const slug = (JSON.parse(raw || "{}") as { slug?: unknown }).slug;
-      if (typeof slug !== "string" || !SLUG.test(slug)) return json(res, 400, { message: "slug invalide" });
-      try {
-        await open(slug);
-        return json(res, 200, { slug });
-      } catch (error) {
-        return json(res, 503, { message: (error as Error).message });
       }
-    }
-    return json(res, 404, { message: "not found" });
+    })().catch(() => {
+      /* closed with its project, or the project's server went away: the page reconnects */
+    });
+    return abort;
   }
 
-  const server: Server = createServer((req, res) => {
-    if (req.url?.startsWith(CONTROL)) {
-      control(req, res).catch((error) => json(res, 500, { message: (error as Error).message }));
+  function open(slug: string) {
+    const known = studios.get(slug);
+    if (known) {
+      latest = known.server;
       return;
     }
-    if (!current) {
-      res.writeHead(503, { "content-type": "text/plain; charset=utf-8" });
-      res.end("Aucun projet ouvert : utilise « Ouvrir dans le Studio HyperFrames » depuis le studio.");
-      return;
+    const projectDir = join(config.workspaceDir, "videos", slug);
+    if (!existsSync(projectDir)) throw Object.assign(new Error(`Projet introuvable : videos/${slug}`), { status: 404 });
+    // Edit history (the Studio's undo across sessions) next to the projects, so it outlives a redeploy.
+    const historyRoot = join(config.workspaceDir, ".studio-history");
+    const server = config.createStudio({ projectDir, projectName: slug, historyRoot });
+    studios.set(slug, { server, follow: follow(server) });
+    latest = server;
+  }
+
+  /** Forwards to a project's server; HTML pages get the Framesmith layer. */
+  async function forward(c: Context, server: StudioServer) {
+    const response = await server.app.fetch(c.req.raw);
+    if (!response.headers.get("content-type")?.startsWith("text/html")) return response;
+    const html = (await response.text()).replace("</head>", `${OVERRIDES}</head>`);
+    const headers = new Headers(response.headers);
+    headers.delete("content-length");
+    return new Response(html, { status: response.status, headers });
+  }
+
+  const app = new Hono();
+
+  if (config.frameAncestors) {
+    app.use(async (c, next) => {
+      await next();
+      // A copy: a forwarded response's headers may be immutable.
+      c.res = new Response(c.res.body, c.res);
+      c.res.headers.delete("x-frame-options");
+      c.res.headers.set("content-security-policy", `frame-ancestors 'self' ${config.frameAncestors}`);
+    });
+  }
+
+  app.get("/__gateway/status", (c) => c.json({ slugs: [...studios.keys()] }));
+
+  app.post("/__gateway/open", async (c) => {
+    if (config.token && c.req.header("authorization") !== `Bearer ${config.token}`) {
+      return c.json({ message: "unauthorized" }, 401);
     }
-    proxy.web(req, res);
+    const slug = ((await c.req.json().catch(() => ({}))) as { slug?: unknown }).slug;
+    if (typeof slug !== "string" || !SLUG.test(slug)) return c.json({ message: "slug invalide" }, 400);
+    try {
+      open(slug);
+      return c.json({ slug });
+    } catch (error) {
+      const status = (error as { status?: number }).status === 404 ? 404 : 500;
+      return c.json({ message: (error as Error).message }, status);
+    }
   });
-  server.on("upgrade", (req, socket, head) => {
-    if (!current) return socket.destroy();
-    proxy.ws(req, socket, head);
+
+  for (const file of ["overrides.css", "overrides.js"]) {
+    const type = file.endsWith(".css") ? "text/css; charset=utf-8" : "text/javascript; charset=utf-8";
+    app.get(`/__framesmith/${file}`, (c) =>
+      c.body(readFileSync(join(config.overridesDir, file), "utf8"), 200, { "content-type": type, "cache-control": "no-cache" }),
+    );
+  }
+
+  app.get("/api/events", (c) =>
+    streamSSE(c, async (stream) => {
+      const notify = (event: StudioEvent) => void stream.writeSSE(event).catch(() => {});
+      subscribers.add(notify);
+      stream.onAbort(() => {
+        subscribers.delete(notify);
+      });
+      try {
+        while (!stream.aborted) await stream.sleep(30_000);
+      } finally {
+        subscribers.delete(notify);
+      }
+    }),
+  );
+
+  // The fallback project list, used when the hash names nothing: every opened project.
+  app.get("/api/projects", async (c) => {
+    const lists = await Promise.all(
+      [...studios.values()].map(async ({ server }) => {
+        const response = await server.app.fetch(new Request("http://studio/api/projects"));
+        return response.ok ? (((await response.json()) as { projects?: unknown[] }).projects ?? []) : [];
+      }),
+    );
+    return c.json({ projects: lists.flat() });
+  });
+
+  // "Edit with Framey" hands the project to HeyGen's desktop app, which a server has no use for: without this
+  // route the Studio leaves the button out.
+  app.all("/api/open-in-desktop", (c) => c.json({ error: "not available" }, 404));
+
+  app.all("/api/projects/:slug/*", (c) => routeToProject(c));
+  app.all("/api/projects/:slug", (c) => routeToProject(c));
+
+  function routeToProject(c: Context) {
+    const studio = studios.get(c.req.param("slug") ?? "");
+    if (!studio) return c.json({ error: "Projet non ouvert : rouvre le Studio depuis Framesmith." }, 404);
+    return forward(c, studio.server);
+  }
+
+  app.all("*", (c) => {
+    if (!latest) {
+      return c.text("Aucun projet ouvert : utilise « Ouvrir dans le Studio HyperFrames » depuis Framesmith.", 503);
+    }
+    return forward(c, latest);
   });
 
   return {
-    server,
-    open,
+    app,
     async close() {
-      await stop();
-      proxy.close();
-      await new Promise<void>((resolve) => server.close(() => resolve()));
+      const running = [...studios.values()];
+      studios.clear();
+      latest = null;
+      for (const { follow } of running) follow.abort();
+      await Promise.allSettled(running.map(({ server }) => server.shutdown()));
     },
   };
 }

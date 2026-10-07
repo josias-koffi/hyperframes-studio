@@ -1,6 +1,7 @@
 {
   "extends": "@studio/config/tsconfig/node",
-  "compilerOptions": { "rootDir": "src", "outDir": "dist" },
+  // node16 keeps `import()` as a real dynamic import: the HyperFrames CLI is ESM only (src/studio-cli.ts).
+  "compilerOptions": { "rootDir": "src", "outDir": "dist", "module": "node16", "moduleResolution": "node16" },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.test.ts"]
 }

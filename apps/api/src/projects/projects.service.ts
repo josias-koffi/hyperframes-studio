@@ -104,8 +104,8 @@ export class ProjectsService {
   }
 
   /**
-   * The editor runs in the hf-studio gateway (one project at a time) and writes to the same files as Claude:
-   * not while a step is generating.
+   * The editor runs in the hf-studio gateway (every opened project stays open) and writes to the same files as
+   * Claude: not while a step is generating. The Studio page picks its project from the URL hash.
    */
   async openStudio(id: string) {
     const project = await this.get(id);
@@ -124,6 +124,7 @@ export class ProjectsService {
       const detail = response ? ((await response.json().catch(() => null)) as { message?: string } | null)?.message : null;
       throw new BadGatewayException(detail ?? "Le service Studio HyperFrames (hf-studio) est injoignable.");
     }
-    return { url: process.env.HF_STUDIO_PUBLIC_URL?.trim() || base };
+    const publicUrl = (process.env.HF_STUDIO_PUBLIC_URL?.trim() || base).replace(/\/+$/, "");
+    return { url: `${publicUrl}/#project/${project.slug}` };
   }
 }
