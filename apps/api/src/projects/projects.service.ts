@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadGatewayException, ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { jobs, projects, type Database } from "@studio/db";
 import { nextStep } from "@studio/shared";
 import { and, desc, eq } from "drizzle-orm";
@@ -101,5 +101,29 @@ export class ProjectsService {
   async render(id: string, request: RenderRequest) {
     const project = await this.get(id);
     return this.jobs.enqueueRender({ projectId: id, slug: project.slug, ...request });
+  }
+
+  /**
+   * The editor runs in the hf-studio gateway (one project at a time) and writes to the same files as Claude:
+   * not while a step is generating.
+   */
+  async openStudio(id: string) {
+    const project = await this.get(id);
+    const last = await this.activeClaudeJob(id);
+    if (last && ["queued", "running"].includes(last.status)) {
+      throw new ConflictException("Claude travaille sur ce projet : attends la fin de l'étape pour ouvrir le Studio.");
+    }
+    const base = process.env.HF_STUDIO_URL?.trim() || "http://localhost:3344";
+    const token = process.env.HF_STUDIO_TOKEN?.trim();
+    const response = await fetch(`${base}/__gateway/open`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(token && { authorization: `Bearer ${token}` }) },
+      body: JSON.stringify({ slug: project.slug }),
+    }).catch(() => null);
+    if (!response?.ok) {
+      const detail = response ? ((await response.json().catch(() => null)) as { message?: string } | null)?.message : null;
+      throw new BadGatewayException(detail ?? "Le service Studio HyperFrames (hf-studio) est injoignable.");
+    }
+    return { url: process.env.HF_STUDIO_PUBLIC_URL?.trim() || base };
   }
 }

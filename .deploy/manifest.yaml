@@ -15,6 +15,7 @@ description: HyperFrames Studio — projets vidéo, templates, génération Clau
 server: vps20
 
 secrets:
+  - HF_STUDIO_TOKEN
   - DB_PASSWORD
   - CACHE_PASSWORD
   - MINIO_ROOT_USER
@@ -50,9 +51,21 @@ apps:
     healthcheck: /health
     uses: [db, cache]
     volumes: { workspace: /workspace }
-    vars: { WEB_URL: 'https://${domains.web}' }
-    secrets: [DB_PASSWORD, CACHE_PASSWORD, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD, POSTIZ_API_KEY]
+    vars:
+      WEB_URL: 'https://${domains.web}'
+      HF_STUDIO_URL: 'http://${app}${env == "production" ? "" : "-${env}"}-hf-studio:3000'
+      HF_STUDIO_PUBLIC_URL: 'https://${domains.preview}'
+    secrets: [DB_PASSWORD, CACHE_PASSWORD, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD, POSTIZ_API_KEY, HF_STUDIO_TOKEN]
     resources: { cpus: 1, memory: 1g }
+  # HyperFrames Studio editor (apps/hf-studio): one project at a time, opened by the API.
+  # TODO: no auth yet, like the rest of the app — protect this domain when authentication lands.
+  hf-studio:
+    image: ghcr.io/josias-koffi/studio-hf-studio
+    port: 3000
+    domain: preview
+    volumes: { workspace: /workspace }
+    secrets: [HF_STUDIO_TOKEN]
+    resources: { cpus: 2, memory: 3g }
   minio:
     image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
     port: 9000
@@ -86,9 +99,9 @@ environments:
   production:
     branch: main
     deploy: manual
-    domains: { web: studio.<domaine>, api: studio-api.<domaine>, files: studio-files.<domaine> }
+    domains: { web: studio.<domaine>, api: studio-api.<domaine>, files: studio-files.<domaine>, preview: studio-preview.<domaine> }
   staging:
     branch: develop
-    domains: { web: studio-staging.<domaine>, api: studio-api-staging.<domaine>, files: studio-files-staging.<domaine> }
+    domains: { web: studio-staging.<domaine>, api: studio-api-staging.<domaine>, files: studio-files-staging.<domaine>, preview: studio-preview-staging.<domaine> }
     # Staging shares the Claude subscription quota with production: no Claude jobs by default.
     vars: { CLAUDE_JOBS_ENABLED: "false" }

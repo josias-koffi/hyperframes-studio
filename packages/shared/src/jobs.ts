@@ -39,6 +39,8 @@ export const renderJobSchema = z.object({
   projectId: z.string().uuid(),
   slug: z.string().regex(/^[a-z0-9][a-z0-9-]{0,62}$/),
   format: z.enum(RENDER_FORMATS).default("mp4"),
+  /** Template render: the output is filed under the template, not under the source project's exports. */
+  templateId: z.string().uuid().optional(),
   /** Template instantiation: values keyed by variable id (`render --variables-file`). */
   variables: z.record(z.string(), z.unknown()).optional(),
   /** For `png`: timestamps (seconds) captured with `hyperframes snapshot --at`. */

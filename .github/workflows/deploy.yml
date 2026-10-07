@@ -76,6 +76,8 @@ jobs:
             dockerfile: docker/claude-runner.Dockerfile
           - service: studio-render-worker
             dockerfile: docker/render-worker.Dockerfile
+          - service: studio-hf-studio
+            dockerfile: docker/hf-studio.Dockerfile
     steps:
       - uses: actions/checkout@v4
       - uses: docker/login-action@v3

@@ -57,5 +57,6 @@ USER node
 RUN hyperframes browser ensure \
     && hyperframes skills update hyperframes hyperframes-core hyperframes-animation hyperframes-creative \
        hyperframes-cli hyperframes-keyframes hyperframes-audio hyperframes-registry media-use \
-       product-launch-video faceless-explainer motion-graphics music-to-video general-video
+       product-launch-video faceless-explainer motion-graphics music-to-video general-video \
+       embedded-captions talking-head-recut
 CMD ["node", "apps/claude-runner/dist/main.js"]

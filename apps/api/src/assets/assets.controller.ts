@@ -1,6 +1,18 @@
 import { randomUUID } from "node:crypto";
-import { Body, Controller, Get, Inject, NotFoundException, Param, ParseUUIDPipe, Post, Query } from "@nestjs/common";
-import { assets, type Database } from "@studio/db";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Inject,
+  NotFoundException,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+} from "@nestjs/common";
+import { assets, projects, type Database } from "@studio/db";
 import { sanitizeFilename, storageKeys, type Storage } from "@studio/storage";
 import { desc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
@@ -21,6 +33,8 @@ const uploadSchema = z.object({
 });
 type UploadRequest = z.infer<typeof uploadSchema>;
 
+const attachSchema = z.object({ projectId: z.string().uuid() });
+
 @Controller("assets")
 export class AssetsController {
   constructor(
@@ -28,11 +42,18 @@ export class AssetsController {
     @Inject(STORAGE) private readonly storage: Storage,
   ) {}
 
-  /** Lists a project's assets, or the shared library without `projectId`. */
+  private async find(id: string) {
+    const [row] = await this.db.select().from(assets).where(eq(assets.id, id));
+    if (!row) throw new NotFoundException();
+    return row;
+  }
+
+  /** Lists a project's assets, or the shared library without `projectId`, each with a preview URL. */
   @Get()
-  list(@Query("projectId") projectId?: string) {
+  async list(@Query("projectId") projectId?: string) {
     const where = projectId ? eq(assets.projectId, projectId) : isNull(assets.projectId);
-    return this.db.select().from(assets).where(where).orderBy(desc(assets.createdAt));
+    const rows = await this.db.select().from(assets).where(where).orderBy(desc(assets.createdAt));
+    return Promise.all(rows.map(async (row) => ({ ...row, url: await this.storage.presignDownload(row.storageKey) })));
   }
 
   /** Registers the asset and returns a presigned PUT: the browser uploads straight to MinIO. */
@@ -49,10 +70,43 @@ export class AssetsController {
     return { asset: row, uploadUrl };
   }
 
+  /** Copies a library asset into a project: the runner syncs project assets to `assets/uploads/`. */
+  @Post(":id/attach")
+  async attach(@Param("id", ParseUUIDPipe) id: string, @Body(new ZodPipe(attachSchema)) body: z.infer<typeof attachSchema>) {
+    const source = await this.find(id);
+    const [project] = await this.db.select({ id: projects.id }).from(projects).where(eq(projects.id, body.projectId));
+    if (!project) throw new NotFoundException("project not found");
+    const copyId = randomUUID();
+    const storageKey = storageKeys.asset(copyId, source.filename);
+    await this.storage.copy(source.storageKey, storageKey);
+    const [row] = await this.db
+      .insert(assets)
+      .values({
+        id: copyId,
+        projectId: body.projectId,
+        kind: source.kind,
+        filename: source.filename,
+        storageKey,
+        contentType: source.contentType,
+        size: source.size,
+        tags: source.tags,
+      })
+      .returning();
+    return row;
+  }
+
   @Get(":id/url")
   async url(@Param("id", ParseUUIDPipe) id: string) {
-    const [row] = await this.db.select().from(assets).where(eq(assets.id, id));
-    if (!row) throw new NotFoundException();
+    const row = await this.find(id);
     return { url: await this.storage.presignDownload(row.storageKey) };
+  }
+
+  /** Removes the object and its row. A copy already synced into a video folder stays there. */
+  @Delete(":id")
+  @HttpCode(204)
+  async remove(@Param("id", ParseUUIDPipe) id: string) {
+    const row = await this.find(id);
+    await this.storage.delete(row.storageKey);
+    await this.db.delete(assets).where(eq(assets.id, id));
   }
 }

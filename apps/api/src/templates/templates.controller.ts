@@ -11,7 +11,8 @@ import {
   ParseUUIDPipe,
   Post,
 } from "@nestjs/common";
-import { templates, type Database } from "@studio/db";
+import { renders, templates, type Database } from "@studio/db";
+import type { Storage } from "@studio/storage";
 import {
   parseCompositionVariables,
   RENDER_FORMATS,
@@ -24,6 +25,8 @@ import { z } from "zod";
 import { DATABASE } from "../database/database.module";
 import { JobsService } from "../jobs/jobs.service";
 import { ProjectsService } from "../projects/projects.service";
+import { listRenders } from "../renders/renders.controller";
+import { STORAGE } from "../storage/storage.module";
 import { ZodPipe } from "../shared/zod.pipe";
 
 const createSchema = z.object({
@@ -44,11 +47,30 @@ export class TemplatesController {
     @Inject(DATABASE) private readonly db: Database,
     @Inject(ProjectsService) private readonly projects: ProjectsService,
     @Inject(JobsService) private readonly jobs: JobsService,
+    @Inject(STORAGE) private readonly storage: Storage,
   ) {}
 
   @Get()
   list() {
     return this.db.select().from(templates).orderBy(desc(templates.updatedAt));
+  }
+
+  @Get(":id")
+  async get(@Param("id", ParseUUIDPipe) id: string) {
+    const [template] = await this.db.select().from(templates).where(eq(templates.id, id));
+    if (!template) throw new NotFoundException();
+    return template;
+  }
+
+  /** What this template produced: kept apart from the source project's exports. */
+  @Get(":id/renders")
+  renders(@Param("id", ParseUUIDPipe) id: string) {
+    return listRenders(this.db, this.storage, eq(renders.templateId, id));
+  }
+
+  @Get(":id/jobs")
+  jobsList(@Param("id", ParseUUIDPipe) id: string) {
+    return this.jobs.listForTemplate(id);
   }
 
   /** Saves a project as a template: its form is the composition's `data-composition-variables`. */
@@ -80,6 +102,6 @@ export class TemplatesController {
     const errors = validateVariableValues(template.variables as CompositionVariable[], body.variables);
     if (errors.length) throw new BadRequestException({ message: "Variables invalides", errors });
     const project = await this.projects.get(template.projectId);
-    return this.jobs.enqueueRender({ projectId: project.id, slug: project.slug, ...body });
+    return this.jobs.enqueueRender({ projectId: project.id, slug: project.slug, templateId: template.id, ...body });
   }
 }

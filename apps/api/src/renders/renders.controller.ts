@@ -1,7 +1,7 @@
 import { Controller, Get, Inject, Param, ParseUUIDPipe } from "@nestjs/common";
 import { renders, type Database } from "@studio/db";
 import type { Storage } from "@studio/storage";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull, type SQL } from "drizzle-orm";
 import { DATABASE } from "../database/database.module";
 import { STORAGE } from "../storage/storage.module";
 
@@ -12,15 +12,19 @@ export class RendersController {
     @Inject(STORAGE) private readonly storage: Storage,
   ) {}
 
-  /** Renders of a project, each file with a short-lived download URL. */
+  /** Renders of a project (template renders excluded: they live on their template), each file with a short-lived download URL. */
   @Get()
-  async list(@Param("projectId", ParseUUIDPipe) projectId: string) {
-    const rows = await this.db.select().from(renders).where(eq(renders.projectId, projectId)).orderBy(desc(renders.createdAt));
-    return Promise.all(
-      rows.map(async (row) => ({
-        ...row,
-        urls: await Promise.all(row.storageKeys.map((key) => this.storage.presignDownload(key))),
-      })),
-    );
+  list(@Param("projectId", ParseUUIDPipe) projectId: string) {
+    return listRenders(this.db, this.storage, and(eq(renders.projectId, projectId), isNull(renders.templateId))!);
   }
+}
+
+export async function listRenders(db: Database, storage: Storage, where: SQL) {
+  const rows = await db.select().from(renders).where(where).orderBy(desc(renders.createdAt));
+  return Promise.all(
+    rows.map(async (row) => ({
+      ...row,
+      urls: await Promise.all(row.storageKeys.map((key) => storage.presignDownload(key))),
+    })),
+  );
 }

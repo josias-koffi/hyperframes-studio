@@ -4,7 +4,9 @@ import { dirname } from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import {
+  CopyObjectCommand,
   CreateBucketCommand,
+  DeleteObjectCommand,
   GetObjectCommand,
   HeadBucketCommand,
   PutObjectCommand,
@@ -74,6 +76,14 @@ export function createStorage(config: StorageConfig = resolveStorageConfig()) {
       if (!response.Body) throw new Error(`empty object ${key}`);
       await mkdir(dirname(path), { recursive: true });
       await pipeline(response.Body as Readable, createWriteStream(path));
+    },
+
+    async copy(fromKey: string, toKey: string): Promise<void> {
+      await s3.send(new CopyObjectCommand({ Bucket, Key: toKey, CopySource: `${Bucket}/${encodeURIComponent(fromKey).replace(/%2F/g, "/")}` }));
+    },
+
+    async delete(key: string): Promise<void> {
+      await s3.send(new DeleteObjectCommand({ Bucket, Key: key }));
     },
 
     presignUpload(key: string, contentType: string, expiresIn = 900): Promise<string> {

@@ -5,7 +5,15 @@ export const createProjectSchema = z.object({
   name: z.string().min(1).max(120),
   slug: z.string().regex(/^[a-z0-9][a-z0-9-]{0,62}$/, "lettres minuscules, chiffres et tirets"),
   workflow: z
-    .enum(["product-launch-video", "faceless-explainer", "motion-graphics", "music-to-video", "general-video"])
+    .enum([
+      "product-launch-video",
+      "faceless-explainer",
+      "motion-graphics",
+      "music-to-video",
+      "general-video",
+      "embedded-captions",
+      "talking-head-recut",
+    ])
     .default("general-video"),
   brandId: z.string().uuid().optional(),
   brief: z.record(z.string(), z.unknown()).default({}),

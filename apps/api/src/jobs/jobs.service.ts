@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { jobEvents, jobs, type Database } from "@studio/db";
 import type { ClaudeJob, RenderJob } from "@studio/shared";
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { DATABASE } from "../database/database.module";
 import { QueuesService } from "../queues/queues.module";
 
@@ -26,7 +26,7 @@ export class JobsService {
 
   async enqueueRender(input: Omit<RenderJob, "jobId">) {
     const jobId = randomUUID();
-    const [row] = await this.db.insert(jobs).values({ id: jobId, projectId: input.projectId, kind: "render", input }).returning();
+    const [row] = await this.db.insert(jobs).values({ id: jobId, projectId: input.projectId, templateId: input.templateId ?? null, kind: "render", input }).returning();
     await this.queues.render.add(input.format, { ...input, jobId }, { jobId });
     return row;
   }
@@ -37,8 +37,18 @@ export class JobsService {
     return row;
   }
 
+  /** The project's own jobs: template renders live on their template. */
   listForProject(projectId: string) {
-    return this.db.select().from(jobs).where(eq(jobs.projectId, projectId)).orderBy(desc(jobs.createdAt)).limit(100);
+    return this.db
+      .select()
+      .from(jobs)
+      .where(and(eq(jobs.projectId, projectId), isNull(jobs.templateId)))
+      .orderBy(desc(jobs.createdAt))
+      .limit(100);
+  }
+
+  listForTemplate(templateId: string) {
+    return this.db.select().from(jobs).where(eq(jobs.templateId, templateId)).orderBy(desc(jobs.createdAt)).limit(50);
   }
 
   events(jobId: string) {

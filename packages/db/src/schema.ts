@@ -100,6 +100,8 @@ export const jobs = pgTable(
       .references(() => projects.id, { onDelete: "cascade" }),
     kind: jobKind("kind").notNull(),
     step: generationStep("step"),
+    /** Set on a template render: the job belongs to the template, not to its source project's exports. */
+    templateId: uuid("template_id").references(() => templates.id, { onDelete: "set null" }),
     status: jobStatus("status").notNull().default("queued"),
     /** The enqueued payload (ClaudeJob or RenderJob). */
     input: jsonb("input").$type<Record<string, unknown>>().notNull(),

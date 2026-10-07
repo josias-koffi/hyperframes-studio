@@ -69,6 +69,7 @@ async function processRender(job: RenderJob, deps: { db: Database; storage: Stor
       id: renderId,
       projectId: job.projectId,
       jobId: job.jobId,
+      templateId: job.templateId ?? null,
       format: job.format,
       variables: job.variables ?? null,
       storageKeys: keys,

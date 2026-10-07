@@ -80,6 +80,12 @@ export class ProjectsController {
     return this.projects.feedback(id, body.text);
   }
 
+  /** Opens the project in the HyperFrames Studio editor and returns where to find it. */
+  @Post(":id/studio")
+  studio(@Param("id", ParseUUIDPipe) id: string) {
+    return this.projects.openStudio(id);
+  }
+
   @Post(":id/renders")
   render(@Param("id", ParseUUIDPipe) id: string, @Body(new ZodPipe(renderRequestSchema)) body: RenderRequest) {
     return this.projects.render(id, body);
