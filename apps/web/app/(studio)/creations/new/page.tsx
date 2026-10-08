@@ -1,4 +1,5 @@
 import { CREATION_KINDS, CREATION_TYPES } from "@studio/shared/browser";
+import { SparklesIcon } from "lucide-react";
 import type { Metadata } from "next";
 import { NewCreationForm } from "@/components/creation/new-creation-form";
 import { PageHeader } from "@/components/layout/page-header";
@@ -18,17 +19,21 @@ export default async function NewCreationPage({ searchParams }: PageProps<"/crea
   return (
     <>
       <PageHeader
-        title={project ? `Nouvelle création · ${project.name}` : "Nouvelle création"}
+        eyebrow={
+          <p className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-primary uppercase">
+            <SparklesIcon className="size-3.5" />
+            {project ? project.name : "Création guidée"}
+          </p>
+        }
+        title="Nouvelle création"
         description="Une vidéo, un carrousel ou une image : décris-la, Claude rédige le brief et prépare le plan, que tu valides avant la composition."
       />
-      <div className="mx-auto w-full max-w-4xl px-4 lg:px-6">
-        <NewCreationForm
-          projects={projects.map(({ id, name }) => ({ id, name }))}
-          initialProjectId={project?.id}
-          initialType={type}
-          initialKind={kind}
-        />
-      </div>
+      <NewCreationForm
+        projects={projects.map(({ id, name }) => ({ id, name }))}
+        initialProjectId={project?.id}
+        initialType={type}
+        initialKind={kind}
+      />
     </>
   );
 }
