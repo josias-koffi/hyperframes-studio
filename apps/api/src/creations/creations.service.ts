@@ -26,6 +26,7 @@ export type Creation = typeof creations.$inferSelect;
 
 const ACTIVE = ["queued", "running"];
 const STILLS: RenderFormat[] = ["png", "pdf"];
+const CLIPS: RenderFormat[] = ["mp4", "webm", "mov"];
 
 export type CreationFilter = { projectId?: string; type?: CreationType; kind?: CreationKind };
 
@@ -39,7 +40,8 @@ export class CreationsService {
 
   /**
    * Créations with where they stand: newest Claude and render jobs, how many exports and iterations, a cover
-   * image (first still of the newest PNG or carousel render) and, for a template, how many variables it has.
+   * (first still of the newest PNG or carousel render, else the newest video render, played muted by the card) and,
+   * for a template, how many variables it has.
    */
   async list(filter: CreationFilter = {}) {
     const conditions = [
@@ -62,7 +64,13 @@ export class CreationsService {
         .from(jobs)
         .where(and(inArray(jobs.creationId, ids), eq(jobs.kind, kind), isNull(jobs.iterationId)))
         .orderBy(jobs.creationId, desc(jobs.createdAt));
-    const [claudeJobs, renderJobs, renderCounts, iterationCounts, stills] = await Promise.all([
+    const newestRender = (formats: RenderFormat[]) =>
+      this.db
+        .selectDistinctOn([renders.creationId], { creationId: renders.creationId, keys: renders.storageKeys })
+        .from(renders)
+        .where(and(inArray(renders.creationId, ids), inArray(renders.format, formats)))
+        .orderBy(renders.creationId, desc(renders.createdAt));
+    const [claudeJobs, renderJobs, renderCounts, iterationCounts, stills, clips] = await Promise.all([
       latestJob("claude"),
       latestJob("render"),
       this.db
@@ -71,11 +79,8 @@ export class CreationsService {
         .where(and(inArray(renders.creationId, ids), isNull(renders.iterationId)))
         .groupBy(renders.creationId),
       this.db.select({ creationId: iterations.creationId, total: count() }).from(iterations).where(inArray(iterations.creationId, ids)).groupBy(iterations.creationId),
-      this.db
-        .selectDistinctOn([renders.creationId], { creationId: renders.creationId, keys: renders.storageKeys })
-        .from(renders)
-        .where(and(inArray(renders.creationId, ids), inArray(renders.format, STILLS)))
-        .orderBy(renders.creationId, desc(renders.createdAt)),
+      newestRender(STILLS),
+      newestRender(CLIPS),
     ]);
     const byCreation = <T extends { creationId: string }>(list: T[]) => new Map(list.map((item) => [item.creationId, item]));
     const claude = byCreation(claudeJobs);
@@ -83,11 +88,13 @@ export class CreationsService {
     const renderCount = byCreation(renderCounts);
     const iterationCount = byCreation(iterationCounts);
     const still = byCreation(stills);
+    const clip = byCreation(clips);
     const workspace = resolveWorkspaceDir();
 
     return Promise.all(
       rows.map(async ({ creation, projectName }) => {
-        const coverKey = still.get(creation.id)?.keys.find((key) => key.endsWith(".png"));
+        const stillKey = still.get(creation.id)?.keys.find((key) => key.endsWith(".png"));
+        const clipKey = stillKey ? undefined : clip.get(creation.id)?.keys[0];
         let variableCount: number | null = null;
         if (creation.kind === "template") {
           const { proposed, declared } = await readCreationVariables(workspace, creation.slug);
@@ -101,7 +108,11 @@ export class CreationsService {
           renderCount: renderCount.get(creation.id)?.total ?? 0,
           iterationCount: iterationCount.get(creation.id)?.total ?? 0,
           variableCount,
-          cover: coverKey ? await this.storage.presignDownload(coverKey) : null,
+          cover: stillKey
+            ? { url: await this.storage.presignDownload(stillKey), kind: "image" as const }
+            : clipKey
+              ? { url: await this.storage.presignDownload(clipKey), kind: "video" as const }
+              : null,
         };
       }),
     );

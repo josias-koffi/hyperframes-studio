@@ -17,7 +17,7 @@ export function summarize(items: CreationItem[]) {
     templateCount: items.filter((item) => item.kind === "template").length,
     reviewCount: items.filter((item) => item.lastClaudeJob?.status === "waiting_review").length,
     runningCount: items.filter((item) => ["queued", "running"].includes(item.lastClaudeJob?.status ?? "")).length,
-    covers: items.map((item) => item.cover).filter((cover): cover is string => cover !== null).slice(0, 3),
+    covers: items.map((item) => item.cover).filter((cover) => cover !== null).slice(0, 3),
   };
 }
 

@@ -25,8 +25,8 @@ export type ProjectListItem = Project & {
   templateCount: number;
   reviewCount: number;
   runningCount: number;
-  /** First images of its stills, for the card. */
-  covers: string[];
+  /** Covers of its first créations, for the card. */
+  covers: Cover[];
   activityAt: string;
 };
 
@@ -58,8 +58,11 @@ export type CreationListItem = Creation & {
   renderCount: number;
   iterationCount: number;
   variableCount: number | null;
-  cover: string | null;
+  cover: Cover | null;
 };
+
+/** What a card shows of a création: its newest still, else its newest video render. */
+export type Cover = { url: string; kind: "image" | "video" };
 
 export type Job = {
   id: string;

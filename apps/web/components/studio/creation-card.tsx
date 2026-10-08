@@ -1,5 +1,5 @@
 import { aspectOf, CREATION_TYPES, type CreationType } from "@studio/shared/browser";
-import { LayersIcon } from "lucide-react";
+import { LayersIcon, RepeatIcon, VariableIcon } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { creationHref, projectHref } from "@/lib/creation-state";
 import { formatRelative } from "@/lib/format";
 import type { CreationOverview } from "@/lib/overview";
 import { cn } from "@/lib/utils";
+import { CoverMedia } from "./cover-media";
 import { CREATION_TYPE_META, formatSummary } from "./labels";
 import { MiniStepper, PhaseBadge } from "./status-badge";
 
@@ -20,8 +21,7 @@ function Cover({ creation }: { creation: CreationOverview }) {
     <div className="flex h-40 items-center justify-center overflow-hidden bg-muted/60 p-3">
       <div className={cn("flex max-h-full max-w-full items-center justify-center overflow-hidden rounded-md border bg-card shadow-surface", ratio)}>
         {creation.cover ? (
-          // eslint-disable-next-line @next/next/no-img-element -- render served from storage
-          <img src={creation.cover} alt="" className="size-full object-cover" />
+          <CoverMedia cover={creation.cover} />
         ) : (
           <Icon className="size-6 text-muted-foreground/60" />
         )}
@@ -50,6 +50,18 @@ export function CreationCard({ creation, index = 0, showProject }: { creation: C
             {showProject ? `${creation.projectName} · ` : ""}
             {formatRelative(creation.updatedAt)}
           </CardDescription>
+          {creation.kind === "template" && (
+            <p className="flex items-center gap-3 pt-1 text-xs text-muted-foreground tabular-nums">
+              <span className="flex items-center gap-1" title="Variables">
+                <VariableIcon className="size-3.5" />
+                {creation.variableCount ?? "—"} variable{(creation.variableCount ?? 0) > 1 ? "s" : ""}
+              </span>
+              <span className="flex items-center gap-1" title="Itérations">
+                <RepeatIcon className="size-3.5" />
+                {creation.iterationCount} itération{creation.iterationCount > 1 ? "s" : ""}
+              </span>
+            </p>
+          )}
         </CardHeader>
         <CardContent className="flex items-center justify-between gap-2 px-4 pt-2 pb-4">
           <MiniStepper steps={creation.state.steps} />
@@ -86,8 +98,7 @@ export function ProjectCard({ project, index = 0 }: { project: ProjectListItem; 
         <div className="grid h-32 grid-cols-3 grid-rows-1 gap-1 bg-muted/60 p-2">
           {[0, 1, 2].map((slot) =>
             project.covers[slot] ? (
-              // eslint-disable-next-line @next/next/no-img-element -- render served from storage
-              <img key={slot} src={project.covers[slot]} alt="" className="size-full min-h-0 rounded-md border object-cover" />
+              <CoverMedia key={slot} cover={project.covers[slot]} className="min-h-0 overflow-hidden rounded-md border" />
             ) : (
               <span key={slot} className="rounded-md border border-dashed bg-card/50" />
             ),
