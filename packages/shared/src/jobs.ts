@@ -67,6 +67,11 @@ export const claudeJobSchema = z.preprocess(
     feedback: z.string().max(10_000).optional(),
     /** Claude Code session to resume (`--resume`). */
     resumeSessionId: z.string().optional(),
+    /**
+     * `edit`: a change asked from the editor on a built création. It ends `succeeded`, with no review and no next
+     * step, and the manual edits made before it get their own commit.
+     */
+    mode: z.enum(["edit"]).optional(),
   }),
 );
 export type ClaudeJob = z.infer<typeof claudeJobSchema>;

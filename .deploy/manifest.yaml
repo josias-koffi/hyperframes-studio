@@ -54,19 +54,14 @@ apps:
     vars:
       WEB_URL: 'https://${domains.web}'
       HF_STUDIO_URL: 'http://${app}${env == "production" ? "" : "-${env}"}-hf-studio:3000'
-      HF_STUDIO_PUBLIC_URL: 'https://${domains.preview}'
     secrets: [DB_PASSWORD, CACHE_PASSWORD, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD, POSTIZ_API_KEY, HF_STUDIO_TOKEN]
     resources: { cpus: 1, memory: 1g }
-  # HyperFrames Studio editor (apps/hf-studio): every project opened by the API, in process; framed by the web
-  # app (/projects/<id>/studio).
-  # TODO: no auth yet, like the rest of the app — protect this domain when authentication lands.
+  # HyperFrames engine behind the Framesmith editor (apps/hf-studio): preview, file mutations, thumbnails of every
+  # project the API opens, in process. Internal only: the browser reaches it through the API (/creations/<id>/engine).
   hf-studio:
     image: ghcr.io/josias-koffi/studio-hf-studio
     port: 3000
-    domain: preview
     volumes: { workspace: /workspace }
-    vars:
-      HF_STUDIO_FRAME_ANCESTORS: 'https://${domains.web}'
     secrets: [HF_STUDIO_TOKEN]
     resources: { cpus: 2, memory: 3g }
   minio:
@@ -102,9 +97,9 @@ environments:
   production:
     branch: main
     deploy: manual
-    domains: { web: studio.<domaine>, api: studio-api.<domaine>, files: studio-files.<domaine>, preview: studio-preview.<domaine> }
+    domains: { web: studio.<domaine>, api: studio-api.<domaine>, files: studio-files.<domaine> }
   staging:
     branch: develop
-    domains: { web: studio-staging.<domaine>, api: studio-api-staging.<domaine>, files: studio-files-staging.<domaine>, preview: studio-preview-staging.<domaine> }
+    domains: { web: studio-staging.<domaine>, api: studio-api-staging.<domaine>, files: studio-files-staging.<domaine> }
     # Staging shares the Claude subscription quota with production: no Claude jobs by default.
     vars: { CLAUDE_JOBS_ENABLED: "false" }

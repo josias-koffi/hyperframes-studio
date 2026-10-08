@@ -9,3 +9,6 @@ storyboard, pas de voix, pas de musique : le studio la capture en PNG.
   `data-width="{{width}}"` et `data-height="{{height}}"`, avec un fond opaque. Le studio la capture à `0.5`
   seconde : tout doit y être en place et immobile. Prends le snapshot de contrôle à `0.5`. Les avertissements de
   `check` sur l'absence de mouvement sont acceptables.
+- Éditable : l'utilisateur retouche ensuite chaque élément à la main dans l'éditeur (calques, propriétés). Chaque
+  texte, image, logo ou forme est un élément à part, nommé en français par `data-layer` (« Titre », « Logo »…),
+  positionné en absolu dans la racine ; les textes restent du texte, les images des `<img>`.

@@ -115,10 +115,20 @@ export function stepReached(creation: StateCreation, state: Pick<CreationState, 
   return index < current || (index === current && (state.phase === "review" || state.phase === "done"));
 }
 
-/** Why the Studio HyperFrames cannot be opened right now, or null when it can. */
+/** Why the editor cannot be opened right now, or null when it can. */
 export function studioBlockedReason(creation: StateCreation, state: Pick<CreationState, "phase">) {
   if (state.phase === "running") return "Claude travaille sur cette création : attends la fin de l'étape.";
-  if (!stepReached(creation, state, "build")) return "Disponible une fois le build terminé.";
+  return editorBlockedReason(creation, state);
+}
+
+/**
+ * Why the editor page has nothing to show. Unlike the button, it opens while Claude works on a change asked
+ * from the editor: it shows the change in progress and waits.
+ */
+export function editorBlockedReason(creation: StateCreation, state: Pick<CreationState, "phase">) {
+  if (!stepReached(creation, state, "build") && !(creation.currentStep === "build" && state.phase === "running")) {
+    return "Disponible une fois le build terminé.";
+  }
   return null;
 }
 

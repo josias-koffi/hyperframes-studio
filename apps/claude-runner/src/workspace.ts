@@ -3,12 +3,14 @@ import { cp, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises"
 import { join } from "node:path";
 import { promisify } from "node:util";
 import {
+  commitCheckpoint,
   compositionVariablesSchema,
   diffVariables,
   parseCompositionVariables,
   type CreationType,
   type GenerationStep,
   type VariablesDiff,
+  workspaceGit,
 } from "@studio/shared";
 
 const exec = promisify(execFile);
@@ -59,9 +61,9 @@ export async function syncWorkspaceSkeleton(skeletonDir: string, workspaceDir: s
   }
 }
 
-function git(cwd: string, ...args: string[]) {
-  return exec("git", ["-c", "user.name=Studio", "-c", "user.email=studio@localhost", ...args], { cwd });
-}
+const git = workspaceGit;
+
+export { commitCheckpoint };
 
 /**
  * Creates `videos/<slug>` with the workspace's own scaffolding script (`hyperframes init`), sized to the
@@ -91,14 +93,6 @@ export function setCanvasSize(html: string, width: number, height: number): stri
     .replace(/(html\s*,\s*body\s*\{[^}]*?height:\s*)\d+px([^}]*?width:\s*)\d+px/i, `$1${height}px$2${width}px`)
     .replace(/(<meta[^>]*name=["']viewport["'][^>]*content=["']width=)\d+(,\s*height=)\d+/i, `$1${width}$2${height}`)
     .replace(/\s+data-resolution=["'][^"']*["']/, "");
-}
-
-/** One commit per finished step: every checkpoint can be compared or rolled back. */
-export async function commitCheckpoint(workspaceDir: string, slug: string, message: string): Promise<void> {
-  await git(workspaceDir, "add", "--all", "--", `videos/${slug}`);
-  const { stdout } = await git(workspaceDir, "status", "--porcelain", "--", `videos/${slug}`);
-  if (!stdout.trim()) return;
-  await git(workspaceDir, "commit", "-q", "-m", message);
 }
 
 /** Files a step must leave in `videos/<slug>`: Claude can report success after a refused write. */

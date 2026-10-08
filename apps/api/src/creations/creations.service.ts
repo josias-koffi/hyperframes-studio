@@ -1,6 +1,6 @@
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
-import { BadGatewayException, BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { assets, creations, iterations, jobs, projects, renders, type Database } from "@studio/db";
 import {
   allowedFormats,
@@ -336,28 +336,9 @@ export class CreationsService {
     });
   }
 
-  /**
-   * The editor runs in the hf-studio gateway (every opened création stays open) and writes to the same files
-   * as Claude: not while a step is generating. The Studio page picks its folder from the URL hash.
-   */
-  async openStudio(id: string) {
-    const creation = await this.get(id);
-    const last = await this.lastClaudeJob(id);
-    if (last && ACTIVE.includes(last.status)) {
-      throw new ConflictException("Claude travaille sur cette création : attends la fin de l'étape pour ouvrir le Studio.");
-    }
-    const base = process.env.HF_STUDIO_URL?.trim() || "http://localhost:3344";
-    const token = process.env.HF_STUDIO_TOKEN?.trim();
-    const response = await fetch(`${base}/__gateway/open`, {
-      method: "POST",
-      headers: { "content-type": "application/json", ...(token && { authorization: `Bearer ${token}` }) },
-      body: JSON.stringify({ slug: creation.slug }),
-    }).catch(() => null);
-    if (!response?.ok) {
-      const detail = response ? ((await response.json().catch(() => null)) as { message?: string } | null)?.message : null;
-      throw new BadGatewayException(detail ?? "Le service Studio HyperFrames (hf-studio) est injoignable.");
-    }
-    const publicUrl = (process.env.HF_STUDIO_PUBLIC_URL?.trim() || base).replace(/\/+$/, "");
-    return { url: `${publicUrl}/#project/${creation.slug}` };
+  /** After the editor added or removed slides: the deliverable is captured once per slide. */
+  async setSlideCount(id: string, slideCount: number) {
+    const [row] = await this.db.update(creations).set({ slideCount, updatedAt: new Date() }).where(eq(creations.id, id)).returning();
+    return row;
   }
 }

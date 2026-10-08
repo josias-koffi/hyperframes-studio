@@ -20,7 +20,8 @@ RUN pnpm --filter @studio/api... build
 
 FROM node:22-alpine AS runner
 WORKDIR /repo
-RUN corepack enable
+# git: the editor commits manual edits to the workspace repository (one checkpoint per editing session).
+RUN apk add --no-cache git && corepack enable
 ENV NODE_ENV=production
 COPY --from=deps /repo/package.json /repo/pnpm-lock.yaml /repo/pnpm-workspace.yaml ./
 COPY --from=deps /repo/packages/config/package.json packages/config/package.json

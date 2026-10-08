@@ -13,3 +13,6 @@ Instagram. Le studio en tire une image PNG par slide et un PDF qui les assemble.
   doit y être en place et immobile (une éventuelle animation d'entrée se termine avant `n + 0.4`). Garde le texte
   dans les marges de sécurité et une identité visuelle commune à toutes les slides. Prends les snapshots de contrôle
   à `0.5,1.5,…` jusqu'à la dernière slide. Les avertissements de `check` sur l'absence de mouvement sont acceptables.
+- Éditable : l'utilisateur retouche ensuite chaque élément à la main dans l'éditeur (calques, propriétés). Chaque
+  texte, image, logo ou forme est un élément à part, nommé en français par `data-layer` (« Titre », « Logo »…),
+  positionné en absolu dans sa slide ; les textes restent du texte, les images des `<img>`.

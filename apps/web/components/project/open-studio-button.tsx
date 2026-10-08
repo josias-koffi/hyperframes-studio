@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 /**
- * Leads to the project's Studio HyperFrames page (timeline, captions, keyframes…), and back out of it.
+ * Leads to the création's editor (video editor, or image and carousel editor), and back out of it.
  */
 export function OpenStudioButton({ base, disabledReason }: { base: string; disabledReason: string | null }) {
   const pathname = usePathname();
@@ -17,7 +17,7 @@ export function OpenStudioButton({ base, disabledReason }: { base: string; disab
       <Button variant="outline" asChild>
         <Link href={base}>
           <ArrowLeftIcon />
-          Fermer le Studio
+          Fermer l&apos;éditeur
         </Link>
       </Button>
     );
@@ -31,20 +31,20 @@ export function OpenStudioButton({ base, disabledReason }: { base: string; disab
           {disabledReason ? (
             <Button variant="outline" disabled>
               <PencilRulerIcon />
-              Ouvrir dans le Studio HyperFrames
+              Éditer
             </Button>
           ) : (
             <Button variant="outline" asChild>
               <Link href={`${base}/studio`}>
                 <PencilRulerIcon />
-                Ouvrir dans le Studio HyperFrames
+                Éditer
               </Link>
             </Button>
           )}
         </span>
       </TooltipTrigger>
       <TooltipContent className="max-w-72">
-        {disabledReason ?? "L'éditeur complet : timeline, textes, animations. Tes modifications seront dans le prochain rendu."}
+        {disabledReason ?? "Retouche tout à la main ou demande à Claude. Tes modifications seront dans le prochain export."}
       </TooltipContent>
     </Tooltip>
   );

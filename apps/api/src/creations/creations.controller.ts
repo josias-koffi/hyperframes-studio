@@ -107,12 +107,6 @@ export class CreationsController {
     return this.creations.feedback(id, body.text);
   }
 
-  /** Opens the création in the HyperFrames Studio editor and returns where to find it. */
-  @Post(":id/studio")
-  studio(@Param("id", ParseUUIDPipe) id: string) {
-    return this.creations.openStudio(id);
-  }
-
   /** The création's exports (iteration renders excluded: they live on their iteration), with download URLs. */
   @Get(":id/renders")
   renders(@Param("id", ParseUUIDPipe) id: string) {

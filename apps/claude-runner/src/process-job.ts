@@ -67,6 +67,8 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
       return;
     }
 
+    if (job.mode === "edit") await commitCheckpoint(config.workspaceDir, job.slug, `${job.slug}: édition manuelle`);
+
     const prompt = await buildPrompt(config.promptsDir, {
       step: job.step,
       type: creation.type,
@@ -125,6 +127,12 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
         await report.event({ kind: "log", level: "error", text: warning });
         resultText = `${warning}\n\n${resultText ?? ""}`.trim();
       }
+    }
+
+    if (job.mode === "edit") {
+      await commitCheckpoint(config.workspaceDir, job.slug, `${job.slug}: édition Claude`);
+      await report.status("succeeded", { claudeSessionId: result.sessionId, resultText });
+      return;
     }
 
     await commitCheckpoint(config.workspaceDir, job.slug, `${job.slug}: ${job.step}${job.feedback ? " (retour)" : ""}`);

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #000;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      #rush {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="32.995" data-width="1920" data-height="1080">
+      <!-- Le rush entier, jamais coupé ni retimé, avec son son d'origine (853×480 agrandi en 1920×1080). -->
+      <video
+        id="rush"
+        class="clip"
+        src="assets/uploads/bbb-trailer.mov"
+        playsinline
+        data-has-audio="true"
+        data-volume="1"
+        data-start="0"
+        data-duration="32.995"
+        data-track-index="0"
+      ></video>
+
+      <!-- Frame 2 — e4 : le gros lapin apparaît dans la prairie (9,08–11,2 s). -->
+      <div
+        id="avant-premiere"
+        class="clip"
+        data-composition-id="avant-premiere"
+        data-composition-src="compositions/frames/02-avant-premiere.html"
+        data-start="9.08"
+        data-duration="2.12"
+        data-track-index="1"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+
+      <!-- Frame 4 — e7 : retour sur le lapin, même cadre (13,88–15,0 s). -->
+      <div
+        id="le-heros"
+        class="clip"
+        data-composition-id="le-heros"
+        data-composition-src="compositions/frames/04-le-heros.html"
+        data-start="13.88"
+        data-duration="1.12"
+        data-track-index="1"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+
+      <!-- Frame 6 — e15 : carton GET READY (22,92–24,92 s). -->
+      <div
+        id="j-moins-7"
+        class="clip"
+        data-composition-id="j-moins-7"
+        data-composition-src="compositions/frames/06-j-moins-7.html"
+        data-start="22.92"
+        data-duration="2"
+        data-track-index="1"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+
+      <!-- Frame 8 — e20 + e21 : COMING SOON puis l'URL, jusqu'à la fin (30,24–32,995 s). -->
+      <div
+        id="reserve-ta-place"
+        class="clip"
+        data-composition-id="reserve-ta-place"
+        data-composition-src="compositions/frames/08-reserve-ta-place.html"
+        data-start="30.24"
+        data-duration="2.755"
+        data-track-index="1"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+    </div>
+    <script>
+      // Le rush et les graphismes sont pilotés par le framework ; le timeline racine ne fait que porter la durée.
+      const tl = gsap.timeline({ paused: true });
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

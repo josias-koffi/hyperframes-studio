@@ -4,3 +4,4 @@ export * from "./creations";
 export * from "./jobs";
 export * from "./queues";
 export * from "./variables";
+export * from "./editor";

@@ -34,7 +34,6 @@ COPY --from=deps /repo/apps/hf-studio/package.json apps/hf-studio/package.json
 RUN pnpm install --frozen-lockfile --prod --filter @studio/hf-studio...
 COPY --from=builder /repo/packages/shared/dist packages/shared/dist
 COPY --from=builder /repo/apps/hf-studio/dist apps/hf-studio/dist
-COPY apps/hf-studio/public apps/hf-studio/public
 RUN mkdir -p /workspace && chown node:node /workspace
 USER node
 RUN pnpm --filter @studio/hf-studio exec hyperframes browser ensure
