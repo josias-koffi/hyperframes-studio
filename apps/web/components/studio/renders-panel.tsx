@@ -1,7 +1,7 @@
 "use client";
 
-import type { CompositionVariable } from "@studio/shared/browser";
-import { DownloadIcon, FilmIcon, ImageIcon } from "lucide-react";
+import type { CompositionVariable, CreationType } from "@studio/shared/browser";
+import { DownloadIcon, FileDownIcon, FilmIcon, GalleryHorizontalIcon, ImageIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -9,13 +9,14 @@ import { SectionCard } from "@/components/layout/section-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { clientApi, type Job, type Render } from "@/lib/api";
+import { clientApi, type Creation, type Job, type Render } from "@/lib/api";
+import { renderFiles } from "@/lib/creation-state";
+import { cn } from "@/lib/utils";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { ValueChip } from "@/components/template/variable-input";
 import { JobLog } from "./job-log";
+import { CREATION_TYPE_META } from "./labels";
 import { StatusBadge } from "./status-badge";
-
-const VIDEO_FORMATS = new Set(["mp4", "webm", "mov"]);
 
 /** The values an iteration render was made with, compared with the iteration's current ones. */
 function RenderValues({ render, declarations, current }: { render: Render; declarations: CompositionVariable[]; current: Record<string, unknown> }) {
@@ -47,58 +48,115 @@ function RenderValues({ render, declarations, current }: { render: Render; decla
   );
 }
 
-function RenderCard({ render, values }: { render: Render; values?: { declarations: CompositionVariable[]; current: Record<string, unknown> } }) {
-  const video = VIDEO_FORMATS.has(render.format);
-  const [first] = render.urls;
+type RenderValuesProps = { declarations: CompositionVariable[]; current: Record<string, unknown> };
+
+function RenderFooter({ render, children }: { render: Render; children?: React.ReactNode }) {
+  const { images, pdf, video } = renderFiles(render);
+  const label = video ? render.format : pdf ? `${images.length} slides + PDF` : images.length > 1 ? `${images.length} images` : "png";
   return (
-    <div className="overflow-hidden rounded-xl border bg-card shadow-surface">
-      <div className="flex aspect-video items-center justify-center bg-muted">
-        {first && video ? (
-          <video src={first} controls preload="metadata" className="size-full bg-black object-contain" />
-        ) : first ? (
-          // eslint-disable-next-line @next/next/no-img-element -- render served from storage
-          <img src={first} alt="Aperçu de l'export" className="size-full object-contain" />
-        ) : (
-          <FilmIcon className="size-8 text-muted-foreground" />
-        )}
-      </div>
-      <div className="flex items-center gap-2 p-3">
-        <Badge variant="secondary" className="font-mono uppercase">
-          {video ? <FilmIcon /> : <ImageIcon />}
-          {render.format}
-        </Badge>
-        <span className="flex-1 truncate text-xs text-muted-foreground" title={formatDateTime(render.createdAt)}>
-          {formatRelative(render.createdAt)}
-          {render.urls.length > 1 && ` · ${render.urls.length} fichiers`}
-        </span>
-        {render.urls.map((url, index) => (
-          <Button key={url} asChild size="icon" variant="ghost" className="size-8">
-            <a href={url} target="_blank" rel="noreferrer" download>
-              <DownloadIcon />
-              <span className="sr-only">Télécharger le fichier {index + 1}</span>
-            </a>
-          </Button>
+    <div className="flex items-center gap-2 p-3">
+      <Badge variant="secondary" className="font-mono uppercase">
+        {video ? <FilmIcon /> : pdf ? <GalleryHorizontalIcon /> : <ImageIcon />}
+        {label}
+      </Badge>
+      <span className="flex-1 truncate text-xs text-muted-foreground" title={formatDateTime(render.createdAt)}>
+        {formatRelative(render.createdAt)}
+      </span>
+      {children}
+    </div>
+  );
+}
+
+function DownloadButton({ url, label, children }: { url: string; label: string; children?: React.ReactNode }) {
+  return (
+    <Button asChild size={children ? "sm" : "icon"} variant={children ? "outline" : "ghost"} className={children ? undefined : "size-8"}>
+      <a href={url} target="_blank" rel="noreferrer" download>
+        {children ? <FileDownIcon /> : <DownloadIcon />}
+        {children ?? <span className="sr-only">{label}</span>}
+      </a>
+    </Button>
+  );
+}
+
+/** A carousel render: every slide in order, each downloadable, and the PDF that assembles them. */
+function CarouselCard({ render, values }: { render: Render; values?: RenderValuesProps }) {
+  const { images, pdf } = renderFiles(render);
+  return (
+    <div className="overflow-hidden rounded-xl border bg-card shadow-surface sm:col-span-2 xl:col-span-3">
+      <div className="flex snap-x gap-3 overflow-x-auto bg-muted p-3">
+        {images.map((image, index) => (
+          <figure key={image.key} className="group relative w-44 shrink-0 snap-start sm:w-56">
+            {/* eslint-disable-next-line @next/next/no-img-element -- render served from storage */}
+            <img src={image.url} alt={`Slide ${index + 1}`} className="w-full rounded-lg border bg-background shadow-surface" />
+            <figcaption className="mt-1.5 flex items-center justify-between text-xs text-muted-foreground">
+              Slide {index + 1}
+              <DownloadButton url={image.url} label={`Télécharger la slide ${index + 1}`} />
+            </figcaption>
+          </figure>
         ))}
       </div>
+      <RenderFooter render={render}>{pdf && <DownloadButton url={pdf.url} label="PDF">PDF</DownloadButton>}</RenderFooter>
       {values && <RenderValues render={render} declarations={values.declarations} current={values.current} />}
     </div>
   );
 }
 
+function RenderCard({ render, values }: { render: Render; values?: RenderValuesProps }) {
+  const { images, video, pdf } = renderFiles(render);
+  if (pdf) return <CarouselCard render={render} values={values} />;
+  const first = video ?? images[0];
+  return (
+    <div className="overflow-hidden rounded-xl border bg-card shadow-surface">
+      <div className={cn("flex items-center justify-center bg-muted", video ? "aspect-video" : "aspect-[4/5]")}>
+        {video ? (
+          <video src={video.url} controls preload="metadata" className="size-full bg-black object-contain" />
+        ) : first ? (
+          // eslint-disable-next-line @next/next/no-img-element -- render served from storage
+          <img src={first.url} alt="Aperçu de l'export" className="size-full object-contain" />
+        ) : (
+          <FilmIcon className="size-8 text-muted-foreground" />
+        )}
+      </div>
+      <RenderFooter render={render}>
+        {render.urls.map((url, index) => (
+          <DownloadButton key={url} url={url} label={`Télécharger le fichier ${index + 1}`} />
+        ))}
+      </RenderFooter>
+      {values && <RenderValues render={render} declarations={values.declarations} current={values.current} />}
+    </div>
+  );
+}
+
+/** What a création can render on demand, beside its deliverable. */
+const ACTIONS: Record<CreationType, { label: string; icon: typeof FilmIcon; body: Record<string, unknown>; primary?: boolean }[]> = {
+  video: [
+    { label: "Images de post", icon: ImageIcon, body: { format: "png", frames: 3 } },
+    { label: "Rendu MP4", icon: FilmIcon, body: { format: "mp4" }, primary: true },
+  ],
+  carousel: [{ label: "Régénérer slides et PDF", icon: GalleryHorizontalIcon, body: { format: "pdf" }, primary: true }],
+  image: [{ label: "Régénérer le PNG", icon: ImageIcon, body: { format: "png" }, primary: true }],
+};
+
+const EMPTY_TEXT: Record<CreationType, string> = {
+  video: "Le MP4 est rendu automatiquement quand tu valides le build.",
+  carousel: "Les slides et le PDF sont générés automatiquement quand tu valides le build.",
+  image: "Le PNG est généré automatiquement quand tu valides le build.",
+};
+
 export function RendersPanel({
-  projectId,
+  creation,
   renders,
   lastRenderJob,
   hideActions,
   values,
 }: {
-  projectId: string;
+  creation: Pick<Creation, "id" | "type">;
   renders: Render[];
   lastRenderJob: Job | null;
   /** An iteration renders from its own form. */
   hideActions?: boolean;
   /** An iteration's renders show the values each one was made with. */
-  values?: { declarations: CompositionVariable[]; current: Record<string, unknown> };
+  values?: RenderValuesProps;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -109,7 +167,7 @@ export function RendersPanel({
   async function render(body: unknown) {
     setPending(true);
     try {
-      await clientApi(`/projects/${projectId}/renders`, { method: "POST", body: JSON.stringify(body) });
+      await clientApi(`/creations/${creation.id}/renders`, { method: "POST", body: JSON.stringify(body) });
       toast.success("Rendu lancé");
       router.refresh();
     } catch (error) {
@@ -122,19 +180,17 @@ export function RendersPanel({
   return (
     <SectionCard
       title="Fichiers rendus"
-      description="Les fichiers rendus de la vidéo, prêts à télécharger ou publier."
+      description={`Les fichiers de ${CREATION_TYPE_META[creation.type].noun}, prêts à télécharger ou publier.`}
       action={
         !hideActions && (
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline" disabled={pending || rendering} onClick={() => render({ format: "png", frames: 3 })}>
-            <ImageIcon />
-            Images de post
-          </Button>
-          <Button size="sm" disabled={pending || rendering} onClick={() => render({ format: "mp4" })}>
-            <FilmIcon />
-            Rendu MP4
-          </Button>
-        </div>
+          <div className="flex gap-2">
+            {ACTIONS[creation.type].map((action) => (
+              <Button key={action.label} size="sm" variant={action.primary ? "default" : "outline"} disabled={pending || rendering} onClick={() => render(action.body)}>
+                <action.icon />
+                {action.label}
+              </Button>
+            ))}
+          </div>
         )
       }
     >
@@ -156,7 +212,7 @@ export function RendersPanel({
             </EmptyMedia>
             <EmptyTitle>Aucun export</EmptyTitle>
             <EmptyDescription>
-              {hideActions ? "Remplis les valeurs puis génère : les rendus de cette itération apparaîtront ici." : "Le MP4 est rendu automatiquement quand tu valides le build."}
+              {hideActions ? "Remplis les valeurs puis génère : les rendus de cette itération apparaîtront ici." : EMPTY_TEXT[creation.type]}
             </EmptyDescription>
           </EmptyHeader>
         </Empty>

@@ -1,5 +1,5 @@
-import type { JobStatus } from "@studio/shared/browser";
-import type { ProjectPhase, ProjectState, StepState } from "@/lib/project-state";
+import type { CreationType, JobStatus } from "@studio/shared/browser";
+import type { CreationPhase, CreationState, StepState } from "@/lib/creation-state";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { STATUS_LABELS } from "./labels";
@@ -23,18 +23,20 @@ export function StatusBadge({ status, label, className }: { status: JobStatus; l
   );
 }
 
-const PHASES: Record<ProjectPhase, { status: JobStatus; label: string }> = {
+const PHASES: Record<CreationPhase, { status: JobStatus; label: string }> = {
   idle: { status: "queued", label: "À lancer" },
   running: { status: "running", label: "En génération" },
   review: { status: "waiting_review", label: "À valider" },
   failed: { status: "failed", label: "Échec" },
-  done: { status: "succeeded", label: "Vidéo prête" },
+  done: { status: "succeeded", label: "Prête" },
 };
 
-/** A project's phase, worded for what the user has to do. */
-export function PhaseBadge({ phase, className }: { phase: ProjectPhase; className?: string }) {
+const READY: Record<CreationType, string> = { video: "Vidéo prête", carousel: "Carrousel prêt", image: "Image prête" };
+
+/** A création's phase, worded for what the user has to do. */
+export function PhaseBadge({ phase, type, className }: { phase: CreationPhase; type?: CreationType; className?: string }) {
   const { status, label } = PHASES[phase];
-  return <StatusBadge status={status} label={label} className={className} />;
+  return <StatusBadge status={status} label={phase === "done" && type ? READY[type] : label} className={className} />;
 }
 
 const DOTS: Record<StepState, string> = {
@@ -46,9 +48,9 @@ const DOTS: Record<StepState, string> = {
   todo: "bg-border",
 };
 
-/** The four generation steps squeezed into a table cell; exports need the renders, which lists don't load. */
-export function MiniStepper({ steps }: { steps: ProjectState["steps"] }) {
-  const generation = steps.filter(({ step }) => step !== "export");
+/** The generation steps squeezed into a table cell or a card. */
+export function MiniStepper({ steps }: { steps: CreationState["steps"] }) {
+  const generation = steps.filter(({ step }) => step !== "export" && step !== "iterations");
   return (
     <span className="flex items-center gap-1" aria-label={generation.map((s) => `${s.step} : ${s.state}`).join(", ")}>
       {generation.map(({ step, state }) => (

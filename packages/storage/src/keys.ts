@@ -15,6 +15,6 @@ export function sanitizeFilename(name: string): string {
 
 export const storageKeys = {
   asset: (assetId: string, filename: string) => `assets/${assetId}/${sanitizeFilename(filename)}`,
-  render: (projectId: string, renderId: string, filename: string) =>
-    `renders/${projectId}/${renderId}/${sanitizeFilename(filename)}`,
+  render: (creationId: string, renderId: string, filename: string) =>
+    `renders/${creationId}/${renderId}/${sanitizeFilename(filename)}`,
 };

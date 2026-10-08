@@ -1,8 +1,8 @@
 # HyperFrames Studio
 
-Studio web pour produire des vidéos HyperFrames sans passer par le terminal : projets, assets, templates,
-génération par **la session Claude Code du serveur** (abonnement, pas l'API), exports MP4/PNG, puis
-publication via Postiz (lot 5).
+Studio web pour produire des vidéos, des carrousels et des images HyperFrames sans passer par le terminal : projets
+de campagne, assets, templates, génération par **la session Claude Code du serveur** (abonnement, pas l'API),
+exports MP4, PNG et PDF, puis publication via Postiz (lot 5).
 
 ```
 web (Next.js + shadcn) ──/api proxy──▶ api (NestJS) ──BullMQ──▶ claude-runner ──▶ claude -p … --resume
@@ -15,13 +15,23 @@ web (Next.js + shadcn) ──/api proxy──▶ api (NestJS) ──BullMQ──
 
 ## Comment ça marche
 
-- **Un projet = un dossier `videos/<slug>`** du workspace HyperFrames (squelette dans [`workspace/`](workspace/),
-  copie de `hyperframes-test` : `CLAUDE.md`, CLI épinglée, scripts).
-- **Génération par étapes** (cadrage conservé) : `brief → (variables ✓) → storyboard ✓ → media → build ✓`. Chaque étape est un tour
+- **Un projet = une campagne** (`projects` : nom, contexte partagé, assets communs) qui contient des **créations**
+  (`creations`). **Une création = un dossier `videos/<slug>`** du workspace HyperFrames (squelette dans
+  [`workspace/`](workspace/), copie de `hyperframes-test` : `CLAUDE.md`, CLI épinglée, scripts), une session Claude et
+  un livrable selon son **type** :
+  - `video` : cadre et durée au choix (ou ceux des rushs fournis), rendu MP4 ;
+  - `carousel` : N slides fixes, une composition de N secondes dont la slide `i` est capturée à `i + 0.5` s,
+    livrée en PNG (`slide-01.png`…) plus un PDF assemblé par le render-worker (`pdf-lib`) ;
+  - `image` : une composition d'une seconde capturée à 0.5 s, livrée en PNG.
+  Les formats (9:16, 4:5, 1:1, 16:9) sont dans `packages/shared/src/creations.ts`. Le runner taille le canvas à la
+  création du dossier (`setCanvasSize`) et chaque prompt reçoit le format de sa création (`prompts/partials/<type>.md`).
+- **Génération par étapes** (cadrage conservé) : `brief → (variables ✓) → storyboard ✓ → media → build ✓` pour une
+  vidéo, sans `media` pour un carrousel (le storyboard y est le plan des slides), `brief → (variables ✓) → build ✓`
+  pour une image (`stepsFor` dans `packages/shared/src/jobs.ts`). Chaque étape est un tour
   `claude -p --output-format stream-json`, avec le prompt de [`prompts/<étape>.md`](prompts/). Les étapes ✓ sont des
   **checkpoints** : l'UI affiche le storyboard ou la composition. *Valider* lance l'étape suivante ; *Envoyer le
   retour* reprend la même session (`--resume`) sur la même étape. Un commit git par étape dans le workspace.
-- **Vidéo unique ou template, choisi à la création** (`projects.kind`). Un template ajoute l'étape `variables ✓` après
+- **Création unique ou template, choisi à la création** (`creations.kind`), quel que soit le type. Un template ajoute l'étape `variables ✓` après
   le brief : Claude écrit `VARIABLES.json` (déclarations HyperFrames), l'utilisateur la corrige et la valide, puis le
   storyboard et le build la respectent (`prompts/partials/template.md`) et le runner vérifie que `index.html` la
   déclare. Le template s'utilise ensuite en **itérations** (table `iterations`) : un jeu de valeurs nommé, enregistré,
@@ -33,10 +43,10 @@ web (Next.js + shadcn) ──/api proxy──▶ api (NestJS) ──BullMQ──
 ## Structure
 
 ```
-apps/web             Next.js 16 + shadcn/ui (radix-nova) — projets, templates et itérations, revue des checkpoints, exports
-apps/api             NestJS 11 — projets, variables, itérations, jobs (SSE), assets (URL présignées MinIO), rendus
+apps/web             Next.js 16 + shadcn/ui (radix-nova) — projets, créations par type, templates et itérations, revue, exports
+apps/api             NestJS 11 — projets, créations, variables, itérations, jobs (SSE), assets (URL présignées MinIO), rendus
 apps/claude-runner   worker BullMQ « studio-claude » : lance Claude Code, diffuse les événements
-apps/render-worker   worker BullMQ « studio-render » : hyperframes render / snapshot → MinIO
+apps/render-worker   worker BullMQ « studio-render » : hyperframes render / snapshot (+ PDF des carrousels) → MinIO
 packages/shared      types, schémas zod, files, parseur stream-json, variables HyperFrames
 packages/db          schéma Drizzle + migrations + reporter de jobs
 packages/storage     client S3/MinIO + clés d'objets

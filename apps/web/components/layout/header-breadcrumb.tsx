@@ -16,7 +16,7 @@ import { useCrumbLabels } from "./crumb-label";
 const SEGMENTS: Record<string, string> = {
   projects: "Projets",
   templates: "Templates",
-  new: "Création",
+  new: "Nouvelle création",
   assets: "Assets",
   brief: "Brief",
   variables: "Variables",
@@ -28,16 +28,20 @@ const SEGMENTS: Record<string, string> = {
   studio: "Studio HyperFrames",
 };
 
-/** Derived from the path; an id segment shows the label its page published (project or iteration name). */
+/** Derived from the path; an id segment shows the label its page published (project, création or iteration name). */
 export function HeaderBreadcrumb() {
   const segments = usePathname().split("/").filter(Boolean);
   const labels = useCrumbLabels();
   const crumbs = [
     { href: "/", label: "Tableau de bord" },
-    ...segments.map((segment, index) => ({
-      href: `/${segments.slice(0, index + 1).join("/")}`,
-      label: labels[segment] ?? SEGMENTS[segment] ?? "Détail",
-    })),
+    ...segments
+      .map((segment, index) => ({
+        href: `/${segments.slice(0, index + 1).join("/")}`,
+        label: labels[segment] ?? SEGMENTS[segment] ?? "Détail",
+        // `/creations` has no page of its own: a project lists its créations.
+        hidden: segment === "creations",
+      }))
+      .filter((crumb) => !crumb.hidden),
   ];
 
   return (

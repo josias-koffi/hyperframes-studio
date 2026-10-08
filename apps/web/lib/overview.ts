@@ -1,15 +1,15 @@
-import type { ProjectKind } from "@studio/shared/browser";
-import { serverApi, type Job, type ProjectListItem } from "./api";
-import { projectState, type ProjectState } from "./project-state";
+import type { CreationKind, CreationType } from "@studio/shared/browser";
+import { serverApi, type CreationListItem } from "./api";
+import { itemState, type CreationState } from "./creation-state";
 
-export type ProjectOverview = ProjectListItem & { state: ProjectState };
+export type CreationOverview = CreationListItem & { state: CreationState };
 
-/** Projects (of one kind, or all) with where they stand. One jobs call per project: fine at a studio's scale. */
-export async function loadOverview(kind?: ProjectKind): Promise<ProjectOverview[]> {
-  const projects = await serverApi<ProjectListItem[]>(kind ? `/projects?kind=${kind}` : "/projects");
-  const jobs = await Promise.all(projects.map((project) => serverApi<Job[]>(`/projects/${project.id}/jobs`)));
-  return projects.map((project, index) => ({
-    ...project,
-    state: projectState(project, jobs[index], [], project.iterationCount ?? 0),
-  }));
+/** Créations of every project (or of one), with where they stand. */
+export async function loadCreations(filter: { projectId?: string; type?: CreationType; kind?: CreationKind } = {}): Promise<CreationOverview[]> {
+  const query = new URLSearchParams();
+  if (filter.type) query.set("type", filter.type);
+  if (filter.kind) query.set("kind", filter.kind);
+  const base = filter.projectId ? `/projects/${filter.projectId}/creations` : "/creations";
+  const items = await serverApi<CreationListItem[]>(query.size ? `${base}?${query}` : base);
+  return items.map((item) => ({ ...item, state: itemState(item) }));
 }

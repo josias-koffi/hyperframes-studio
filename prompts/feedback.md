@@ -1,6 +1,6 @@
 Tu travailles en mode automatisé pour HyperFrames Studio : personne ne peut répondre à une question pendant ce tour.
 
-L'utilisateur a relu l'étape « {{step}} » de la vidéo `{{dir}}` et demande ces changements :
+L'utilisateur a relu l'étape « {{step}} » de la création `{{dir}}` et demande ces changements :
 
 > {{feedback}}
 

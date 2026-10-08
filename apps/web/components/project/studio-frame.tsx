@@ -11,9 +11,9 @@ import { clientApi } from "@/lib/api";
 type FrameState = { status: "opening" } | { status: "open"; url: string } | { status: "failed"; message: string };
 
 /** Asks the API to open the project's Studio in the hf-studio gateway, in the app's current theme. */
-async function openStudio(projectId: string): Promise<FrameState> {
+async function openStudio(creationId: string): Promise<FrameState> {
   try {
-    const { url } = await clientApi<{ url: string }>(`/projects/${projectId}/studio`, { method: "POST" });
+    const { url } = await clientApi<{ url: string }>(`/creations/${creationId}/studio`, { method: "POST" });
     const studio = new URL(url);
     studio.searchParams.set("theme", document.documentElement.classList.contains("dark") ? "dark" : "light");
     return { status: "open", url: studio.href };
@@ -23,7 +23,7 @@ async function openStudio(projectId: string): Promise<FrameState> {
 }
 
 /** The Studio HyperFrames editor of this project, framed in the page. */
-export function StudioFrame({ projectId, blockedReason }: { projectId: string; blockedReason: string | null }) {
+export function StudioFrame({ creationId, blockedReason }: { creationId: string; blockedReason: string | null }) {
   const [state, setState] = useState<FrameState>({ status: "opening" });
   const frame = useRef<HTMLIFrameElement>(null);
   const { resolvedTheme } = useTheme();
@@ -31,11 +31,11 @@ export function StudioFrame({ projectId, blockedReason }: { projectId: string; b
   useEffect(() => {
     if (blockedReason) return;
     let current = true;
-    void openStudio(projectId).then((next) => current && setState(next));
+    void openStudio(creationId).then((next) => current && setState(next));
     return () => {
       current = false;
     };
-  }, [blockedReason, projectId]);
+  }, [blockedReason, creationId]);
 
   // Theme switches reach the framed Studio without reloading it (public/overrides.js in hf-studio).
   const studioOrigin = state.status === "open" ? new URL(state.url).origin : null;
@@ -59,7 +59,7 @@ export function StudioFrame({ projectId, blockedReason }: { projectId: string; b
             <Button
               onClick={() => {
                 setState({ status: "opening" });
-                void openStudio(projectId).then(setState);
+                void openStudio(creationId).then(setState);
               }}
             >
               <RotateCcwIcon />

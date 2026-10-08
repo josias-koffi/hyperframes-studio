@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
-import { ProjectsModule } from "../projects/projects.module";
+import { CreationsModule } from "../creations/creations.module";
 import { IterationsController } from "./iterations.controller";
 import { IterationsService } from "./iterations.service";
 
 @Module({
-  imports: [ProjectsModule],
+  imports: [CreationsModule],
   controllers: [IterationsController],
   providers: [IterationsService],
 })

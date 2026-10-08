@@ -1,6 +1,7 @@
-import type { RenderJob } from "@studio/shared";
+import type { RenderFormat, RenderJob } from "@studio/shared";
 
-export type RenderPlan = { args: string[]; outputs: string[]; contentType: string };
+/** `outputs` is empty for stills: the worker collects the snapshots it finds. */
+export type RenderPlan = { args: string[]; outputs: string[] };
 
 const CONTENT_TYPES: Record<string, string> = {
   mp4: "video/mp4",
@@ -8,7 +9,26 @@ const CONTENT_TYPES: Record<string, string> = {
   mov: "video/quicktime",
   gif: "image/gif",
   png: "image/png",
+  pdf: "application/pdf",
 };
+
+export function contentTypeOf(file: string): string {
+  return CONTENT_TYPES[file.split(".").pop()?.toLowerCase() ?? ""] ?? "application/octet-stream";
+}
+
+/** PNG images and carousels (PNG slides + one PDF) are captured with `snapshot`, not rendered. */
+export function isStill(format: RenderFormat): boolean {
+  return format === "png" || format === "pdf";
+}
+
+/**
+ * Snapshot files in capture order. `snapshot` names them `frame-<index>-at-<t>s.png`; the index is
+ * compared as a number, so slide 10 never comes before slide 2.
+ */
+export function sortShots(files: string[]): string[] {
+  const index = (file: string) => Number(/^frame-(\d+)/.exec(file)?.[1] ?? Number.MAX_SAFE_INTEGER);
+  return files.filter((file) => file.endsWith(".png")).sort((a, b) => index(a) - index(b) || a.localeCompare(b));
+}
 
 /** `data-duration` of the root composition of an index.html, in seconds. */
 export function compositionDuration(html: string): number | null {
@@ -28,20 +48,18 @@ export function postFrameTimes(duration: number, count: number): number[] {
 /**
  * `hyperframes` CLI arguments for one render job. Videos go through `render`
  * (with `--strict-variables` so a template form can never silently drift from
- * its composition); PNGs for social posts go through `snapshot --at`.
+ * its composition); PNGs and carousel slides go through `snapshot --at`.
  */
 export function planRender(job: RenderJob, opts: { dir: string; outDir: string; variablesFile?: string }): RenderPlan {
-  const contentType = CONTENT_TYPES[job.format];
-  if (job.format === "png") {
+  if (isStill(job.format)) {
     const at = job.at?.length ? job.at : [0];
     return {
       args: ["snapshot", opts.dir, "-o", opts.outDir, "--at", at.join(","), "--no-end", "--describe", "false"],
       outputs: [],
-      contentType,
     };
   }
   const output = `${opts.outDir}/${job.slug}.${job.format}`;
   const args = ["render", opts.dir, "-o", output, "--format", job.format];
   if (opts.variablesFile) args.push("--variables-file", opts.variablesFile, "--strict-variables");
-  return { args, outputs: [output], contentType };
+  return { args, outputs: [output] };
 }

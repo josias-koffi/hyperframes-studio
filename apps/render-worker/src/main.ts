@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { cp, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdtemp, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { promisify } from "node:util";
@@ -9,7 +9,8 @@ import { applyVariableDefaults, loadEnvironmentFiles, QUEUES, renderJobSchema, r
 import { createStorage, storageKeys, type Storage } from "@studio/storage";
 import { Worker } from "bullmq";
 import IORedis from "ioredis";
-import { compositionDuration, planRender, postFrameTimes } from "./render-args";
+import { assemblePdf } from "./pdf";
+import { compositionDuration, contentTypeOf, isStill, planRender, postFrameTimes, sortShots } from "./render-args";
 
 const exec = promisify(execFile);
 
@@ -26,15 +27,28 @@ const config = {
   concurrency: Number.parseInt(process.env.RENDER_CONCURRENCY ?? "", 10) || 1,
 };
 
+/** Headless Chrome sometimes misses its first navigation: a still gets one more try before the job fails. */
+async function runHyperframes(args: string[], attempts: number) {
+  const [bin, ...prefix] = config.hyperframes;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await exec(bin, [...prefix, ...args], { cwd: config.workspaceDir, maxBuffer: 64 * 1024 * 1024 });
+    } catch (error) {
+      if (attempt >= attempts) throw error;
+    }
+  }
+}
+
 async function processRender(job: RenderJob, deps: { db: Database; storage: Storage; publish: Publish }) {
   const report = createJobReporter(deps.db, deps.publish, job.jobId);
   const outDir = await mkdtemp(join(tmpdir(), "render-"));
+  const still = isStill(job.format);
   await report.status("running");
   try {
     let variablesFile: string | undefined;
     let dir = `videos/${job.slug}`;
     if (job.variables && Object.keys(job.variables).length) {
-      if (job.format === "png") {
+      if (still) {
         // `snapshot` has no --variables: capture a copy whose defaults are the values.
         dir = join(outDir, "composition");
         await cp(join(config.workspaceDir, "videos", job.slug), dir, { recursive: true });
@@ -45,29 +59,42 @@ async function processRender(job: RenderJob, deps: { db: Database; storage: Stor
         await writeFile(variablesFile, JSON.stringify(job.variables));
       }
     }
-    if (job.format === "png" && !job.at?.length) {
+    if (still && !job.at?.length) {
       const duration = compositionDuration(await readFile(resolve(config.workspaceDir, dir, "index.html"), "utf8"));
       job.at = duration ? postFrameTimes(duration, job.frames ?? 3) : [0];
     }
     const shotsDir = join(outDir, "shots");
-    const plan = planRender(job, { dir, outDir: job.format === "png" ? shotsDir : outDir, variablesFile });
+    const plan = planRender(job, { dir, outDir: still ? shotsDir : outDir, variablesFile });
     await report.event({ kind: "tool", name: "hyperframes", summary: plan.args.join(" ") });
-    const [bin, ...prefix] = config.hyperframes;
-    await exec(bin, [...prefix, ...plan.args], { cwd: config.workspaceDir, maxBuffer: 64 * 1024 * 1024 });
+    await runHyperframes(plan.args, still ? 2 : 1);
 
-    const outputs = plan.outputs.length
-      ? plan.outputs
-      : (await readdir(shotsDir)).filter((f) => f.endsWith(".png")).sort().map((f) => join(shotsDir, f));
+    let outputs = plan.outputs;
+    if (still) {
+      outputs = sortShots(await readdir(shotsDir)).map((file) => join(shotsDir, file));
+      if (job.format === "pdf") {
+        // A carousel: slide-01.png… for Instagram, and the same slides as one PDF for LinkedIn.
+        const slides: string[] = [];
+        for (const [index, shot] of outputs.entries()) {
+          const slide = join(outDir, `slide-${String(index + 1).padStart(2, "0")}.png`);
+          await rename(shot, slide);
+          slides.push(slide);
+        }
+        const pdf = join(outDir, `${job.slug}.pdf`);
+        await assemblePdf(slides, pdf, job.slug);
+        outputs = [...slides, pdf];
+      }
+    }
+
     const renderId = randomUUID();
     const keys: string[] = [];
     for (const output of outputs) {
-      const key = storageKeys.render(job.projectId, renderId, basename(output));
-      await deps.storage.uploadFile(key, output, plan.contentType);
+      const key = storageKeys.render(job.creationId, renderId, basename(output));
+      await deps.storage.uploadFile(key, output, contentTypeOf(output));
       keys.push(key);
     }
     await deps.db.insert(renders).values({
       id: renderId,
-      projectId: job.projectId,
+      creationId: job.creationId,
       jobId: job.jobId,
       iterationId: job.iterationId ?? null,
       format: job.format,

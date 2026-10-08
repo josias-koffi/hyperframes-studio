@@ -6,6 +6,7 @@ import {
   compositionVariablesSchema,
   diffVariables,
   parseCompositionVariables,
+  type CreationType,
   type GenerationStep,
   type VariablesDiff,
 } from "@studio/shared";
@@ -62,10 +63,34 @@ function git(cwd: string, ...args: string[]) {
   return exec("git", ["-c", "user.name=Studio", "-c", "user.email=studio@localhost", ...args], { cwd });
 }
 
-/** Creates `videos/<slug>` with the workspace's own scaffolding script (`hyperframes init`). */
-export async function ensureVideoFolder(workspaceDir: string, slug: string): Promise<void> {
-  if (await exists(join(workspaceDir, "videos", slug, "index.html"))) return;
+/**
+ * Creates `videos/<slug>` with the workspace's own scaffolding script (`hyperframes init`), sized to the
+ * création's canvas when it has one. Returns whether the folder was created.
+ */
+export async function ensureVideoFolder(
+  workspaceDir: string,
+  slug: string,
+  canvas: { width: number | null; height: number | null } = { width: null, height: null },
+): Promise<boolean> {
+  const index = join(workspaceDir, "videos", slug, "index.html");
+  if (await exists(index)) return false;
   await exec("sh", ["scripts/new-video.sh", slug], { cwd: workspaceDir, timeout: 5 * 60 * 1000 });
+  if (canvas.width && canvas.height) await writeFile(index, setCanvasSize(await readFile(index, "utf8"), canvas.width, canvas.height));
+  return true;
+}
+
+/**
+ * Resizes a scaffolded composition, like `hyperframes init --resolution` does for its presets (which have no
+ * 4:5): the root's `data-width`/`data-height`, the `html, body` size and the viewport meta.
+ */
+export function setCanvasSize(html: string, width: number, height: number): string {
+  return html
+    .replace(/(data-width=)["']\d+["']/g, `$1"${width}"`)
+    .replace(/(data-height=)["']\d+["']/g, `$1"${height}"`)
+    .replace(/(html\s*,\s*body\s*\{[^}]*?width:\s*)\d+px([^}]*?height:\s*)\d+px/i, `$1${width}px$2${height}px`)
+    .replace(/(html\s*,\s*body\s*\{[^}]*?height:\s*)\d+px([^}]*?width:\s*)\d+px/i, `$1${height}px$2${width}px`)
+    .replace(/(<meta[^>]*name=["']viewport["'][^>]*content=["']width=)\d+(,\s*height=)\d+/i, `$1${width}$2${height}`)
+    .replace(/\s+data-resolution=["'][^"']*["']/, "");
 }
 
 /** One commit per finished step: every checkpoint can be compared or rolled back. */
@@ -77,17 +102,23 @@ export async function commitCheckpoint(workspaceDir: string, slug: string, messa
 }
 
 /** Files a step must leave in `videos/<slug>`: Claude can report success after a refused write. */
-export const STEP_OUTPUTS: Record<GenerationStep, readonly string[]> = {
-  brief: ["BRIEF.md"],
-  variables: ["VARIABLES.json"],
-  storyboard: ["SCRIPT.md", "STORYBOARD.md", "storyboard.html"],
-  media: [],
-  build: [],
-};
+export function stepOutputs(type: CreationType, step: GenerationStep): readonly string[] {
+  switch (step) {
+    case "brief":
+      return ["BRIEF.md"];
+    case "variables":
+      return ["VARIABLES.json"];
+    case "storyboard":
+      // A carousel has no voice over, so no script.
+      return type === "video" ? ["SCRIPT.md", "STORYBOARD.md", "storyboard.html"] : ["STORYBOARD.md", "storyboard.html"];
+    default:
+      return [];
+  }
+}
 
-export async function missingStepOutputs(workspaceDir: string, slug: string, step: GenerationStep): Promise<string[]> {
+export async function missingStepOutputs(workspaceDir: string, slug: string, type: CreationType, step: GenerationStep): Promise<string[]> {
   const missing: string[] = [];
-  for (const file of STEP_OUTPUTS[step]) {
+  for (const file of stepOutputs(type, step)) {
     if (!(await exists(join(workspaceDir, "videos", slug, file)))) missing.push(file);
   }
   return missing;

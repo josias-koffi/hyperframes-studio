@@ -181,7 +181,7 @@ function Constraints({ variable, onChange, disabled }: { variable: CompositionVa
  * The template's variable contract (`VARIABLES.json`), as an editable list: label, type, id, default value
  * and the constraints of the type. Validated with the same schema as the API before anything is sent.
  */
-export function VariablesEditor({ projectId, initial, mode }: { projectId: string; initial: CompositionVariable[]; mode: EditorMode }) {
+export function VariablesEditor({ creationId, initial, mode }: { creationId: string; initial: CompositionVariable[]; mode: EditorMode }) {
   const router = useRouter();
   const [rows, setRows] = useState<Row[]>(() => initial.map((variable, key) => ({ key, idTouched: true, variable })));
   const [nextKey, setNextKey] = useState(initial.length);
@@ -237,11 +237,11 @@ export function VariablesEditor({ projectId, initial, mode }: { projectId: strin
 
   const save = async () => {
     if (!dirty) return;
-    await clientApi(`/projects/${projectId}/variables`, { method: "PUT", body: JSON.stringify({ variables }) });
+    await clientApi(`/creations/${creationId}/variables`, { method: "PUT", body: JSON.stringify({ variables }) });
     setSaved(JSON.stringify(variables));
   };
   const post = (path: string, body?: unknown) => () =>
-    clientApi(`/projects/${projectId}/${path}`, { method: "POST", body: body ? JSON.stringify(body) : undefined });
+    clientApi(`/creations/${creationId}/${path}`, { method: "POST", body: body ? JSON.stringify(body) : undefined });
 
   return (
     <div className="flex flex-col gap-4">

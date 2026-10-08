@@ -1,11 +1,16 @@
 # Prompts des étapes
 
 Un fichier par étape de génération, lu par `apps/claude-runner` (`buildPrompt`). Placeholders :
-`{{slug}}`, `{{dir}}` (`videos/<slug>`), `{{workflow}}` (skill HyperFrames du projet), `{{brief}}` (JSON du
-formulaire), `{{step}}`, `{{feedback}}` (`feedback.md` uniquement). Un placeholder inconnu fait échouer le job.
+`{{slug}}`, `{{dir}}` (`videos/<slug>`), `{{workflow}}` (skill HyperFrames de la création), `{{brief}}` (JSON du
+formulaire), `{{campaign}}` (nom et contexte du projet), `{{step}}`, `{{feedback}}` (`feedback.md` uniquement),
+et le format de la création : `{{type}}`, `{{width}}`, `{{height}}`, `{{duration}}`, `{{slides}}` (vides quand ils
+ne s'appliquent pas). Un placeholder inconnu fait échouer le job.
 
-Pour un projet de type template, `partials/template.md` (le contrat `VARIABLES.json`) est ajouté aux prompts
-`storyboard`, `build` et `feedback`. L'étape `variables` n'existe que pour un template.
+Chaque prompt reçoit le format de sa création, ajouté à la fin : `partials/video.md`, `partials/carousel.md`,
+`partials/image.md`, ou `partials/video-source.md` pour une vidéo sans cadre imposé (rushs fournis). Pour une
+création de type template, `partials/template.md` (le contrat `VARIABLES.json`) est ajouté aux prompts
+`storyboard`, `build` et `feedback`. L'étape `variables` n'existe que pour un template, `media` que pour une
+vidéo, `storyboard` pour une vidéo ou un carrousel.
 
 Chaque prompt se termine sur une **consigne d'arrêt** : le studio, pas Claude, décide de la suite (checkpoint de
 validation ou étape suivante). Les règles HyperFrames restent dans les skills et le `CLAUDE.md` du workspace.

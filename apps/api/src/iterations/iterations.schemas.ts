@@ -7,7 +7,8 @@ export const createIterationSchema = z.object({
   name: z.string().trim().min(1).max(120),
   /** Missing: the declared defaults. A duplicate passes the values of its source. */
   values: values.optional(),
-  format: z.enum(RENDER_FORMATS).default("mp4"),
+  /** Defaults to the deliverable of the création. */
+  format: z.enum(RENDER_FORMATS).optional(),
 });
 export type CreateIteration = z.infer<typeof createIterationSchema>;
 

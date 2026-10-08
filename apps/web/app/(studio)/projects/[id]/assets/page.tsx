@@ -1,27 +1,32 @@
 import { AssetDropzone } from "@/components/assets/asset-dropzone";
 import { AssetGrid } from "@/components/assets/asset-grid";
 import { LibraryImport } from "@/components/assets/library-import";
+import { CrumbLabel } from "@/components/layout/crumb-label";
+import { PageHeader } from "@/components/layout/page-header";
 import { SectionCard } from "@/components/layout/section-card";
-import { loadProject } from "@/lib/project-data";
+import { serverApi, type Asset, type Project } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+
+/** The campaign's own library: every création of the project gets these files. */
 export default async function ProjectAssetsPage({ params }: PageProps<"/projects/[id]/assets">) {
   const { id } = await params;
-  const { assets } = await loadProject(id);
+  const [project, assets] = await Promise.all([serverApi<Project>(`/projects/${id}`), serverApi<Asset[]>(`/assets?projectId=${id}`)]);
+  const shared = assets.filter((asset) => asset.creationId === null);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="text-lg font-semibold tracking-tight">Assets du projet</h2>
-        <p className="max-w-2xl text-sm text-muted-foreground">
-          Logos, images, rushs, musiques que Claude doit utiliser. Ils sont copiés dans{" "}
-          <code className="rounded bg-muted px-1 font-mono text-xs">assets/uploads/</code> de la vidéo au prochain lancement
-          d&apos;étape : ajoute-les avant le brief ou demande une modification ensuite.
-        </p>
+    <>
+      <CrumbLabel segment={id} label={project.name} />
+      <PageHeader
+        title="Assets du projet"
+        description="Logos, images, polices, charte : partagés par toutes les créations du projet. Claude les retrouve dans assets/uploads/ de chaque création."
+      />
+      <div className="flex flex-col gap-6 px-4 lg:px-6">
+        <AssetDropzone projectId={id} />
+        <SectionCard title={`Fichiers partagés (${shared.length})`} action={<LibraryImport projectId={id} />}>
+          <AssetGrid assets={shared} emptyText="Aucun fichier pour ce projet." />
+        </SectionCard>
       </div>
-      <AssetDropzone projectId={id} />
-      <SectionCard title={`Fichiers (${assets.length})`} action={<LibraryImport projectId={id} />}>
-        <AssetGrid assets={assets} emptyText="Aucun fichier pour ce projet." />
-      </SectionCard>
-    </div>
+    </>
   );
 }

@@ -14,12 +14,15 @@ type Upload = { name: string; size: number; progress: number };
 /** Drop or pick files: each goes straight to MinIO, then the page reloads its list. */
 export function AssetDropzone({
   projectId,
+  creationId,
   accept,
   hint,
   onUploaded,
   compact,
 }: {
   projectId?: string;
+  /** Uploaded for one création only. */
+  creationId?: string;
   accept?: string;
   hint?: string;
   /** Called per file once stored; without it the page is refreshed after the batch. */
@@ -41,6 +44,7 @@ export function AssetDropzone({
         try {
           const asset = await uploadAsset(file, {
             projectId,
+            creationId,
             onProgress: (progress) => setUploads((current) => current.map((u, i) => (i === index ? { ...u, progress } : u))),
           });
           onUploaded?.(asset, file);

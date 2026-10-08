@@ -9,15 +9,23 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { clientApi, type Iteration } from "@/lib/api";
 
-const base = (iteration: Pick<Iteration, "projectId">) => `/templates/${iteration.projectId}/iterations`;
-
 /** Creates an iteration (from the defaults, or as a copy) and opens it. */
-export async function createIteration(projectId: string, body: { name: string; values?: Record<string, unknown>; format?: string }) {
-  return clientApi<Iteration>(`/projects/${projectId}/iterations`, { method: "POST", body: JSON.stringify(body) });
+export async function createIteration(creationId: string, body: { name: string; values?: Record<string, unknown>; format?: string }) {
+  return clientApi<Iteration>(`/creations/${creationId}/iterations`, { method: "POST", body: JSON.stringify(body) });
 }
 
-/** Rename, duplicate or delete an iteration, from its row or its page. */
-export function IterationActions({ iteration, size = "default", leaveOnDelete }: { iteration: Iteration; size?: "default" | "sm"; leaveOnDelete?: boolean }) {
+/** Rename, duplicate or delete an iteration, from its row or its page. `base` is the template's iterations page. */
+export function IterationActions({
+  iteration,
+  base,
+  size = "default",
+  leaveOnDelete,
+}: {
+  iteration: Iteration;
+  base: string;
+  size?: "default" | "sm";
+  leaveOnDelete?: boolean;
+}) {
   const router = useRouter();
   const [dialog, setDialog] = useState<"rename" | "duplicate" | "delete" | null>(null);
   const toggle = (name: NonNullable<typeof dialog>) => (open: boolean) => setDialog(open ? name : null);
@@ -77,8 +85,8 @@ export function IterationActions({ iteration, size = "default", leaveOnDelete }:
         submitLabel="Dupliquer"
         onSubmit={(name) =>
           attempt(async () => {
-            const copy = await createIteration(iteration.projectId, { name, values: iteration.values, format: iteration.format });
-            router.push(`${base(iteration)}/${copy.id}`);
+            const copy = await createIteration(iteration.creationId, { name, values: iteration.values, format: iteration.format });
+            router.push(`${base}/${copy.id}`);
           })
         }
       />
@@ -91,7 +99,7 @@ export function IterationActions({ iteration, size = "default", leaveOnDelete }:
           attempt(async () => {
             await clientApi(`/iterations/${iteration.id}`, { method: "DELETE" });
             toast.success("Itération supprimée");
-            if (leaveOnDelete) router.push(base(iteration));
+            if (leaveOnDelete) router.push(base);
             router.refresh();
           })
         }

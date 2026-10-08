@@ -14,14 +14,14 @@ import { IterationsService } from "./iterations.service";
 export class IterationsController {
   constructor(@Inject(IterationsService) private readonly iterations: IterationsService) {}
 
-  @Get("projects/:projectId/iterations")
-  list(@Param("projectId", ParseUUIDPipe) projectId: string) {
-    return this.iterations.list(projectId);
+  @Get("creations/:creationId/iterations")
+  list(@Param("creationId", ParseUUIDPipe) creationId: string) {
+    return this.iterations.list(creationId);
   }
 
-  @Post("projects/:projectId/iterations")
-  create(@Param("projectId", ParseUUIDPipe) projectId: string, @Body(new ZodPipe(createIterationSchema)) body: CreateIteration) {
-    return this.iterations.create(projectId, body);
+  @Post("creations/:creationId/iterations")
+  create(@Param("creationId", ParseUUIDPipe) creationId: string, @Body(new ZodPipe(createIterationSchema)) body: CreateIteration) {
+    return this.iterations.create(creationId, body);
   }
 
   @Get("iterations/:id")

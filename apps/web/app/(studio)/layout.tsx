@@ -2,17 +2,17 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CrumbLabelProvider } from "@/components/layout/crumb-label";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { loadOverview } from "@/lib/overview";
+import { loadCreations } from "@/lib/overview";
 
 /** Sidebar counters must not take the whole shell down when the API is unreachable: the page will say so. */
 async function loadCounters() {
   try {
-    const projects = await loadOverview();
-    const review = projects.filter((project) => project.state.phase === "review");
+    const creations = await loadCreations();
+    const review = creations.filter((creation) => creation.state.phase === "review");
     return {
-      reviewCount: review.filter((project) => project.kind === "oneshot").length,
-      templateReviewCount: review.filter((project) => project.kind === "template").length,
-      liveCount: projects.filter((project) => project.state.phase === "running" || project.state.rendering).length,
+      reviewCount: review.filter((creation) => creation.kind === "oneshot").length,
+      templateReviewCount: review.filter((creation) => creation.kind === "template").length,
+      liveCount: creations.filter((creation) => creation.state.phase === "running" || creation.state.rendering).length,
     };
   } catch {
     return { reviewCount: 0, templateReviewCount: 0, liveCount: 0 };

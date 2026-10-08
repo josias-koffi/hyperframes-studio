@@ -108,7 +108,8 @@ https://hyperframes.heygen.com/llms.txt
 - `package.json` — pinned HyperFrames CLI + scripts (shared)
 - `scripts/new-video.sh` — scaffolds a video folder (`npm run new`)
 - `scripts/audio.mjs` — voiceover + music bed + `audio_meta.json` with the providers above
-- `videos/<nom>/` — one video per folder:
+- `videos/<nom>/` — one création per folder: a video, or a still (an image, or a carousel whose slide `i` is a
+  1 s clip captured at `i + 0.5`; stills need an opaque background, snapshots keep transparency):
   - `index.html` — main composition (root timeline)
   - `compositions/` — sub-compositions referenced via `data-composition-src`
   - `assets/` — audio, music, sfx, images

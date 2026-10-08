@@ -1,121 +1,120 @@
-import { ArrowRightIcon } from "lucide-react";
+import { CREATION_TYPES, type CreationType } from "@studio/shared/browser";
+import { FolderOpenIcon, PlusIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { StepAction } from "@/components/project/step-action";
-import { PIPELINE, workflowMeta } from "@/components/studio/labels";
+import { notFound } from "next/navigation";
+import { CrumbLabel } from "@/components/layout/crumb-label";
+import { ProjectActions } from "@/components/project/project-dialog";
+import { CreationCard, TypeCounts } from "@/components/studio/creation-card";
+import { CREATION_TYPE_META } from "@/components/studio/labels";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { serverApi, type Project } from "@/lib/api";
-import { formatRelative } from "@/lib/format";
-import { loadProject } from "@/lib/project-data";
-import { projectHref, STEP_SEGMENTS, stepJob, type StepState } from "@/lib/project-state";
+import { projectHref } from "@/lib/creation-state";
+import { loadCreations } from "@/lib/overview";
 import { cn } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: PageProps<"/projects/[id]">): Promise<Metadata> {
   const { id } = await params;
   return { title: (await serverApi<Project>(`/projects/${id}`)).name };
 }
 
-const BRIEF_FIELDS: { key: string; label: string }[] = [
-  { key: "message", label: "Message clé" },
-  { key: "audience", label: "Audience" },
-  { key: "length", label: "Durée" },
-  { key: "aspect", label: "Format" },
-  { key: "footage", label: "Vidéo source" },
-  { key: "notes", label: "Notes" },
-];
-
-const STATE_TEXT: Record<StepState, { label: string; tone: string }> = {
-  done: { label: "Terminé", tone: "text-success" },
-  current: { label: "À lancer", tone: "text-primary" },
-  running: { label: "En cours", tone: "text-rec" },
-  review: { label: "À valider", tone: "text-warning" },
-  failed: { label: "Échec", tone: "text-destructive" },
-  todo: { label: "À venir", tone: "text-muted-foreground" },
-};
-
-/** Variables the user listed in the wizard (`brief.variables`), for Claude's proposal. */
-function suggestedVariables(brief: Record<string, unknown>): { label: string }[] {
-  const list = brief.variables;
-  if (!Array.isArray(list)) return [];
-  return list.filter((item): item is { label: string } => typeof item?.label === "string" && item.label.trim() !== "");
-}
-
-export default async function ProjectOverviewPage({ params }: PageProps<"/projects/[id]">) {
+/** A campaign: its context, and its créations sorted by type. */
+export default async function ProjectPage({ params, searchParams }: PageProps<"/projects/[id]">) {
   const { id } = await params;
-  const { project, state, jobs, renders, iterations } = await loadProject(id);
-  const base = projectHref(project);
-  const suggested = suggestedVariables(project.brief);
-  const fields = BRIEF_FIELDS.filter(({ key }) => typeof project.brief[key] === "string" && (project.brief[key] as string).trim());
+  const { type: rawType } = await searchParams;
+  const type = CREATION_TYPES.find((value) => value === rawType);
+  const [project, creations] = await Promise.all([serverApi<Project>(`/projects/${id}`).catch(() => notFound()), loadCreations({ projectId: id })]);
+  const counts = Object.fromEntries(CREATION_TYPES.map((t) => [t, creations.filter((c) => c.type === t).length])) as Record<CreationType, number>;
+  const shown = type ? creations.filter((creation) => creation.type === type) : creations;
+  const newHref = `/creations/new?project=${id}${type ? `&type=${type}` : ""}`;
+  const tabs: { value: CreationType | undefined; label: string; count: number }[] = [
+    { value: undefined, label: "Toutes", count: creations.length },
+    ...CREATION_TYPES.map((t) => ({ value: t, label: CREATION_TYPE_META[t].plural, count: counts[t] })),
+  ];
 
   return (
-    <div className="flex flex-col gap-6">
-      <StepAction project={project} state={state} stepHref={`${base}/${STEP_SEGMENTS[project.currentStep]}`} />
+    <>
+      <CrumbLabel segment={id} label={project.name} />
+      <div className="flex rise-in flex-col gap-4 px-4 md:flex-row md:items-start md:justify-between lg:px-6">
+        <div className="min-w-0 space-y-2">
+          <p className="text-xs font-medium tracking-wide text-primary uppercase">Projet</p>
+          <h1 className="text-2xl font-semibold tracking-tight">{project.name}</h1>
+          <TypeCounts counts={counts} />
+          {project.context && <p className="max-w-3xl text-sm whitespace-pre-wrap text-muted-foreground">{project.context}</p>}
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link href={projectHref(id, "assets")}>
+              <FolderOpenIcon />
+              Assets du projet
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href={newHref}>
+              <PlusIcon />
+              Nouvelle création
+            </Link>
+          </Button>
+          <ProjectActions project={project} />
+        </div>
+      </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <Card className="shadow-surface">
-          <CardHeader>
-            <CardTitle>Ta demande</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="space-y-3 text-sm">
-              <div>
-                <dt className="text-xs text-muted-foreground">Type de vidéo</dt>
-                <dd>
-                  {workflowMeta(project.workflow).label}
-                  {project.kind === "template" && " · template réutilisable"}
-                </dd>
-              </div>
-              {fields.map(({ key, label }) => (
-                <div key={key}>
-                  <dt className="text-xs text-muted-foreground">{label}</dt>
-                  <dd className="whitespace-pre-wrap">{String(project.brief[key])}</dd>
-                </div>
-              ))}
-              {suggested.length > 0 && (
-                <div>
-                  <dt className="text-xs text-muted-foreground">Variables suggérées</dt>
-                  <dd>{suggested.map((variable) => variable.label).join(", ")}</dd>
-                </div>
+      <nav aria-label="Filtrer par type" className="flex gap-1 overflow-x-auto px-4 lg:px-6">
+        {tabs.map((tab) => {
+          const Icon = tab.value ? CREATION_TYPE_META[tab.value].icon : null;
+          return (
+            <Link
+              key={tab.label}
+              href={tab.value ? `${projectHref(id)}?type=${tab.value}` : projectHref(id)}
+              aria-current={tab.value === type ? "page" : undefined}
+              className={cn(
+                "flex shrink-0 items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition-colors hover:bg-accent",
+                tab.value === type ? "border-primary bg-accent font-medium" : "bg-card",
               )}
-            </dl>
-          </CardContent>
-        </Card>
+            >
+              {Icon && <Icon className="size-4 text-muted-foreground" />}
+              {tab.label}
+              <span className="rounded-md bg-muted px-1.5 text-xs tabular-nums text-muted-foreground">{tab.count}</span>
+            </Link>
+          );
+        })}
+      </nav>
 
-        <Card className="gap-0 py-0 shadow-surface">
-          <CardHeader className="py-4">
-            <CardTitle>Avancement</CardTitle>
-          </CardHeader>
-          <ul className="divide-y border-t">
-            {state.steps.map(({ step, state: stepState }) => {
-              const { label, icon: Icon } = PIPELINE[step];
-              const job = step === "export" || step === "iterations" ? null : stepJob(jobs, step);
-              const when = step === "export" ? renders[0]?.createdAt : step === "iterations" ? iterations[0]?.updatedAt : job?.createdAt;
-              return (
-                <li key={step}>
-                  <Link href={`${base}/${STEP_SEGMENTS[step]}`} className="group flex items-center gap-3 px-6 py-3 hover:bg-accent/50">
-                    <Icon className="size-4 text-muted-foreground" />
-                    <span className="flex-1 text-sm font-medium">{label}</span>
-                    <span className={cn("text-xs", STATE_TEXT[stepState].tone)}>{STATE_TEXT[stepState].label}</span>
-                    <span className="hidden w-28 text-right text-xs text-muted-foreground sm:block">{when ? formatRelative(when) : ""}</span>
-                    <ArrowRightIcon className="size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-          {renders.length > 0 && (
-            <div className="border-t p-4">
-              <Button asChild variant="outline" size="sm">
-                <Link href={`${base}/exports`}>
-                  {renders.length} export{renders.length > 1 ? "s" : ""}
-                  <ArrowRightIcon />
+      <div className="px-4 lg:px-6">
+        {shown.length === 0 ? (
+          <Empty className="border bg-card shadow-surface">
+            <EmptyHeader>
+              <EmptyMedia variant="icon" className="bg-primary/10 text-primary">
+                {(() => {
+                  const Icon = CREATION_TYPE_META[type ?? "video"].icon;
+                  return <Icon />;
+                })()}
+              </EmptyMedia>
+              <EmptyTitle>{type ? `Aucun${type === "image" ? "e" : ""} ${CREATION_TYPE_META[type].label.toLowerCase()} dans ce projet` : "Projet vide"}</EmptyTitle>
+              <EmptyDescription>
+                Décris ce que tu veux : Claude rédige le brief, prépare le plan et compose. Tu valides à chaque étape clé.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button asChild>
+                <Link href={newHref}>
+                  <PlusIcon />
+                  Nouvelle création
                 </Link>
               </Button>
-            </div>
-          )}
-        </Card>
+            </EmptyContent>
+          </Empty>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {shown.map((creation, index) => (
+              <CreationCard key={creation.id} creation={creation} index={index} />
+            ))}
+          </div>
+        )}
       </div>
-    </div>
+    </>
   );
 }

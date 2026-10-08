@@ -25,7 +25,7 @@ async function main() {
 
   const enqueueNext = async (next: Omit<ClaudeJob, "jobId">) => {
     const jobId = randomUUID();
-    await db.insert(jobs).values({ id: jobId, projectId: next.projectId, kind: "claude", step: next.step, input: next });
+    await db.insert(jobs).values({ id: jobId, creationId: next.creationId, kind: "claude", step: next.step, input: next });
     await queue.add(next.step, { ...next, jobId }, { jobId });
   };
 

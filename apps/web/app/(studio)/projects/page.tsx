@@ -1,50 +1,44 @@
-import { ClapperboardIcon, PlusIcon } from "lucide-react";
+import { FolderKanbanIcon } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
-import { ProjectsTable } from "@/components/studio/projects-table";
-import { Button } from "@/components/ui/button";
+import { NewProjectButton } from "@/components/project/project-dialog";
+import { ProjectCard } from "@/components/studio/creation-card";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { loadOverview } from "@/lib/overview";
+import { serverApi, type ProjectListItem } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Projets" };
 
 export default async function ProjectsPage() {
-  const projects = await loadOverview("oneshot");
+  const projects = await serverApi<ProjectListItem[]>("/projects");
 
   return (
     <>
       <PageHeader
         title="Projets"
-        description="Chaque projet est une vidéo unique : de son brief jusqu'aux exports. Les vidéos réutilisables sont dans Templates."
-        actions={
-          <Button asChild>
-            <Link href="/projects/new">
-              <PlusIcon />
-              Nouvelle vidéo
-            </Link>
-          </Button>
-        }
+        description="Un projet par campagne : il regroupe ses vidéos, carrousels et images, et leur donne un contexte commun."
+        actions={<NewProjectButton />}
       />
       <div className="px-4 lg:px-6">
         {projects.length === 0 ? (
           <Empty className="border bg-card shadow-surface">
             <EmptyHeader>
               <EmptyMedia variant="icon" className="bg-primary/10 text-primary">
-                <ClapperboardIcon />
+                <FolderKanbanIcon />
               </EmptyMedia>
               <EmptyTitle>Aucun projet pour l&apos;instant</EmptyTitle>
-              <EmptyDescription>Crée ta première vidéo : un brief suffit, Claude s&apos;occupe du reste.</EmptyDescription>
+              <EmptyDescription>Crée un projet pour ta campagne, puis ajoutes-y des vidéos, des carrousels et des images.</EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <Button asChild>
-                <Link href="/projects/new">Créer une vidéo</Link>
-              </Button>
+              <NewProjectButton label="Créer un projet" />
             </EmptyContent>
           </Empty>
         ) : (
-          <ProjectsTable projects={projects} />
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {projects.map((project, index) => (
+              <ProjectCard key={project.id} project={project} index={index} />
+            ))}
+          </div>
         )}
       </div>
     </>

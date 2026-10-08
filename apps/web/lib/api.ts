@@ -1,11 +1,49 @@
-import type { CompositionVariable, GenerationStep, JobStatus, ProjectKind, RenderFormat, StudioEvent, VariablesDiff } from "@studio/shared/browser";
+import type {
+  CompositionVariable,
+  CreationKind,
+  CreationType,
+  GenerationStep,
+  JobStatus,
+  RenderFormat,
+  StudioEvent,
+  VariablesDiff,
+} from "@studio/shared/browser";
 
+/** A campaign: the créations it holds share its name, context and assets. */
 export type Project = {
   id: string;
+  name: string;
+  brandId: string | null;
+  context: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** `GET /projects`: what each project holds and what waits on the user. */
+export type ProjectListItem = Project & {
+  counts: Record<CreationType, number>;
+  templateCount: number;
+  reviewCount: number;
+  runningCount: number;
+  /** First images of its stills, for the card. */
+  covers: string[];
+  activityAt: string;
+};
+
+/** A video, a carousel or an image of a project: one folder `videos/<slug>`, one pipeline. */
+export type Creation = {
+  id: string;
+  projectId: string;
+  projectName: string;
   slug: string;
   name: string;
+  type: CreationType;
+  kind: CreationKind;
   workflow: string;
-  kind: ProjectKind;
+  width: number | null;
+  height: number | null;
+  durationSeconds: number | null;
+  slideCount: number | null;
   brief: Record<string, unknown>;
   currentStep: GenerationStep;
   claudeSessionId: string | null;
@@ -13,12 +51,19 @@ export type Project = {
   updatedAt: string;
 };
 
-/** `GET /projects`: a template also says how many variables and iterations it has. */
-export type ProjectListItem = Project & { variableCount: number | null; iterationCount: number | null };
+/** `GET /projects/:id/creations` and `GET /creations`: where each création stands. */
+export type CreationListItem = Creation & {
+  lastClaudeJob: Job | null;
+  lastRenderJob: Job | null;
+  renderCount: number;
+  iterationCount: number;
+  variableCount: number | null;
+  cover: string | null;
+};
 
 export type Job = {
   id: string;
-  projectId: string;
+  creationId: string;
   iterationId: string | null;
   kind: "claude" | "render";
   step: GenerationStep | null;
@@ -39,8 +84,8 @@ export type Render = {
   createdAt: string;
 };
 
-/** `GET /projects/:id/variables`: the validated contract and what the composition declares. */
-export type ProjectVariables = {
+/** `GET /creations/:id/variables`: the validated contract and what the composition declares. */
+export type CreationVariables = {
   proposed: CompositionVariable[] | null;
   declared: CompositionVariable[];
   diff: VariablesDiff | null;
@@ -50,7 +95,7 @@ export type ProjectVariables = {
 /** One use of a template: named values and the renders made from them. */
 export type Iteration = {
   id: string;
-  projectId: string;
+  creationId: string;
   name: string;
   values: Record<string, unknown>;
   format: RenderFormat;
@@ -65,6 +110,8 @@ export type AssetKind = "image" | "video" | "audio" | "font" | "logo" | "documen
 export type Asset = {
   id: string;
   projectId: string | null;
+  /** Set when uploaded for one création only (its footage, its music). */
+  creationId: string | null;
   kind: AssetKind;
   filename: string;
   contentType: string;
@@ -77,10 +124,10 @@ export type Asset = {
 
 export type JobStreamMessage = { seq?: number; event?: StudioEvent; status?: JobStatus };
 
-/** A workspace file of the project (BRIEF.md, audio_meta.json…) as text, or null when it does not exist yet. */
-export async function serverFile(projectId: string, path: string): Promise<string | null> {
+/** A file of the création's folder (BRIEF.md, audio_meta.json…) as text, or null when it does not exist yet. */
+export async function serverFile(creationId: string, path: string): Promise<string | null> {
   const base = process.env.API_URL ?? "http://localhost:3343";
-  const response = await fetch(`${base}/projects/${projectId}/files/${path}`, { cache: "no-store" });
+  const response = await fetch(`${base}/creations/${creationId}/files/${path}`, { cache: "no-store" });
   return response.ok ? response.text() : null;
 }
 

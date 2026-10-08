@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpenIcon, ClapperboardIcon, FolderOpenIcon, LayoutDashboardIcon, LayoutTemplateIcon, PlusIcon } from "lucide-react";
+import { BookOpenIcon, FolderKanbanIcon, FolderOpenIcon, LayoutDashboardIcon, LayoutTemplateIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Brand } from "@/components/brand";
@@ -19,17 +19,17 @@ import {
 
 const ITEMS = [
   { href: "/", icon: LayoutDashboardIcon, title: "Tableau de bord" },
-  { href: "/projects", icon: ClapperboardIcon, title: "Projets" },
+  { href: "/projects", icon: FolderKanbanIcon, title: "Projets" },
   { href: "/templates", icon: LayoutTemplateIcon, title: "Templates" },
   { href: "/assets", icon: FolderOpenIcon, title: "Assets" },
 ];
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
-  /** Videos whose checkpoint waits for the user. */
+  /** One-shot créations whose checkpoint waits for the user. */
   reviewCount: number;
   /** Templates whose checkpoint waits for the user. */
   templateReviewCount: number;
-  /** Projects Claude is working on right now. */
+  /** Créations Claude or a render is working on right now. */
   liveCount: number;
 };
 
@@ -54,13 +54,13 @@ export function AppSidebar({ reviewCount, templateReviewCount, liveCount, ...pro
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  tooltip="Nouvelle vidéo"
-                  isActive={pathname === "/projects/new"}
+                  tooltip="Nouvelle création"
+                  isActive={pathname === "/creations/new"}
                   className="bg-primary text-primary-foreground shadow-surface hover:bg-primary/90 hover:text-primary-foreground hover:shadow-raised active:bg-primary/90 active:text-primary-foreground data-active:bg-primary data-active:text-primary-foreground"
                 >
-                  <Link href="/projects/new">
+                  <Link href="/creations/new">
                     <PlusIcon />
-                    <span>Nouvelle vidéo</span>
+                    <span>Nouvelle création</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

@@ -25,12 +25,12 @@ export function formatBytes(size: number): string {
 /** Registers the asset with the API, then PUTs the file straight to MinIO on the presigned URL. */
 export async function uploadAsset(
   file: File,
-  { projectId, onProgress }: { projectId?: string; onProgress?: (fraction: number) => void } = {},
+  { projectId, creationId, onProgress }: { projectId?: string; creationId?: string; onProgress?: (fraction: number) => void } = {},
 ): Promise<Asset> {
   const contentType = file.type || "application/octet-stream";
   const { asset, uploadUrl } = await clientApi<{ asset: Asset; uploadUrl: string }>("/assets/uploads", {
     method: "POST",
-    body: JSON.stringify({ projectId, filename: file.name, contentType, size: file.size, kind: kindFromFile(file) }),
+    body: JSON.stringify({ projectId, creationId, filename: file.name, contentType, size: file.size, kind: kindFromFile(file) }),
   });
   await new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();

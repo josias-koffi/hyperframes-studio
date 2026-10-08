@@ -2,25 +2,25 @@ import { LayoutTemplateIcon, PlusIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
-import { ProjectsTable } from "@/components/studio/projects-table";
+import { CreationsTable } from "@/components/studio/creations-table";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { loadOverview } from "@/lib/overview";
+import { loadCreations } from "@/lib/overview";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Templates" };
 
 export default async function TemplatesPage() {
-  const templates = await loadOverview("template");
+  const templates = await loadCreations({ kind: "template" });
 
   return (
     <>
       <PageHeader
         title="Templates"
-        description="Des vidéos réutilisables : leurs variables sont validées avant le storyboard, puis chaque itération se génère sans Claude."
+        description="Les créations réutilisables de tous les projets (vidéos, carrousels, images) : leurs variables sont validées avant la composition, puis chaque itération se génère sans Claude."
         actions={
           <Button asChild>
-            <Link href="/templates/new">
+            <Link href="/creations/new?kind=template">
               <PlusIcon />
               Nouveau template
             </Link>
@@ -36,19 +36,19 @@ export default async function TemplatesPage() {
               </EmptyMedia>
               <EmptyTitle>Aucun template</EmptyTitle>
               <EmptyDescription>
-                Un template se crée comme une vidéo, avec l&apos;option « Template réutilisable ». Après le brief, Claude
+                Un template se crée comme toute création, avec l&apos;option « Template réutilisable ». Après le brief, Claude
                 propose les variables (textes, couleurs, images) : tu les valides, puis tu génères autant d&apos;itérations
                 que tu veux.
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <Button asChild>
-                <Link href="/templates/new">Créer un template</Link>
+                <Link href="/creations/new?kind=template">Créer un template</Link>
               </Button>
             </EmptyContent>
           </Empty>
         ) : (
-          <ProjectsTable projects={templates} kind="template" />
+          <CreationsTable creations={templates} templates />
         )}
       </div>
     </>

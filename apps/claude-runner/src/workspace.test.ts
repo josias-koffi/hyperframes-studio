@@ -7,6 +7,7 @@ import {
   commitCheckpoint,
   missingStepOutputs,
   renderWorkspaceEnv,
+  setCanvasSize,
   storyboardAudio,
   syncWorkspaceSkeleton,
   templateVariablesGap,
@@ -48,9 +49,38 @@ describe("missingStepOutputs", () => {
     await mkdir(join(workspace, "videos", "demo"), { recursive: true });
     await writeFile(join(workspace, "videos", "demo", "STORYBOARD.md"), "frames");
 
-    expect(await missingStepOutputs(workspace, "demo", "brief")).toEqual(["BRIEF.md"]);
-    expect(await missingStepOutputs(workspace, "demo", "storyboard")).toEqual(["SCRIPT.md", "storyboard.html"]);
-    expect(await missingStepOutputs(workspace, "demo", "media")).toEqual([]);
+    expect(await missingStepOutputs(workspace, "demo", "video", "brief")).toEqual(["BRIEF.md"]);
+    expect(await missingStepOutputs(workspace, "demo", "video", "storyboard")).toEqual(["SCRIPT.md", "storyboard.html"]);
+    expect(await missingStepOutputs(workspace, "demo", "carousel", "storyboard")).toEqual(["storyboard.html"]);
+    expect(await missingStepOutputs(workspace, "demo", "video", "media")).toEqual([]);
+  });
+});
+
+describe("setCanvasSize", () => {
+  const blank = `<html lang="en" data-resolution="landscape">
+  <head>
+    <meta name="viewport" content="width=1920, height=1080" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-width="1920" data-height="1080"></div>
+  </body>
+</html>`;
+
+  it("resizes every place the canvas size is written", () => {
+    const html = setCanvasSize(blank, 1080, 1350);
+    expect(html).toContain('content="width=1080, height=1350"');
+    expect(html).toContain("width: 1080px;\n        height: 1350px;");
+    expect(html).toContain('data-width="1080" data-height="1350"');
+    expect(html).toContain('<html lang="en">');
+    expect(html).not.toContain("1920");
   });
 });
 

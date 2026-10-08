@@ -1,7 +1,7 @@
 "use client";
 
-import { validateVariableValues, type CompositionVariable, type RenderFormat } from "@studio/shared/browser";
-import { FilmIcon, ImageIcon, RotateCcwIcon, SaveIcon, TriangleAlertIcon } from "lucide-react";
+import { validateVariableValues, type CompositionVariable, type CreationType, type RenderFormat } from "@studio/shared/browser";
+import { FilmIcon, GalleryHorizontalIcon, ImageIcon, RotateCcwIcon, SaveIcon, TriangleAlertIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -26,10 +26,12 @@ const VIDEO_FORMATS: { value: RenderFormat; label: string }[] = [
  * Generating saves first, then renders without Claude.
  */
 export function IterationForm({
+  type,
   iteration,
   declarations,
   blockedReason,
 }: {
+  type: CreationType;
   iteration: Iteration;
   declarations: CompositionVariable[];
   /** Why rendering is not possible right now (a render or Claude running), or null. */
@@ -41,7 +43,10 @@ export function IterationForm({
     [declarations, iteration.values],
   );
   const [values, setValues] = useState<Record<string, unknown>>(initial);
-  const [format, setFormat] = useState<RenderFormat>(iteration.format === "png" ? "mp4" : iteration.format);
+  // A video iteration picks its video format; a still always renders its deliverable.
+  const [format, setFormat] = useState<RenderFormat>(
+    type === "video" ? (iteration.format === "png" ? "mp4" : iteration.format) : type === "carousel" ? "pdf" : "png",
+  );
   const [saved, setSaved] = useState(() => JSON.stringify({ values: initial, format }));
   const [pending, setPending] = useState<null | "save" | "video" | "image">(null);
 
@@ -85,21 +90,23 @@ export function IterationForm({
             {variable.type === "string" && variable.placeholder && <FieldDescription>{variable.placeholder}</FieldDescription>}
           </Field>
         ))}
-        <Field>
-          <FieldLabel htmlFor="iteration-format">Format vidéo</FieldLabel>
-          <Select value={format} onValueChange={(value) => setFormat(value as RenderFormat)} disabled={pending !== null}>
-            <SelectTrigger id="iteration-format" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {VIDEO_FORMATS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
+        {type === "video" && (
+          <Field>
+            <FieldLabel htmlFor="iteration-format">Format vidéo</FieldLabel>
+            <Select value={format} onValueChange={(value) => setFormat(value as RenderFormat)} disabled={pending !== null}>
+              <SelectTrigger id="iteration-format" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {VIDEO_FORMATS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        )}
       </FieldGroup>
 
       {errors.length > 0 && (
@@ -117,13 +124,15 @@ export function IterationForm({
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <Button disabled={pending !== null || errors.length > 0 || blockedReason !== null} onClick={() => run("video", { format })}>
-            {pending === "video" ? <Spinner /> : <FilmIcon />}
-            Générer la vidéo
+            {pending === "video" ? <Spinner /> : type === "video" ? <FilmIcon /> : type === "carousel" ? <GalleryHorizontalIcon /> : <ImageIcon />}
+            {{ video: "Générer la vidéo", carousel: "Générer le carrousel", image: "Générer l'image" }[type]}
           </Button>
-          <Button variant="outline" disabled={pending !== null || errors.length > 0 || blockedReason !== null} onClick={() => run("image", { format: "png", frames: 1 })}>
-            {pending === "image" ? <Spinner /> : <ImageIcon />}
-            Générer une image
-          </Button>
+          {type === "video" && (
+            <Button variant="outline" disabled={pending !== null || errors.length > 0 || blockedReason !== null} onClick={() => run("image", { format: "png", frames: 1 })}>
+              {pending === "image" ? <Spinner /> : <ImageIcon />}
+              Générer une image
+            </Button>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="ghost" size="sm" disabled={pending !== null || !dirty || errors.length > 0} onClick={() => run("save")}>

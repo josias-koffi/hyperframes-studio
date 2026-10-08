@@ -12,9 +12,9 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
-import { assets, projects, type Database } from "@studio/db";
+import { assets, creations, projects, type Database } from "@studio/db";
 import { sanitizeFilename, storageKeys, type Storage } from "@studio/storage";
-import { desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull, or } from "drizzle-orm";
 import { z } from "zod";
 import { DATABASE } from "../database/database.module";
 import { ZodPipe } from "../shared/zod.pipe";
@@ -24,6 +24,8 @@ const MAX_UPLOAD = 2 * 1024 * 1024 * 1024;
 
 const uploadSchema = z.object({
   projectId: z.string().uuid().optional(),
+  /** Footage or music of one création: synced to that création only. */
+  creationId: z.string().uuid().optional(),
   brandId: z.string().uuid().optional(),
   filename: z.string().min(1).max(200),
   contentType: z.string().min(1).max(120),
@@ -34,6 +36,7 @@ const uploadSchema = z.object({
 type UploadRequest = z.infer<typeof uploadSchema>;
 
 const attachSchema = z.object({ projectId: z.string().uuid() });
+const listSchema = z.object({ projectId: z.string().uuid().optional(), creationId: z.string().uuid().optional() });
 
 @Controller("assets")
 export class AssetsController {
@@ -48,10 +51,18 @@ export class AssetsController {
     return row;
   }
 
-  /** Lists a project's assets, or the shared library without `projectId`, each with a preview URL. */
+  /**
+   * Lists what a création sees (the campaign's assets and its own), a project's assets, or the shared library
+   * without either, each with a preview URL.
+   */
   @Get()
-  async list(@Query("projectId") projectId?: string) {
-    const where = projectId ? eq(assets.projectId, projectId) : isNull(assets.projectId);
+  async list(@Query(new ZodPipe(listSchema)) query: z.infer<typeof listSchema>) {
+    let where = query.projectId ? eq(assets.projectId, query.projectId) : isNull(assets.projectId);
+    if (query.creationId) {
+      const [creation] = await this.db.select({ projectId: creations.projectId }).from(creations).where(eq(creations.id, query.creationId));
+      if (!creation) throw new NotFoundException("creation not found");
+      where = and(eq(assets.projectId, creation.projectId), or(isNull(assets.creationId), eq(assets.creationId, query.creationId)))!;
+    }
     const rows = await this.db.select().from(assets).where(where).orderBy(desc(assets.createdAt));
     return Promise.all(rows.map(async (row) => ({ ...row, url: await this.storage.presignDownload(row.storageKey) })));
   }
@@ -59,6 +70,11 @@ export class AssetsController {
   /** Registers the asset and returns a presigned PUT: the browser uploads straight to MinIO. */
   @Post("uploads")
   async upload(@Body(new ZodPipe(uploadSchema)) body: UploadRequest) {
+    if (body.creationId) {
+      const [creation] = await this.db.select({ projectId: creations.projectId }).from(creations).where(eq(creations.id, body.creationId));
+      if (!creation) throw new NotFoundException("creation not found");
+      body.projectId = creation.projectId;
+    }
     const id = randomUUID();
     const filename = sanitizeFilename(body.filename);
     const storageKey = storageKeys.asset(id, filename);
@@ -70,7 +86,7 @@ export class AssetsController {
     return { asset: row, uploadUrl };
   }
 
-  /** Copies a library asset into a project: the runner syncs project assets to `assets/uploads/`. */
+  /** Copies a library asset into a project: the runner syncs it into every création's `assets/uploads/`. */
   @Post(":id/attach")
   async attach(@Param("id", ParseUUIDPipe) id: string, @Body(new ZodPipe(attachSchema)) body: z.infer<typeof attachSchema>) {
     const source = await this.find(id);
@@ -101,7 +117,7 @@ export class AssetsController {
     return { url: await this.storage.presignDownload(row.storageKey) };
   }
 
-  /** Removes the object and its row. A copy already synced into a video folder stays there. */
+  /** Removes the object and its row. A copy already synced into a création's folder stays there. */
   @Delete(":id")
   @HttpCode(204)
   async remove(@Param("id", ParseUUIDPipe) id: string) {

@@ -5,21 +5,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { PIPELINE, STEP_LABELS } from "@/components/studio/labels";
+import { CREATION_TYPE_META, stepMeta } from "@/components/studio/labels";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import { clientApi, type Project } from "@/lib/api";
-import { projectHref, type ProjectState } from "@/lib/project-state";
+import { clientApi, type Creation } from "@/lib/api";
+import { creationHref, type CreationState } from "@/lib/creation-state";
 
-export function useProjectAction(projectId: string) {
+export function useCreationAction(creationId: string) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   async function act(path: string, body?: unknown): Promise<boolean> {
     setPending(true);
     try {
-      await clientApi(`/projects/${projectId}/${path}`, { method: "POST", body: body ? JSON.stringify(body) : undefined });
+      await clientApi(`/creations/${creationId}/${path}`, { method: "POST", body: body ? JSON.stringify(body) : undefined });
       router.refresh();
       return true;
     } catch (error) {
@@ -50,13 +50,14 @@ function Shell({ tone, icon, title, text, children }: { tone: string; icon: Reac
 const ICON = "flex size-10 shrink-0 items-center justify-center rounded-full";
 
 /**
- * The one thing to do next on the project's current step: launch it, follow it, review it or retry it.
+ * The one thing to do next on the création's current step: launch it, follow it, review it or retry it.
  * `stepHref` adds a link to the step page (the overview); the step page itself leaves it out.
  */
-export function StepAction({ project, state, stepHref }: { project: Project; state: ProjectState; stepHref?: string }) {
-  const { pending, act } = useProjectAction(project.id);
+export function StepAction({ creation, state, stepHref }: { creation: Creation; state: CreationState; stepHref?: string }) {
+  const { pending, act } = useCreationAction(creation.id);
   const [feedback, setFeedback] = useState("");
-  const step = PIPELINE[project.currentStep];
+  const step = stepMeta(creation.currentStep, creation.type);
+  const { noun } = CREATION_TYPE_META[creation.type];
   const link = stepHref && (
     <Button variant="ghost" asChild>
       <Link href={stepHref}>
@@ -87,9 +88,10 @@ export function StepAction({ project, state, stepHref }: { project: Project; sta
   }
 
   if (state.phase === "review") {
-    const isBuild = project.currentStep === "build";
-    const isTemplate = project.kind === "template";
-    const afterApproval = isBuild ? (isTemplate ? "créer la première itération du template" : "lancer le rendu MP4") : "passer à l'étape suivante";
+    const isBuild = creation.currentStep === "build";
+    const isTemplate = creation.kind === "template";
+    const delivery = { video: "lancer le rendu MP4", carousel: "générer les slides et le PDF", image: "générer le PNG" }[creation.type];
+    const afterApproval = isBuild ? (isTemplate ? "créer la première itération du template" : delivery) : "passer à l'étape suivante";
     return (
       <Card className="border-warning/40 shadow-raised">
         <CardContent className="space-y-4">
@@ -98,7 +100,7 @@ export function StepAction({ project, state, stepHref }: { project: Project; sta
               <EyeIcon className="size-5" />
             </span>
             <div className="flex-1">
-              <p className="font-medium">{STEP_LABELS[project.currentStep]} prêt : à toi de valider</p>
+              <p className="font-medium">{step.label} prêt : à toi de valider</p>
               <p className="text-sm text-muted-foreground">
                 Valide pour {afterApproval}, ou écris ce qu&apos;il faut
                 changer : Claude reprend la même étape avec ton retour.
@@ -109,7 +111,7 @@ export function StepAction({ project, state, stepHref }: { project: Project; sta
           {!stepHref && (
             <>
               <Textarea
-                placeholder="Ex. : raccourcir la frame 2, ton plus direct, logo plus grand…"
+                placeholder={creation.type === "video" ? "Ex. : raccourcir la frame 2, ton plus direct, logo plus grand…" : "Ex. : titre plus court, contraste plus fort, logo plus grand…"}
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
                 rows={3}
@@ -118,7 +120,7 @@ export function StepAction({ project, state, stepHref }: { project: Project; sta
               <div className="flex flex-wrap gap-2">
                 <Button onClick={() => act("approve")} disabled={pending}>
                   <CheckIcon />
-                  {isBuild ? (isTemplate ? "Valider le template" : "Valider et rendre la vidéo") : "Valider et continuer"}
+                  {isBuild ? (isTemplate ? "Valider le template" : `Valider et rendre ${noun}`) : "Valider et continuer"}
                 </Button>
                 <Button
                   variant="outline"
@@ -145,7 +147,7 @@ export function StepAction({ project, state, stepHref }: { project: Project; sta
             <TriangleAlertIcon className="size-5" />
           </span>
         }
-        title={`L'étape ${STEP_LABELS[project.currentStep].toLowerCase()} a échoué`}
+        title={`L'étape ${step.label.toLowerCase()} a échoué`}
         text={<span className="line-clamp-2">{state.claudeJob?.resultText ?? "Le détail est dans le journal de Claude."}</span>}
       >
         {link}
@@ -157,7 +159,7 @@ export function StepAction({ project, state, stepHref }: { project: Project; sta
     );
   }
 
-  if (state.phase === "done" && project.kind === "template") {
+  if (state.phase === "done" && creation.kind === "template") {
     return (
       <Shell
         tone="border-success/40"
@@ -170,7 +172,7 @@ export function StepAction({ project, state, stepHref }: { project: Project; sta
         text="Crée une itération, remplis ses variables et génère : le rendu part sans Claude."
       >
         <Button variant="outline" asChild>
-          <Link href={projectHref(project, "iterations")}>
+          <Link href={creationHref(creation, "iterations")}>
             Voir les itérations
             <ArrowRightIcon />
           </Link>
@@ -188,11 +190,13 @@ export function StepAction({ project, state, stepHref }: { project: Project; sta
             <SparklesIcon className="size-5" />
           </span>
         }
-        title="Vidéo générée"
-        text="Le rendu MP4 part automatiquement. Pour retoucher la vidéo à la main, ouvre-la dans le Studio HyperFrames."
+        title={{ video: "Vidéo générée", carousel: "Carrousel généré", image: "Image générée" }[creation.type]}
+        text={`${
+          { video: "Le rendu MP4 part automatiquement.", carousel: "Les slides et le PDF partent automatiquement.", image: "Le PNG part automatiquement." }[creation.type]
+        } Pour retoucher ${noun} à la main, ouvre-${creation.type === "carousel" ? "le" : "la"} dans le Studio HyperFrames.`}
       >
         <Button variant="outline" asChild>
-          <Link href={projectHref(project, "exports")}>
+          <Link href={creationHref(creation, "exports")}>
             Voir les exports
             <ArrowRightIcon />
           </Link>
