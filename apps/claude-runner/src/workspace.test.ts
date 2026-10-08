@@ -3,7 +3,14 @@ import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { commitCheckpoint, missingStepOutputs, renderWorkspaceEnv, storyboardAudio, syncWorkspaceSkeleton } from "./workspace";
+import {
+  commitCheckpoint,
+  missingStepOutputs,
+  renderWorkspaceEnv,
+  storyboardAudio,
+  syncWorkspaceSkeleton,
+  templateVariablesGap,
+} from "./workspace";
 
 describe("renderWorkspaceEnv", () => {
   it("keeps only the provider keys that are set", () => {
@@ -60,5 +67,20 @@ describe("storyboardAudio", () => {
     expect(await storyboardAudio(workspace, "demo")).toBe("voix+musique");
     await writeFile(storyboard, "---\nformat: 1080x1920\n---\n");
     expect(await storyboardAudio(workspace, "demo")).toBeNull();
+  });
+});
+
+describe("templateVariablesGap", () => {
+  const title = { id: "title", type: "string", label: "Titre", default: "Hello" };
+
+  it("compares the validated contract with the declaration of index.html", async () => {
+    const workspace = await mkdtemp(join(tmpdir(), "ws-"));
+    const dir = join(workspace, "videos", "demo");
+    await mkdir(dir, { recursive: true });
+    expect(typeof (await templateVariablesGap(workspace, "demo"))).toBe("string");
+
+    await writeFile(join(dir, "VARIABLES.json"), JSON.stringify([title, { ...title, id: "cta" }]));
+    await writeFile(join(dir, "index.html"), `<html data-composition-variables='${JSON.stringify([title])}'></html>`);
+    expect(await templateVariablesGap(workspace, "demo")).toEqual({ missing: ["cta"], extra: [], changed: [] });
   });
 });

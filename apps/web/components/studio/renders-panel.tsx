@@ -1,5 +1,6 @@
 "use client";
 
+import type { CompositionVariable } from "@studio/shared/browser";
 import { DownloadIcon, FilmIcon, ImageIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -10,12 +11,43 @@ import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { clientApi, type Job, type Render } from "@/lib/api";
 import { formatDateTime, formatRelative } from "@/lib/format";
+import { ValueChip } from "@/components/template/variable-input";
 import { JobLog } from "./job-log";
 import { StatusBadge } from "./status-badge";
 
 const VIDEO_FORMATS = new Set(["mp4", "webm", "mov"]);
 
-function RenderCard({ render }: { render: Render }) {
+/** The values an iteration render was made with, compared with the iteration's current ones. */
+function RenderValues({ render, declarations, current }: { render: Render; declarations: CompositionVariable[]; current: Record<string, unknown> }) {
+  const used = render.variables ?? {};
+  const changed = declarations.filter((variable) => JSON.stringify(used[variable.id] ?? variable.default) !== JSON.stringify(current[variable.id] ?? variable.default));
+  return (
+    <details className="group border-t px-3 py-2 text-xs">
+      <summary className="flex cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+        <span className="text-muted-foreground">Valeurs utilisées</span>
+        {changed.length === 0 ? (
+          <Badge variant="secondary">identiques aux actuelles</Badge>
+        ) : (
+          <Badge variant="outline" className="border-warning/50 text-warning">
+            {changed.length} différente{changed.length > 1 ? "s" : ""}
+          </Badge>
+        )}
+      </summary>
+      <dl className="mt-2 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1">
+        {declarations.map((variable) => (
+          <div key={variable.id} className="contents">
+            <dt className={changed.includes(variable) ? "font-medium text-warning" : "text-muted-foreground"}>{variable.label}</dt>
+            <dd className="min-w-0">
+              <ValueChip variable={variable} value={used[variable.id] ?? variable.default} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </details>
+  );
+}
+
+function RenderCard({ render, values }: { render: Render; values?: { declarations: CompositionVariable[]; current: Record<string, unknown> } }) {
   const video = VIDEO_FORMATS.has(render.format);
   const [first] = render.urls;
   return (
@@ -48,6 +80,7 @@ function RenderCard({ render }: { render: Render }) {
           </Button>
         ))}
       </div>
+      {values && <RenderValues render={render} declarations={values.declarations} current={values.current} />}
     </div>
   );
 }
@@ -57,12 +90,15 @@ export function RendersPanel({
   renders,
   lastRenderJob,
   hideActions,
+  values,
 }: {
   projectId: string;
   renders: Render[];
   lastRenderJob: Job | null;
-  /** A template renders from its own form. */
+  /** An iteration renders from its own form. */
   hideActions?: boolean;
+  /** An iteration's renders show the values each one was made with. */
+  values?: { declarations: CompositionVariable[]; current: Record<string, unknown> };
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -120,7 +156,7 @@ export function RendersPanel({
             </EmptyMedia>
             <EmptyTitle>Aucun export</EmptyTitle>
             <EmptyDescription>
-              {hideActions ? "Remplis les variables puis génère : les vidéos apparaîtront ici." : "Le MP4 est rendu automatiquement quand tu valides le build."}
+              {hideActions ? "Remplis les valeurs puis génère : les rendus de cette itération apparaîtront ici." : "Le MP4 est rendu automatiquement quand tu valides le build."}
             </EmptyDescription>
           </EmptyHeader>
         </Empty>
@@ -128,7 +164,7 @@ export function RendersPanel({
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {rendering && <div className="aspect-video rounded-xl border bg-muted live-shimmer" aria-label="Rendu en cours" />}
           {renders.map((r) => (
-            <RenderCard key={r.id} render={r} />
+            <RenderCard key={r.id} render={r} values={values} />
           ))}
         </div>
       )}

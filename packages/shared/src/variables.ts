@@ -22,6 +22,56 @@ export const compositionVariableSchema = z.discriminatedUnion("type", [
 ]);
 export type CompositionVariable = z.infer<typeof compositionVariableSchema>;
 
+/** Ids become CSS custom properties (`--{id}`) and JSON keys: keep them to a safe identifier. */
+export const VARIABLE_ID = /^[a-z][a-zA-Z0-9_]*$/;
+
+/**
+ * The variable contract of a template (`VARIABLES.json`): proposed by Claude
+ * after the brief, edited and validated by the user, then declared as-is by the build.
+ */
+export const compositionVariablesSchema = z
+  .array(compositionVariableSchema)
+  .superRefine((variables, ctx) => {
+    const seen = new Set<string>();
+    variables.forEach((variable, index) => {
+      if (!VARIABLE_ID.test(variable.id))
+        ctx.addIssue({ code: "custom", path: [index, "id"], message: `${variable.id}: lettres, chiffres et _ uniquement, en commençant par une minuscule` });
+      if (seen.has(variable.id)) ctx.addIssue({ code: "custom", path: [index, "id"], message: `${variable.id}: id en double` });
+      seen.add(variable.id);
+    });
+  });
+
+export interface VariablesDiff {
+  /** Validated but not declared by the composition. */
+  missing: string[];
+  /** Declared by the composition but never validated. */
+  extra: string[];
+  /** Declared with another type than the validated one. */
+  changed: string[];
+}
+
+/** Compares the validated contract with what the composition actually declares. */
+export function diffVariables(validated: CompositionVariable[], declared: CompositionVariable[]): VariablesDiff {
+  const declaredById = new Map(declared.map((variable) => [variable.id, variable]));
+  const validatedIds = new Set(validated.map((variable) => variable.id));
+  return {
+    missing: validated.filter((variable) => !declaredById.has(variable.id)).map((variable) => variable.id),
+    extra: declared.filter((variable) => !validatedIds.has(variable.id)).map((variable) => variable.id),
+    changed: validated
+      .filter((variable) => declaredById.has(variable.id) && declaredById.get(variable.id)!.type !== variable.type)
+      .map((variable) => variable.id),
+  };
+}
+
+export function isVariablesDiffEmpty(diff: VariablesDiff): boolean {
+  return diff.missing.length === 0 && diff.extra.length === 0 && diff.changed.length === 0;
+}
+
+/** The values a new iteration starts from: every declared default. */
+export function defaultVariableValues(declarations: CompositionVariable[]): Record<string, unknown> {
+  return Object.fromEntries(declarations.map((declaration) => [declaration.id, declaration.default]));
+}
+
 const ATTRIBUTE = /data-composition-variables\s*=\s*(['"])([\s\S]*?)\1/;
 
 function decodeEntities(value: string): string {

@@ -5,14 +5,26 @@ import { z } from "zod";
  * waits for the user: approving moves to the next step, a comment resumes the
  * same session (`claude --resume`) on the same step.
  */
-export const GENERATION_STEPS = ["brief", "storyboard", "media", "build"] as const;
+export const GENERATION_STEPS = ["brief", "variables", "storyboard", "media", "build"] as const;
 export type GenerationStep = (typeof GENERATION_STEPS)[number];
 
-export const CHECKPOINT_STEPS: readonly GenerationStep[] = ["storyboard", "build"];
+export const CHECKPOINT_STEPS: readonly GenerationStep[] = ["variables", "storyboard", "build"];
 
-export function nextStep(step: GenerationStep): GenerationStep | null {
-  const index = GENERATION_STEPS.indexOf(step);
-  return GENERATION_STEPS[index + 1] ?? null;
+/**
+ * A one-shot video is made once; a template is built around variables the user
+ * validates before the storyboard, then instantiated without Claude.
+ */
+export const PROJECT_KINDS = ["oneshot", "template"] as const;
+export type ProjectKind = (typeof PROJECT_KINDS)[number];
+
+/** Steps a project of this kind goes through: only a template proposes variables. */
+export function stepsFor(kind: ProjectKind): readonly GenerationStep[] {
+  return kind === "template" ? GENERATION_STEPS : GENERATION_STEPS.filter((step) => step !== "variables");
+}
+
+export function nextStep(step: GenerationStep, kind: ProjectKind): GenerationStep | null {
+  const steps = stepsFor(kind);
+  return steps[steps.indexOf(step) + 1] ?? null;
 }
 
 export const JOB_STATUSES = ["queued", "running", "waiting_review", "succeeded", "failed", "cancelled"] as const;
@@ -39,8 +51,8 @@ export const renderJobSchema = z.object({
   projectId: z.string().uuid(),
   slug: z.string().regex(/^[a-z0-9][a-z0-9-]{0,62}$/),
   format: z.enum(RENDER_FORMATS).default("mp4"),
-  /** Template render: the output is filed under the template, not under the source project's exports. */
-  templateId: z.string().uuid().optional(),
+  /** Template render: the output is filed under this iteration, not under the project's exports. */
+  iterationId: z.string().uuid().optional(),
   /** Template instantiation: values keyed by variable id (`render --variables-file`). */
   variables: z.record(z.string(), z.unknown()).optional(),
   /** For `png`: timestamps (seconds) captured with `hyperframes snapshot --at`. */

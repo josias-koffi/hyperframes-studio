@@ -11,14 +11,16 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { useCrumbLabel } from "./crumb-label";
+import { useCrumbLabels } from "./crumb-label";
 
 const SEGMENTS: Record<string, string> = {
   projects: "Projets",
   templates: "Templates",
-  new: "Nouvelle vidéo",
+  new: "Création",
   assets: "Assets",
   brief: "Brief",
+  variables: "Variables",
+  iterations: "Itérations",
   storyboard: "Storyboard",
   media: "Voix et musique",
   build: "Build",
@@ -26,15 +28,15 @@ const SEGMENTS: Record<string, string> = {
   studio: "Studio HyperFrames",
 };
 
-/** Derived from the path; an id segment shows the label its page published (the project name). */
+/** Derived from the path; an id segment shows the label its page published (project or iteration name). */
 export function HeaderBreadcrumb() {
   const segments = usePathname().split("/").filter(Boolean);
-  const detail = useCrumbLabel();
+  const labels = useCrumbLabels();
   const crumbs = [
     { href: "/", label: "Tableau de bord" },
     ...segments.map((segment, index) => ({
       href: `/${segments.slice(0, index + 1).join("/")}`,
-      label: SEGMENTS[segment] ?? detail ?? "Détail",
+      label: labels[segment] ?? SEGMENTS[segment] ?? "Détail",
     })),
   ];
 

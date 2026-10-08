@@ -17,21 +17,24 @@ web (Next.js + shadcn) ──/api proxy──▶ api (NestJS) ──BullMQ──
 
 - **Un projet = un dossier `videos/<slug>`** du workspace HyperFrames (squelette dans [`workspace/`](workspace/),
   copie de `hyperframes-test` : `CLAUDE.md`, CLI épinglée, scripts).
-- **Génération par étapes** (cadrage conservé) : `brief → storyboard ✓ → media → build ✓`. Chaque étape est un tour
+- **Génération par étapes** (cadrage conservé) : `brief → (variables ✓) → storyboard ✓ → media → build ✓`. Chaque étape est un tour
   `claude -p --output-format stream-json`, avec le prompt de [`prompts/<étape>.md`](prompts/). Les étapes ✓ sont des
   **checkpoints** : l'UI affiche le storyboard ou la composition. *Valider* lance l'étape suivante ; *Envoyer le
   retour* reprend la même session (`--resume`) sur la même étape. Un commit git par étape dans le workspace.
-- **Templates sans Claude** : une composition qui déclare `data-composition-variables` devient un template. L'UI
-  génère le formulaire et le rendu passe par `hyperframes render --variables-file --strict-variables`. Les images
-  passent par `snapshot --at`, sur une copie dont les valeurs par défaut sont réécrites (`applyVariableDefaults`).
+- **Vidéo unique ou template, choisi à la création** (`projects.kind`). Un template ajoute l'étape `variables ✓` après
+  le brief : Claude écrit `VARIABLES.json` (déclarations HyperFrames), l'utilisateur la corrige et la valide, puis le
+  storyboard et le build la respectent (`prompts/partials/template.md`) et le runner vérifie que `index.html` la
+  déclare. Le template s'utilise ensuite en **itérations** (table `iterations`) : un jeu de valeurs nommé, enregistré,
+  et ses rendus, sans Claude, via `hyperframes render --variables-file --strict-variables`. Les images passent par
+  `snapshot --at`, sur une copie dont les valeurs par défaut sont réécrites (`applyVariableDefaults`).
 - **Claude sans prompt de permission** : `--permission-mode dontAsk` + liste blanche dans
   [`workspace/.claude/settings.json`](workspace/.claude/settings.json). Un seul job Claude à la fois.
 
 ## Structure
 
 ```
-apps/web             Next.js 16 + shadcn/ui (radix-nova) — projets, revue des checkpoints, templates, exports
-apps/api             NestJS 11 — projets, jobs (SSE), assets (URL présignées MinIO), templates, rendus
+apps/web             Next.js 16 + shadcn/ui (radix-nova) — projets, templates et itérations, revue des checkpoints, exports
+apps/api             NestJS 11 — projets, variables, itérations, jobs (SSE), assets (URL présignées MinIO), rendus
 apps/claude-runner   worker BullMQ « studio-claude » : lance Claude Code, diffuse les événements
 apps/render-worker   worker BullMQ « studio-render » : hyperframes render / snapshot → MinIO
 packages/shared      types, schémas zod, files, parseur stream-json, variables HyperFrames

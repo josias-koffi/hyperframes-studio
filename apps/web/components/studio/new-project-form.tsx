@@ -1,15 +1,19 @@
 "use client";
 
+import type { ProjectKind } from "@studio/shared/browser";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
   CheckIcon,
   FileVideoIcon,
+  FilmIcon,
   GlobeIcon,
+  LayoutTemplateIcon,
   LightbulbIcon,
   type LucideIcon,
   MusicIcon,
   PaperclipIcon,
+  PlusIcon,
   XIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -20,10 +24,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { clientApi, type Project } from "@/lib/api";
 import { formatBytes, uploadAsset } from "@/lib/assets";
+import { projectHref } from "@/lib/project-state";
 import { cn } from "@/lib/utils";
 import { WORKFLOWS, type StartPoint } from "./labels";
 
@@ -58,8 +64,37 @@ const ASPECTS = [
 
 const LENGTHS = ["15s", "30s", "60s", "90s"];
 
-type Step = "start" | "type" | "content" | "format" | "recap";
-const TITLES: Record<Step, string> = { start: "Point de départ", type: "Type de vidéo", content: "Contenu", format: "Format", recap: "Récapitulatif" };
+const KINDS: { value: ProjectKind; label: string; description: string; icon: LucideIcon }[] = [
+  { value: "oneshot", label: "Vidéo unique", description: "Une vidéo, faite une fois : du brief jusqu'à l'export.", icon: FilmIcon },
+  {
+    value: "template",
+    label: "Template réutilisable",
+    description: "Une vidéo à décliner : tu valides ses variables (textes, couleurs, images), puis tu génères des itérations sans Claude.",
+    icon: LayoutTemplateIcon,
+  },
+];
+
+/** What the user can already say about a variable; Claude turns it into a HyperFrames declaration. */
+type SuggestedVariable = { label: string; type: string; example: string };
+
+const SUGGESTION_TYPES = [
+  { value: "texte", label: "Texte" },
+  { value: "couleur", label: "Couleur" },
+  { value: "image", label: "Image ou logo" },
+  { value: "nombre", label: "Nombre" },
+  { value: "choix", label: "Choix dans une liste" },
+  { value: "oui/non", label: "Oui / non" },
+];
+
+type Step = "start" | "type" | "content" | "format" | "variables" | "recap";
+const TITLES: Record<Step, string> = {
+  start: "Point de départ",
+  type: "Type de vidéo",
+  content: "Contenu",
+  format: "Format",
+  variables: "Variables",
+  recap: "Récapitulatif",
+};
 
 function ChoiceCard({
   selected,
@@ -150,9 +185,11 @@ function FilePicker({
 }
 
 /** A guided creation, one question per screen. The brief fields mirror the BRIEF.md frontmatter the workflows expect. */
-export function NewProjectForm() {
+export function NewProjectForm({ initialKind = "oneshot" }: { initialKind?: ProjectKind }) {
   const router = useRouter();
   const [index, setIndex] = useState(0);
+  const [kind, setKind] = useState<ProjectKind>(initialKind);
+  const [suggestions, setSuggestions] = useState<SuggestedVariable[]>([]);
   const [start, setStart] = useState<StartPoint | null>(null);
   const [workflow, setWorkflow] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -165,8 +202,17 @@ export function NewProjectForm() {
   const [length, setLength] = useState("30s");
   const [progress, setProgress] = useState<string | null>(null);
 
-  // A source video keeps its own frame and length: no format screen.
-  const steps: Step[] = start === "footage" ? ["start", "type", "content", "recap"] : ["start", "type", "content", "format", "recap"];
+  // A source video keeps its own frame and length: no format screen. Only a template has variables.
+  const steps: Step[] = [
+    "start",
+    "type",
+    "content",
+    ...(start === "footage" ? [] : (["format"] as const)),
+    ...(kind === "template" ? (["variables"] as const) : []),
+    "recap",
+  ];
+  const noun = kind === "template" ? "template" : "projet";
+  const filledSuggestions = suggestions.filter((suggestion) => suggestion.label.trim() !== "");
   const step = steps[index];
   const required = start ? REQUIRED_FILE[start] : undefined;
   const choices = WORKFLOWS.filter((w) => w.start === start);
@@ -177,8 +223,13 @@ export function NewProjectForm() {
     type: workflow !== null,
     content: name.trim() !== "" && (start === "footage" || message.trim() !== "") && (!required || mainFile.length === 1),
     format: true,
+    variables: true,
     recap: true,
   };
+
+  function updateSuggestion(index: number, patch: Partial<SuggestedVariable>) {
+    setSuggestions((current) => current.map((suggestion, i) => (i === index ? { ...suggestion, ...patch } : suggestion)));
+  }
 
   function pickStart(value: StartPoint) {
     setStart(value);
@@ -189,13 +240,14 @@ export function NewProjectForm() {
   }
 
   async function create() {
-    setProgress("Création du projet…");
+    setProgress(`Création du ${kind === "template" ? "template" : "projet"}…`);
     try {
       const brief: Record<string, unknown> = { message, audience, language: "fr", notes };
       if (start !== "footage") Object.assign(brief, { length, aspect });
+      if (kind === "template" && filledSuggestions.length > 0) brief.variables = filledSuggestions;
       const project = await clientApi<Project>("/projects", {
         method: "POST",
-        body: JSON.stringify({ name, slug: slugify(name), workflow, brief }),
+        body: JSON.stringify({ name, slug: slugify(name), workflow, kind, brief }),
       });
       const files = [...mainFile, ...extras];
       let main: string | null = null;
@@ -209,7 +261,7 @@ export function NewProjectForm() {
         const key = start === "footage" ? "footage" : "music";
         await clientApi(`/projects/${project.id}`, { method: "PATCH", body: JSON.stringify({ brief: { ...brief, [key]: main } }) });
       }
-      router.push(`/projects/${project.id}`);
+      router.push(projectHref(project));
     } catch (error) {
       toast.error((error as Error).message);
       setProgress(null);
@@ -245,6 +297,16 @@ export function NewProjectForm() {
           {step === "start" && (
             <>
               <div>
+                <h2 className="text-lg font-semibold">Vidéo unique ou template ?</h2>
+                <p className="text-sm text-muted-foreground">Ce choix est définitif : un template se décline, une vidéo unique s&apos;exporte.</p>
+              </div>
+              <div role="radiogroup" className="grid gap-4 sm:grid-cols-2">
+                {KINDS.map((k) => (
+                  <ChoiceCard key={k.value} selected={kind === k.value} onClick={() => setKind(k.value)} icon={k.icon} label={k.label} description={k.description} />
+                ))}
+              </div>
+              <div className="border-t" />
+              <div>
                 <h2 className="text-lg font-semibold">De quoi pars-tu ?</h2>
                 <p className="text-sm text-muted-foreground">Ça choisit la méthode que Claude va suivre et les fichiers dont il a besoin.</p>
               </div>
@@ -275,7 +337,7 @@ export function NewProjectForm() {
           {step === "content" && (
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="name">Nom du projet</FieldLabel>
+                <FieldLabel htmlFor="name">Nom du {noun}</FieldLabel>
                 <Input id="name" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. : Lancement appli mobile" />
                 <FieldDescription>{name ? <span className="font-mono">videos/{slugify(name)}</span> : "Il sert aussi de nom de dossier."}</FieldDescription>
               </Field>
@@ -355,16 +417,76 @@ export function NewProjectForm() {
             </FieldGroup>
           )}
 
+          {step === "variables" && (
+            <>
+              <div>
+                <h2 className="text-lg font-semibold">Qu&apos;est-ce qui changera d&apos;une version à l&apos;autre ?</h2>
+                <p className="text-sm text-muted-foreground">
+                  Facultatif. Après le brief, Claude propose la liste des variables en partant de tes suggestions et du brief :
+                  tu la corriges et la valides avant le storyboard.
+                </p>
+              </div>
+              <div className="space-y-3">
+                {suggestions.map((suggestion, i) => (
+                  <div key={i} className="grid gap-2 rounded-lg border bg-card p-3 sm:grid-cols-[1fr_11rem_1fr_auto] sm:items-center">
+                    <Input
+                      aria-label="Variable"
+                      value={suggestion.label}
+                      onChange={(e) => updateSuggestion(i, { label: e.target.value })}
+                      placeholder="Ex. : titre principal"
+                      autoFocus={i === suggestions.length - 1}
+                    />
+                    <Select value={suggestion.type} onValueChange={(type) => updateSuggestion(i, { type })}>
+                      <SelectTrigger aria-label="Type" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SUGGESTION_TYPES.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      aria-label="Exemple"
+                      value={suggestion.example}
+                      onChange={(e) => updateSuggestion(i, { example: e.target.value })}
+                      placeholder="Exemple de valeur (facultatif)"
+                    />
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setSuggestions((current) => current.filter((_, j) => j !== i))}>
+                      <XIcon />
+                      <span className="sr-only">Retirer</span>
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-dashed"
+                  onClick={() => setSuggestions((current) => [...current, { label: "", type: "texte", example: "" }])}
+                >
+                  <PlusIcon />
+                  Suggérer une variable
+                </Button>
+              </div>
+            </>
+          )}
+
           {step === "recap" && (
             <>
               <div>
                 <h2 className="text-lg font-semibold">Tout est bon ?</h2>
                 <p className="text-sm text-muted-foreground">
-                  Après la création, lance le brief depuis le projet : Claude le rédige puis prépare le storyboard, que tu valideras.
+                  {kind === "template"
+                    ? "Après la création, lance le brief : Claude le rédige puis te propose les variables à valider avant le storyboard."
+                    : "Après la création, lance le brief depuis le projet : Claude le rédige puis prépare le storyboard, que tu valideras."}
                 </p>
               </div>
               <dl className="grid gap-x-8 gap-y-3 text-sm sm:grid-cols-[auto_1fr]">
-                <dt className="text-muted-foreground">Projet</dt>
+                <dt className="text-muted-foreground">Nature</dt>
+                <dd>{KINDS.find((k) => k.value === kind)?.label}</dd>
+                <dt className="text-muted-foreground">{kind === "template" ? "Template" : "Projet"}</dt>
                 <dd>
                   {name} <span className="font-mono text-xs text-muted-foreground">videos/{slugify(name)}</span>
                 </dd>
@@ -381,6 +503,16 @@ export function NewProjectForm() {
                     <dt className="text-muted-foreground">Format</dt>
                     <dd>
                       {ASPECTS.find((a) => a.value === aspect)?.ratio} · {length.replace("s", " s")}
+                    </dd>
+                  </>
+                )}
+                {kind === "template" && (
+                  <>
+                    <dt className="text-muted-foreground">Variables suggérées</dt>
+                    <dd>
+                      {filledSuggestions.length > 0
+                        ? filledSuggestions.map((suggestion) => suggestion.label).join(", ")
+                        : "Aucune : Claude les proposera à partir du brief."}
                     </dd>
                   </>
                 )}
@@ -409,7 +541,7 @@ export function NewProjectForm() {
         </Button>
         {step === "recap" ? (
           <Button size="lg" onClick={create} disabled={progress !== null}>
-            {progress ? "Création…" : "Créer le projet"}
+            {progress ? "Création…" : `Créer le ${noun}`}
             <ArrowRightIcon />
           </Button>
         ) : (

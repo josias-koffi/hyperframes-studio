@@ -2,7 +2,13 @@ import { execFile } from "node:child_process";
 import { cp, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { promisify } from "node:util";
-import type { GenerationStep } from "@studio/shared";
+import {
+  compositionVariablesSchema,
+  diffVariables,
+  parseCompositionVariables,
+  type GenerationStep,
+  type VariablesDiff,
+} from "@studio/shared";
 
 const exec = promisify(execFile);
 
@@ -73,6 +79,7 @@ export async function commitCheckpoint(workspaceDir: string, slug: string, messa
 /** Files a step must leave in `videos/<slug>`: Claude can report success after a refused write. */
 export const STEP_OUTPUTS: Record<GenerationStep, readonly string[]> = {
   brief: ["BRIEF.md"],
+  variables: ["VARIABLES.json"],
   storyboard: ["SCRIPT.md", "STORYBOARD.md", "storyboard.html"],
   media: [],
   build: [],
@@ -100,4 +107,19 @@ export async function storyboardAudio(workspaceDir: string, slug: string): Promi
   const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---/.exec(text)?.[1] ?? "";
   const value = /^studio_audio:\s*["']?([^"'\r\n]+?)["']?\s*$/m.exec(frontmatter)?.[1];
   return value?.trim().toLowerCase() ?? null;
+}
+
+/**
+ * After a template's build: does `index.html` declare the validated contract (`VARIABLES.json`)? Returns the
+ * gap, or an error message when either side cannot be read.
+ */
+export async function templateVariablesGap(workspaceDir: string, slug: string): Promise<VariablesDiff | string> {
+  const dir = join(workspaceDir, "videos", slug);
+  try {
+    const validated = compositionVariablesSchema.parse(JSON.parse(await readFile(join(dir, "VARIABLES.json"), "utf8")));
+    const declared = parseCompositionVariables(await readFile(join(dir, "index.html"), "utf8"));
+    return diffVariables(validated, declared);
+  } catch (error) {
+    return `Variables illisibles : ${error instanceof Error ? error.message : String(error)}`;
+  }
 }

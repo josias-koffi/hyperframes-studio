@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatRelative } from "@/lib/format";
 import { loadOverview, type ProjectOverview } from "@/lib/overview";
-import type { PipelineStep } from "@/lib/project-state";
+import { projectHref, type PipelineStep } from "@/lib/project-state";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +34,7 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: str
 function ProjectCard({ project, index }: { project: ProjectOverview; index: number }) {
   const { icon: Icon, label } = workflowMeta(project.workflow);
   return (
-    <Link href={`/projects/${project.id}`} className="group rise-in" style={{ "--stagger": index } as React.CSSProperties}>
+    <Link href={projectHref(project)} className="group rise-in" style={{ "--stagger": index } as React.CSSProperties}>
       <Card className="h-full gap-4 py-4 shadow-surface transition-shadow group-hover:shadow-raised">
         <CardHeader className="px-4">
           <div className="flex items-start justify-between gap-2">
@@ -45,7 +45,7 @@ function ProjectCard({ project, index }: { project: ProjectOverview; index: numb
           </div>
           <CardTitle className="mt-2 truncate group-hover:text-primary">{project.name}</CardTitle>
           <CardDescription>
-            {label} · {formatRelative(project.updatedAt)}
+            {project.kind === "template" ? "Template" : label} · {formatRelative(project.updatedAt)}
           </CardDescription>
         </CardHeader>
         <CardContent className="px-4">
@@ -163,7 +163,7 @@ export default async function DashboardPage() {
                         <p className="truncate text-sm text-muted-foreground">{copy.text(project)}</p>
                       </div>
                       <Button asChild size="sm" variant={project.state.phase === "review" ? "default" : "outline"}>
-                        <Link href={`/projects/${project.id}`}>
+                        <Link href={projectHref(project)}>
                           {copy.cta}
                           <ArrowRightIcon />
                         </Link>

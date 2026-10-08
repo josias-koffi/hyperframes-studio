@@ -8,12 +8,14 @@ import { loadOverview } from "@/lib/overview";
 async function loadCounters() {
   try {
     const projects = await loadOverview();
+    const review = projects.filter((project) => project.state.phase === "review");
     return {
-      reviewCount: projects.filter((project) => project.state.phase === "review").length,
+      reviewCount: review.filter((project) => project.kind === "oneshot").length,
+      templateReviewCount: review.filter((project) => project.kind === "template").length,
       liveCount: projects.filter((project) => project.state.phase === "running" || project.state.rendering).length,
     };
   } catch {
-    return { reviewCount: 0, liveCount: 0 };
+    return { reviewCount: 0, templateReviewCount: 0, liveCount: 0 };
   }
 }
 

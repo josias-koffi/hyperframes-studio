@@ -4,14 +4,14 @@ import { Module } from "@nestjs/common";
 import { AssetsController } from "./assets/assets.controller";
 import { DatabaseModule } from "./database/database.module";
 import { HealthController } from "./health.controller";
+import { IterationsModule } from "./iterations/iterations.module";
 import { ProjectsModule } from "./projects/projects.module";
 import { QueuesModule } from "./queues/queues.module";
 import { RendersController } from "./renders/renders.controller";
 import { StorageModule } from "./storage/storage.module";
-import { TemplatesController } from "./templates/templates.controller";
 
 @Module({
-  imports: [DatabaseModule, QueuesModule, StorageModule, ProjectsModule],
-  controllers: [HealthController, AssetsController, RendersController, TemplatesController],
+  imports: [DatabaseModule, QueuesModule, StorageModule, ProjectsModule, IterationsModule],
+  controllers: [HealthController, AssetsController, RendersController],
 })
 export class AppModule {}

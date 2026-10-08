@@ -3,13 +3,13 @@ import { join } from "node:path";
 import { GENERATION_STEPS, resolveFromRoot, resolveWorkspaceDir, type GenerationStep } from "@studio/shared";
 
 /**
- * Steps that follow a recipe (write BRIEF.md, run scripts/audio.mjs) run on Sonnet; the storyboard and the
+ * Steps that follow a recipe (write BRIEF.md and VARIABLES.json, run scripts/audio.mjs) run on Sonnet; the storyboard and the
  * build, where the video is designed, run on `CLAUDE_MODEL` (Opus by default). `CLAUDE_MODEL_<STEP>` overrides
  * either. Every step names its model: `--resume` without `--model` keeps the model of the previous step.
  */
 const RECIPE_STEP_MODEL = "sonnet";
 const DESIGN_STEP_MODEL = "opus";
-const RECIPE_STEPS: readonly GenerationStep[] = ["brief", "media"];
+const RECIPE_STEPS: readonly GenerationStep[] = ["brief", "variables", "media"];
 
 export type RunnerConfig = {
   redisUrl: string;

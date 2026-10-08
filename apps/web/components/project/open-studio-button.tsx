@@ -9,9 +9,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 /**
  * Leads to the project's Studio HyperFrames page (timeline, captions, keyframes…), and back out of it.
  */
-export function OpenStudioButton({ projectId, disabledReason }: { projectId: string; disabledReason: string | null }) {
+export function OpenStudioButton({ base, disabledReason }: { base: string; disabledReason: string | null }) {
   const pathname = usePathname();
-  const base = `/projects/${projectId}`;
 
   if (pathname === `${base}/studio`) {
     return (

@@ -26,7 +26,7 @@ export class JobsService {
 
   async enqueueRender(input: Omit<RenderJob, "jobId">) {
     const jobId = randomUUID();
-    const [row] = await this.db.insert(jobs).values({ id: jobId, projectId: input.projectId, templateId: input.templateId ?? null, kind: "render", input }).returning();
+    const [row] = await this.db.insert(jobs).values({ id: jobId, projectId: input.projectId, iterationId: input.iterationId ?? null, kind: "render", input }).returning();
     await this.queues.render.add(input.format, { ...input, jobId }, { jobId });
     return row;
   }
@@ -37,18 +37,18 @@ export class JobsService {
     return row;
   }
 
-  /** The project's own jobs: template renders live on their template. */
+  /** The project's own jobs: iteration renders live on their iteration. */
   listForProject(projectId: string) {
     return this.db
       .select()
       .from(jobs)
-      .where(and(eq(jobs.projectId, projectId), isNull(jobs.templateId)))
+      .where(and(eq(jobs.projectId, projectId), isNull(jobs.iterationId)))
       .orderBy(desc(jobs.createdAt))
       .limit(100);
   }
 
-  listForTemplate(templateId: string) {
-    return this.db.select().from(jobs).where(eq(jobs.templateId, templateId)).orderBy(desc(jobs.createdAt)).limit(50);
+  listForIteration(iterationId: string) {
+    return this.db.select().from(jobs).where(eq(jobs.iterationId, iterationId)).orderBy(desc(jobs.createdAt)).limit(50);
   }
 
   events(jobId: string) {

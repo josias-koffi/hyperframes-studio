@@ -11,13 +11,13 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Projets" };
 
 export default async function ProjectsPage() {
-  const projects = await loadOverview();
+  const projects = await loadOverview("oneshot");
 
   return (
     <>
       <PageHeader
         title="Projets"
-        description="Chaque projet est une vidéo : de son brief jusqu'aux exports."
+        description="Chaque projet est une vidéo unique : de son brief jusqu'aux exports. Les vidéos réutilisables sont dans Templates."
         actions={
           <Button asChild>
             <Link href="/projects/new">

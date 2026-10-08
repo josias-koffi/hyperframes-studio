@@ -1,9 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { GenerationStep } from "@studio/shared";
+import type { GenerationStep, ProjectKind } from "@studio/shared";
 
 export type PromptContext = {
   step: GenerationStep;
+  kind: ProjectKind;
   slug: string;
   workflow: string;
   brief: Record<string, unknown>;
@@ -18,14 +19,21 @@ export function renderTemplate(template: string, values: Record<string, string>)
   });
 }
 
+/** Steps a template's variable contract (`prompts/partials/template.md`) applies to. */
+const CONTRACT_STEPS: readonly GenerationStep[] = ["storyboard", "build"];
+
 /**
  * The prompt of a step comes from `prompts/<step>.md`. With feedback, the same
  * session is resumed on the same step and `prompts/feedback.md` wraps the
- * user's comment instead.
+ * user's comment instead. A template's storyboard and build also get its
+ * variable contract.
  */
 export async function buildPrompt(promptsDir: string, context: PromptContext): Promise<string> {
   const file = context.feedback ? "feedback.md" : `${context.step}.md`;
-  const template = await readFile(join(promptsDir, file), "utf8");
+  let template = await readFile(join(promptsDir, file), "utf8");
+  if (context.kind === "template" && CONTRACT_STEPS.includes(context.step)) {
+    template += await readFile(join(promptsDir, "partials", "template.md"), "utf8");
+  }
   return renderTemplate(template, {
     step: context.step,
     slug: context.slug,

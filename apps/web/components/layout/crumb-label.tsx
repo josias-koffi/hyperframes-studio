@@ -1,27 +1,40 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
-const CrumbContext = createContext<{ label: string | null; setLabel: (label: string | null) => void }>({
-  label: null,
+type Labels = Record<string, string>;
+
+const CrumbContext = createContext<{ labels: Labels; setLabel: (segment: string, label: string | null) => void }>({
+  labels: {},
   setLabel: () => {},
 });
 
 export function CrumbLabelProvider({ children }: { children: React.ReactNode }) {
-  const [label, setLabel] = useState<string | null>(null);
-  return <CrumbContext.Provider value={{ label, setLabel }}>{children}</CrumbContext.Provider>;
+  const [labels, setLabels] = useState<Labels>({});
+  const setLabel = useCallback(
+    (segment: string, label: string | null) =>
+      setLabels((current) => {
+        const next = { ...current };
+        if (label === null) delete next[segment];
+        else next[segment] = label;
+        return next;
+      }),
+    [],
+  );
+  return <CrumbContext.Provider value={{ labels, setLabel }}>{children}</CrumbContext.Provider>;
 }
 
-export function useCrumbLabel() {
-  return useContext(CrumbContext).label;
+/** Labels published by detail pages, keyed by the path segment they name (an id). */
+export function useCrumbLabels() {
+  return useContext(CrumbContext).labels;
 }
 
 /** Rendered by a detail page to name its id segment in the header breadcrumb. */
-export function CrumbLabel({ label }: { label: string }) {
+export function CrumbLabel({ segment, label }: { segment: string; label: string }) {
   const { setLabel } = useContext(CrumbContext);
   useEffect(() => {
-    setLabel(label);
-    return () => setLabel(null);
-  }, [label, setLabel]);
+    setLabel(segment, label);
+    return () => setLabel(segment, null);
+  }, [segment, label, setLabel]);
   return null;
 }

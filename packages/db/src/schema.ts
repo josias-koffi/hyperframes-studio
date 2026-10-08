@@ -1,4 +1,4 @@
-import { GENERATION_STEPS, JOB_STATUSES, RENDER_FORMATS } from "@studio/shared";
+import { GENERATION_STEPS, JOB_STATUSES, PROJECT_KINDS, RENDER_FORMATS } from "@studio/shared";
 import {
   bigint,
   bigserial,
@@ -19,6 +19,7 @@ const timestamps = {
 };
 
 export const generationStep = pgEnum("generation_step", GENERATION_STEPS);
+export const projectKind = pgEnum("project_kind", PROJECT_KINDS);
 export const jobStatus = pgEnum("job_status", JOB_STATUSES);
 export const jobKind = pgEnum("job_kind", ["claude", "render"]);
 export const renderFormat = pgEnum("render_format", RENDER_FORMATS);
@@ -50,6 +51,8 @@ export const projects = pgTable("projects", {
   brandId: uuid("brand_id").references(() => brands.id, { onDelete: "set null" }),
   /** HyperFrames workflow skill (product-launch-video, faceless-explainer…). */
   workflow: text("workflow").notNull().default("general-video"),
+  /** Chosen at creation, never changed: a template validates variables and is instantiated as iterations. */
+  kind: projectKind("kind").notNull().default("oneshot"),
   /** Brief fields, written to BRIEF.md frontmatter by the brief step. */
   brief: jsonb("brief").$type<Record<string, unknown>>().notNull().default({}),
   currentStep: generationStep("current_step").notNull().default("brief"),
@@ -77,19 +80,22 @@ export const assets = pgTable(
   (t) => [index("assets_project_idx").on(t.projectId)],
 );
 
-/** A template is a project whose composition declares `data-composition-variables`. */
-export const templates = pgTable("templates", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id")
-    .notNull()
-    .references(() => projects.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  description: text("description"),
-  /** Snapshot of the declarations, the form the UI renders. */
-  variables: jsonb("variables").$type<unknown[]>().notNull().default([]),
-  previewKey: text("preview_key"),
-  ...timestamps,
-});
+/** One use of a template: a named set of variable values and the renders made from it. */
+export const iterations = pgTable(
+  "iterations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    /** Values keyed by variable id; missing keys fall back to the declared defaults. */
+    values: jsonb("values").$type<Record<string, unknown>>().notNull().default({}),
+    format: renderFormat("format").notNull().default("mp4"),
+    ...timestamps,
+  },
+  (t) => [index("iterations_project_idx").on(t.projectId, t.updatedAt)],
+);
 
 export const jobs = pgTable(
   "jobs",
@@ -100,8 +106,8 @@ export const jobs = pgTable(
       .references(() => projects.id, { onDelete: "cascade" }),
     kind: jobKind("kind").notNull(),
     step: generationStep("step"),
-    /** Set on a template render: the job belongs to the template, not to its source project's exports. */
-    templateId: uuid("template_id").references(() => templates.id, { onDelete: "set null" }),
+    /** Set on an iteration render: the job belongs to the iteration, not to the project's exports. */
+    iterationId: uuid("iteration_id").references(() => iterations.id, { onDelete: "set null" }),
     status: jobStatus("status").notNull().default("queued"),
     /** The enqueued payload (ClaudeJob or RenderJob). */
     input: jsonb("input").$type<Record<string, unknown>>().notNull(),
@@ -136,7 +142,7 @@ export const renders = pgTable("renders", {
     .notNull()
     .references(() => projects.id, { onDelete: "cascade" }),
   jobId: uuid("job_id").references(() => jobs.id, { onDelete: "set null" }),
-  templateId: uuid("template_id").references(() => templates.id, { onDelete: "set null" }),
+  iterationId: uuid("iteration_id").references(() => iterations.id, { onDelete: "set null" }),
   format: renderFormat("format").notNull(),
   variables: jsonb("variables").$type<Record<string, unknown>>(),
   /** Object keys in MinIO: one for a video, several for PNG snapshots. */

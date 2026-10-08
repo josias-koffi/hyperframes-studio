@@ -1,10 +1,11 @@
-import type { CompositionVariable, GenerationStep, JobStatus, RenderFormat, StudioEvent } from "@studio/shared/browser";
+import type { CompositionVariable, GenerationStep, JobStatus, ProjectKind, RenderFormat, StudioEvent, VariablesDiff } from "@studio/shared/browser";
 
 export type Project = {
   id: string;
   slug: string;
   name: string;
   workflow: string;
+  kind: ProjectKind;
   brief: Record<string, unknown>;
   currentStep: GenerationStep;
   claudeSessionId: string | null;
@@ -12,9 +13,13 @@ export type Project = {
   updatedAt: string;
 };
 
+/** `GET /projects`: a template also says how many variables and iterations it has. */
+export type ProjectListItem = Project & { variableCount: number | null; iterationCount: number | null };
+
 export type Job = {
   id: string;
   projectId: string;
+  iterationId: string | null;
   kind: "claude" | "render";
   step: GenerationStep | null;
   status: JobStatus;
@@ -25,19 +30,35 @@ export type Job = {
 
 export type Render = {
   id: string;
+  iterationId: string | null;
   format: RenderFormat;
+  /** Values an iteration render was made with. */
+  variables: Record<string, unknown> | null;
   storageKeys: string[];
   urls: string[];
   createdAt: string;
 };
 
-export type Template = {
+/** `GET /projects/:id/variables`: the validated contract and what the composition declares. */
+export type ProjectVariables = {
+  proposed: CompositionVariable[] | null;
+  declared: CompositionVariable[];
+  diff: VariablesDiff | null;
+  errors: string[];
+};
+
+/** One use of a template: named values and the renders made from them. */
+export type Iteration = {
   id: string;
   projectId: string;
   name: string;
-  description: string | null;
-  variables: CompositionVariable[];
+  values: Record<string, unknown>;
+  format: RenderFormat;
+  createdAt: string;
+  updatedAt: string;
 };
+
+export type IterationListItem = Iteration & { lastJob: Job | null; lastRender: Render | null };
 
 export type AssetKind = "image" | "video" | "audio" | "font" | "logo" | "document" | "other";
 

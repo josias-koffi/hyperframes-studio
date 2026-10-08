@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { extname } from "node:path";
-import { Body, Controller, Get, Inject, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Req, Res } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Inject, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Put, Query, Req, Res } from "@nestjs/common";
 import { resolveWorkspaceDir } from "@studio/shared";
 import type { Request, Response } from "express";
 import { JobsService } from "../jobs/jobs.service";
@@ -8,11 +8,15 @@ import { ZodPipe } from "../shared/zod.pipe";
 import {
   createProjectSchema,
   feedbackSchema,
+  listProjectsQuerySchema,
   renderRequestSchema,
   updateProjectSchema,
+  variablesSchema,
   type CreateProject,
+  type ListProjectsQuery,
   type RenderRequest,
   type UpdateProject,
+  type VariablesBody,
 } from "./projects.schemas";
 import { ProjectsService } from "./projects.service";
 import { resolveVideoFile } from "./workspace-files";
@@ -41,8 +45,8 @@ export class ProjectsController {
   ) {}
 
   @Get()
-  list() {
-    return this.projects.list();
+  list(@Query(new ZodPipe(listProjectsQuerySchema)) query: ListProjectsQuery) {
+    return this.projects.list(query);
   }
 
   @Post()
@@ -58,6 +62,27 @@ export class ProjectsController {
   @Patch(":id")
   update(@Param("id", ParseUUIDPipe) id: string, @Body(new ZodPipe(updateProjectSchema)) body: UpdateProject) {
     return this.projects.update(id, body);
+  }
+
+  @Delete(":id")
+  remove(@Param("id", ParseUUIDPipe) id: string) {
+    return this.projects.remove(id);
+  }
+
+  /** A template's variables: the validated contract (VARIABLES.json) and what index.html declares. */
+  @Get(":id/variables")
+  variables(@Param("id", ParseUUIDPipe) id: string) {
+    return this.projects.variables(id);
+  }
+
+  @Put(":id/variables")
+  saveVariables(@Param("id", ParseUUIDPipe) id: string, @Body(new ZodPipe(variablesSchema)) body: VariablesBody) {
+    return this.projects.saveVariables(id, body.variables);
+  }
+
+  @Post(":id/variables/apply")
+  applyVariables(@Param("id", ParseUUIDPipe) id: string) {
+    return this.projects.applyVariables(id);
   }
 
   @Get(":id/jobs")

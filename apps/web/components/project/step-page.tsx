@@ -1,7 +1,6 @@
-import type { GenerationStep } from "@studio/shared/browser";
+import { stepsFor, type GenerationStep } from "@studio/shared/browser";
 import { PIPELINE, STEP_LABELS } from "@/components/studio/labels";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { GENERATION_STEPS } from "@studio/shared/browser";
 import type { ProjectData } from "@/lib/project-data";
 import { stepJob, type PipelineStep } from "@/lib/project-state";
 import { StepAction } from "./step-action";
@@ -28,18 +27,32 @@ export function StepHeader({ step, aside }: { step: PipelineStep; aside?: React.
 
 /**
  * A generation step's screen: what it is, the action when it is the current step, what it produced
- * (`children`, only once reached), and its Claude log folded at the bottom.
+ * (`children`, only once reached), and its Claude log folded at the bottom. `reviewInContent` leaves the
+ * review to the content (the variables editor validates what it edits).
  */
-export function StepPage({ data, step, reached, children }: { data: ProjectData; step: GenerationStep; reached: boolean; children: React.ReactNode }) {
+export function StepPage({
+  data,
+  step,
+  reached,
+  reviewInContent,
+  children,
+}: {
+  data: ProjectData;
+  step: GenerationStep;
+  reached: boolean;
+  reviewInContent?: boolean;
+  children: React.ReactNode;
+}) {
   const { project, state, jobs } = data;
   const job = stepJob(jobs, step);
   const isCurrent = project.currentStep === step && state.phase !== "done";
-  const previous = GENERATION_STEPS[GENERATION_STEPS.indexOf(step) - 1];
+  const pipeline = stepsFor(project.kind);
+  const previous = pipeline[pipeline.indexOf(step) - 1];
 
   return (
     <div className="flex flex-col gap-6">
       <StepHeader step={step} />
-      {isCurrent && <StepAction project={project} state={state} />}
+      {isCurrent && !(reviewInContent && state.phase === "review") && <StepAction project={project} state={state} />}
       {reached ? (
         children
       ) : !isCurrent ? (

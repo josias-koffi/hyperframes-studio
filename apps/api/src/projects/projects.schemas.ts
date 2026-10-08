@@ -1,4 +1,4 @@
-import { RENDER_FORMATS } from "@studio/shared";
+import { compositionVariablesSchema, PROJECT_KINDS, RENDER_FORMATS } from "@studio/shared";
 import { z } from "zod";
 
 export const createProjectSchema = z.object({
@@ -15,6 +15,8 @@ export const createProjectSchema = z.object({
       "talking-head-recut",
     ])
     .default("general-video"),
+  /** Fixed at creation: a template proposes variables after the brief and is then used as iterations. */
+  kind: z.enum(PROJECT_KINDS).default("oneshot"),
   brandId: z.string().uuid().optional(),
   brief: z.record(z.string(), z.unknown()).default({}),
 });
@@ -22,6 +24,12 @@ export type CreateProject = z.infer<typeof createProjectSchema>;
 
 export const updateProjectSchema = createProjectSchema.pick({ name: true, brief: true, brandId: true }).partial();
 export type UpdateProject = z.infer<typeof updateProjectSchema>;
+
+export const listProjectsQuerySchema = z.object({ kind: z.enum(PROJECT_KINDS).optional() });
+export type ListProjectsQuery = z.infer<typeof listProjectsQuerySchema>;
+
+export const variablesSchema = z.object({ variables: compositionVariablesSchema });
+export type VariablesBody = z.infer<typeof variablesSchema>;
 
 export const feedbackSchema = z.object({ text: z.string().min(1).max(10_000) });
 

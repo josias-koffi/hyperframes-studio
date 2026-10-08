@@ -17,5 +17,4 @@ export const storageKeys = {
   asset: (assetId: string, filename: string) => `assets/${assetId}/${sanitizeFilename(filename)}`,
   render: (projectId: string, renderId: string, filename: string) =>
     `renders/${projectId}/${renderId}/${sanitizeFilename(filename)}`,
-  templatePreview: (templateId: string) => `templates/${templateId}/preview.png`,
 };

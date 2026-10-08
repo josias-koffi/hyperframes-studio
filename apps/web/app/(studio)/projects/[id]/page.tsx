@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { serverApi, type Project } from "@/lib/api";
 import { formatRelative } from "@/lib/format";
 import { loadProject } from "@/lib/project-data";
-import { STEP_SEGMENTS, stepJob, type StepState } from "@/lib/project-state";
+import { projectHref, STEP_SEGMENTS, stepJob, type StepState } from "@/lib/project-state";
 import { cn } from "@/lib/utils";
 
 export async function generateMetadata({ params }: PageProps<"/projects/[id]">): Promise<Metadata> {
@@ -34,10 +34,18 @@ const STATE_TEXT: Record<StepState, { label: string; tone: string }> = {
   todo: { label: "À venir", tone: "text-muted-foreground" },
 };
 
+/** Variables the user listed in the wizard (`brief.variables`), for Claude's proposal. */
+function suggestedVariables(brief: Record<string, unknown>): { label: string }[] {
+  const list = brief.variables;
+  if (!Array.isArray(list)) return [];
+  return list.filter((item): item is { label: string } => typeof item?.label === "string" && item.label.trim() !== "");
+}
+
 export default async function ProjectOverviewPage({ params }: PageProps<"/projects/[id]">) {
   const { id } = await params;
-  const { project, state, jobs, renders } = await loadProject(id);
-  const base = `/projects/${project.id}`;
+  const { project, state, jobs, renders, iterations } = await loadProject(id);
+  const base = projectHref(project);
+  const suggested = suggestedVariables(project.brief);
   const fields = BRIEF_FIELDS.filter(({ key }) => typeof project.brief[key] === "string" && (project.brief[key] as string).trim());
 
   return (
@@ -53,7 +61,10 @@ export default async function ProjectOverviewPage({ params }: PageProps<"/projec
             <dl className="space-y-3 text-sm">
               <div>
                 <dt className="text-xs text-muted-foreground">Type de vidéo</dt>
-                <dd>{workflowMeta(project.workflow).label}</dd>
+                <dd>
+                  {workflowMeta(project.workflow).label}
+                  {project.kind === "template" && " · template réutilisable"}
+                </dd>
               </div>
               {fields.map(({ key, label }) => (
                 <div key={key}>
@@ -61,6 +72,12 @@ export default async function ProjectOverviewPage({ params }: PageProps<"/projec
                   <dd className="whitespace-pre-wrap">{String(project.brief[key])}</dd>
                 </div>
               ))}
+              {suggested.length > 0 && (
+                <div>
+                  <dt className="text-xs text-muted-foreground">Variables suggérées</dt>
+                  <dd>{suggested.map((variable) => variable.label).join(", ")}</dd>
+                </div>
+              )}
             </dl>
           </CardContent>
         </Card>
@@ -72,8 +89,8 @@ export default async function ProjectOverviewPage({ params }: PageProps<"/projec
           <ul className="divide-y border-t">
             {state.steps.map(({ step, state: stepState }) => {
               const { label, icon: Icon } = PIPELINE[step];
-              const job = step === "export" ? null : stepJob(jobs, step);
-              const when = step === "export" ? renders[0]?.createdAt : job?.createdAt;
+              const job = step === "export" || step === "iterations" ? null : stepJob(jobs, step);
+              const when = step === "export" ? renders[0]?.createdAt : step === "iterations" ? iterations[0]?.updatedAt : job?.createdAt;
               return (
                 <li key={step}>
                   <Link href={`${base}/${STEP_SEGMENTS[step]}`} className="group flex items-center gap-3 px-6 py-3 hover:bg-accent/50">

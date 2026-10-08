@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { applyVariableDefaults, parseCompositionVariables, validateVariableValues } from "./variables";
+import {
+  applyVariableDefaults,
+  compositionVariablesSchema,
+  defaultVariableValues,
+  diffVariables,
+  isVariablesDiffEmpty,
+  parseCompositionVariables,
+  validateVariableValues,
+} from "./variables";
 
 const html = `<html data-composition-variables='[
   {"id":"title","type":"string","label":"Titre","default":"Hello","maxLength":10},
@@ -54,5 +62,40 @@ describe("applyVariableDefaults", () => {
 
   it("leaves a composition without variables untouched", () => {
     expect(applyVariableDefaults("<html></html>", { a: 1 })).toBe("<html></html>");
+  });
+});
+
+describe("compositionVariablesSchema", () => {
+  const title = { id: "title", type: "string", label: "Titre", default: "Hello" };
+
+  it("accepts a contract with unique ids", () => {
+    expect(compositionVariablesSchema.safeParse([title, { ...title, id: "subtitle" }]).success).toBe(true);
+  });
+
+  it("refuses duplicated or unsafe ids", () => {
+    expect(compositionVariablesSchema.safeParse([title, title]).success).toBe(false);
+    expect(compositionVariablesSchema.safeParse([{ ...title, id: "Mon titre" }]).success).toBe(false);
+  });
+});
+
+describe("diffVariables", () => {
+  const declarations = parseCompositionVariables(html);
+
+  it("is empty when the composition declares the validated contract", () => {
+    expect(isVariablesDiffEmpty(diffVariables(declarations, declarations))).toBe(true);
+  });
+
+  it("reports missing, extra and retyped variables", () => {
+    const validated = [
+      { id: "title", type: "number", label: "Titre", default: 1 },
+      { id: "logo", type: "string", label: "Logo", default: "" },
+    ] as const;
+    expect(diffVariables([...validated], declarations)).toEqual({ missing: ["logo"], extra: ["accent", "layout"], changed: ["title"] });
+  });
+});
+
+describe("defaultVariableValues", () => {
+  it("starts from every declared default", () => {
+    expect(defaultVariableValues(parseCompositionVariables(html))).toEqual({ title: "Hello", accent: "#66d9ef", layout: "a" });
   });
 });

@@ -11,9 +11,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { clientApi, type Project } from "@/lib/api";
-import type { ProjectState } from "@/lib/project-state";
+import { projectHref, type ProjectState } from "@/lib/project-state";
 
-function useProjectAction(projectId: string) {
+export function useProjectAction(projectId: string) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   async function act(path: string, body?: unknown): Promise<boolean> {
@@ -88,6 +88,8 @@ export function StepAction({ project, state, stepHref }: { project: Project; sta
 
   if (state.phase === "review") {
     const isBuild = project.currentStep === "build";
+    const isTemplate = project.kind === "template";
+    const afterApproval = isBuild ? (isTemplate ? "créer la première itération du template" : "lancer le rendu MP4") : "passer à l'étape suivante";
     return (
       <Card className="border-warning/40 shadow-raised">
         <CardContent className="space-y-4">
@@ -98,7 +100,7 @@ export function StepAction({ project, state, stepHref }: { project: Project; sta
             <div className="flex-1">
               <p className="font-medium">{STEP_LABELS[project.currentStep]} prêt : à toi de valider</p>
               <p className="text-sm text-muted-foreground">
-                Valide pour {isBuild ? "lancer le rendu MP4" : "passer à l'étape suivante"}, ou écris ce qu&apos;il faut
+                Valide pour {afterApproval}, ou écris ce qu&apos;il faut
                 changer : Claude reprend la même étape avec ton retour.
               </p>
             </div>
@@ -116,7 +118,7 @@ export function StepAction({ project, state, stepHref }: { project: Project; sta
               <div className="flex flex-wrap gap-2">
                 <Button onClick={() => act("approve")} disabled={pending}>
                   <CheckIcon />
-                  {isBuild ? "Valider et rendre la vidéo" : "Valider et continuer"}
+                  {isBuild ? (isTemplate ? "Valider le template" : "Valider et rendre la vidéo") : "Valider et continuer"}
                 </Button>
                 <Button
                   variant="outline"
@@ -155,6 +157,28 @@ export function StepAction({ project, state, stepHref }: { project: Project; sta
     );
   }
 
+  if (state.phase === "done" && project.kind === "template") {
+    return (
+      <Shell
+        tone="border-success/40"
+        icon={
+          <span className={`${ICON} bg-success/10 text-success`}>
+            <SparklesIcon className="size-5" />
+          </span>
+        }
+        title="Template prêt"
+        text="Crée une itération, remplis ses variables et génère : le rendu part sans Claude."
+      >
+        <Button variant="outline" asChild>
+          <Link href={projectHref(project, "iterations")}>
+            Voir les itérations
+            <ArrowRightIcon />
+          </Link>
+        </Button>
+      </Shell>
+    );
+  }
+
   if (state.phase === "done") {
     return (
       <Shell
@@ -168,7 +192,7 @@ export function StepAction({ project, state, stepHref }: { project: Project; sta
         text="Le rendu MP4 part automatiquement. Pour retoucher la vidéo à la main, ouvre-la dans le Studio HyperFrames."
       >
         <Button variant="outline" asChild>
-          <Link href={`/projects/${project.id}/exports`}>
+          <Link href={projectHref(project, "exports")}>
             Voir les exports
             <ArrowRightIcon />
           </Link>

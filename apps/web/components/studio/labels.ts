@@ -6,6 +6,7 @@ import {
   DownloadIcon,
   FileTextIcon,
   FilmIcon,
+  LayersIcon,
   type LucideIcon,
   MonitorPlayIcon,
   MusicIcon,
@@ -13,24 +14,32 @@ import {
   RocketIcon,
   SparklesIcon,
   SquareUserIcon,
+  VariableIcon,
   WandSparklesIcon,
 } from "lucide-react";
 import type { PipelineStep } from "@/lib/project-state";
 
 export const STEP_LABELS: Record<GenerationStep, string> = {
   brief: "Brief",
+  variables: "Variables",
   storyboard: "Storyboard",
   media: "Voix et musique",
   build: "Build",
 };
 
-/** The five stops of the pipeline as the stepper shows them, with what happens at each. */
+/** The stops of the pipeline as the stepper shows them, with what happens at each. */
 export const PIPELINE: Record<PipelineStep, { label: string; icon: LucideIcon; doing: string; hint: string }> = {
   brief: {
     label: "Brief",
     icon: FileTextIcon,
     doing: "Claude rédige le brief",
     hint: "Claude reformule ta demande dans BRIEF.md, puis enchaîne sur le storyboard.",
+  },
+  variables: {
+    label: "Variables",
+    icon: VariableIcon,
+    doing: "Claude propose les variables",
+    hint: "Ce qui changera d'une version à l'autre : textes, couleurs, images. Tu corriges la liste et tu la valides avant le storyboard.",
   },
   storyboard: {
     label: "Storyboard",
@@ -55,6 +64,12 @@ export const PIPELINE: Record<PipelineStep, { label: string; icon: LucideIcon; d
     icon: DownloadIcon,
     doing: "Rendu en cours",
     hint: "Le MP4 part automatiquement après validation du build ; d'autres formats à la demande.",
+  },
+  iterations: {
+    label: "Itérations",
+    icon: LayersIcon,
+    doing: "Rendu en cours",
+    hint: "Chaque itération est un jeu de valeurs avec ses rendus. Tu la modifies et tu relances le rendu, sans Claude.",
   },
 };
 

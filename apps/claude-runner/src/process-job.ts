@@ -1,13 +1,13 @@
 import { join } from "node:path";
 import { assets, createJobReporter, projects, type Database, type Publish } from "@studio/db";
-import { CHECKPOINT_STEPS, nextStep, type ClaudeJob } from "@studio/shared";
+import { CHECKPOINT_STEPS, isVariablesDiffEmpty, nextStep, type ClaudeJob } from "@studio/shared";
 import type { Storage } from "@studio/storage";
 import { eq } from "drizzle-orm";
 import { buildClaudeArgs } from "./claude-args";
 import type { RunnerConfig } from "./config";
 import { buildPrompt } from "./prompt";
 import { runClaude } from "./run-claude";
-import { commitCheckpoint, ensureVideoFolder, missingStepOutputs, storyboardAudio } from "./workspace";
+import { commitCheckpoint, ensureVideoFolder, missingStepOutputs, storyboardAudio, templateVariablesGap } from "./workspace";
 
 export type ProcessDeps = {
   config: RunnerConfig;
@@ -56,6 +56,7 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
 
     const prompt = await buildPrompt(config.promptsDir, {
       step: job.step,
+      kind: project.kind,
       slug: job.slug,
       workflow: project.workflow,
       brief: project.brief,
@@ -91,14 +92,30 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
       return;
     }
 
+    let resultText = result.resultText;
+    if (job.step === "build" && project.kind === "template") {
+      // The review stays open: asking for a change is how the user gets the contract declared.
+      const gap = await templateVariablesGap(config.workspaceDir, job.slug);
+      const warning =
+        typeof gap === "string"
+          ? gap
+          : isVariablesDiffEmpty(gap)
+            ? null
+            : `La composition ne déclare pas les variables validées. Manquantes : ${gap.missing.join(", ") || "aucune"} ; en trop : ${gap.extra.join(", ") || "aucune"} ; type changé : ${gap.changed.join(", ") || "aucun"}.`;
+      if (warning) {
+        await report.event({ kind: "log", level: "error", text: warning });
+        resultText = `${warning}\n\n${resultText ?? ""}`.trim();
+      }
+    }
+
     await commitCheckpoint(config.workspaceDir, job.slug, `${job.slug}: ${job.step}${job.feedback ? " (retour)" : ""}`);
     const checkpoint = CHECKPOINT_STEPS.includes(job.step);
     await report.status(checkpoint ? "waiting_review" : "succeeded", {
       claudeSessionId: result.sessionId,
-      resultText: result.resultText,
+      resultText,
     });
 
-    const next = nextStep(job.step);
+    const next = nextStep(job.step, project.kind);
     if (!checkpoint && next) {
       await db.update(projects).set({ currentStep: next, updatedAt: new Date() }).where(eq(projects.id, project.id));
       await deps.enqueueNext({ projectId: project.id, slug: job.slug, step: next, resumeSessionId: result.sessionId ?? undefined });

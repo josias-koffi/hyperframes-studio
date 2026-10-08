@@ -44,9 +44,8 @@ function RailLink({ href, active, children }: { href: string; active: boolean; c
  * The project's own navigation: one entry per screen, each step with where it stands.
  * A column beside the content on large screens, a scrolling strip of tabs above it otherwise.
  */
-export function ProjectRail({ projectId, steps, assetCount }: { projectId: string; steps: ProjectState["steps"]; assetCount: number }) {
+export function ProjectRail({ base, steps, assetCount }: { base: string; steps: ProjectState["steps"]; assetCount: number }) {
   const pathname = usePathname();
-  const base = `/projects/${projectId}`;
   // The Studio editor takes the whole width: the header's button leads back.
   if (pathname === `${base}/studio`) return null;
 
@@ -64,7 +63,7 @@ export function ProjectRail({ projectId, steps, assetCount }: { projectId: strin
         const href = `${base}/${STEP_SEGMENTS[step]}`;
         const Icon = PIPELINE[step].icon;
         return (
-          <RailLink key={step} href={href} active={pathname === href}>
+          <RailLink key={step} href={href} active={pathname === href || pathname.startsWith(`${href}/`)}>
             <span className={cn("flex size-6 shrink-0 items-center justify-center rounded-full border-2 text-[10px] font-semibold", MARK[state])}>
               {state === "done" ? (
                 <CheckIcon className="size-3.5" strokeWidth={3} />

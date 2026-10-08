@@ -12,10 +12,10 @@ export class RendersController {
     @Inject(STORAGE) private readonly storage: Storage,
   ) {}
 
-  /** Renders of a project (template renders excluded: they live on their template), each file with a short-lived download URL. */
+  /** Renders of a project (iteration renders excluded: they live on their iteration), each file with a short-lived download URL. */
   @Get()
   list(@Param("projectId", ParseUUIDPipe) projectId: string) {
-    return listRenders(this.db, this.storage, and(eq(renders.projectId, projectId), isNull(renders.templateId))!);
+    return listRenders(this.db, this.storage, and(eq(renders.projectId, projectId), isNull(renders.iterationId))!);
   }
 }
 

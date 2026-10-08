@@ -22,6 +22,34 @@
       "when": 1791327062859,
       "tag": "0002_template_renders_backfill",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791439810126,
+      "tag": "0003_slimy_old_lace",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791439814670,
+      "tag": "0004_iterations_from_templates",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791439840122,
+      "tag": "0005_drop_template_links",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791439842223,
+      "tag": "0006_drop_templates",
+      "breakpoints": true
     }
   ]
 }

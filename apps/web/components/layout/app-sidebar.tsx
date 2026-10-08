@@ -25,16 +25,18 @@ const ITEMS = [
 ];
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
-  /** Projects whose checkpoint waits for the user. */
+  /** Videos whose checkpoint waits for the user. */
   reviewCount: number;
+  /** Templates whose checkpoint waits for the user. */
+  templateReviewCount: number;
   /** Projects Claude is working on right now. */
   liveCount: number;
 };
 
-export function AppSidebar({ reviewCount, liveCount, ...props }: AppSidebarProps) {
+export function AppSidebar({ reviewCount, templateReviewCount, liveCount, ...props }: AppSidebarProps) {
   const pathname = usePathname();
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname === href || (pathname.startsWith(`${href}/`) && pathname !== "/projects/new");
+    href === "/" ? pathname === "/" : pathname === href || (pathname.startsWith(`${href}/`) && !pathname.endsWith("/new"));
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -72,14 +74,16 @@ export function AppSidebar({ reviewCount, liveCount, ...props }: AppSidebarProps
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
-                  {item.href === "/projects" && reviewCount > 0 && (
-                    <SidebarMenuBadge
-                      title={`${reviewCount} à valider`}
-                      className="bg-warning/15 text-warning peer-hover/menu-button:text-warning"
-                    >
-                      {reviewCount}
-                    </SidebarMenuBadge>
-                  )}
+                  {(() => {
+                    const count = item.href === "/projects" ? reviewCount : item.href === "/templates" ? templateReviewCount : 0;
+                    return (
+                      count > 0 && (
+                        <SidebarMenuBadge title={`${count} à valider`} className="bg-warning/15 text-warning peer-hover/menu-button:text-warning">
+                          {count}
+                        </SidebarMenuBadge>
+                      )
+                    );
+                  })()}
                   {item.href === "/" && liveCount > 0 && (
                     <SidebarMenuBadge title={`${liveCount} en cours`} className="gap-1.5">
                       <span className="rec-dot size-1.5" />
