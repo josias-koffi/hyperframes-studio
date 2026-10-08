@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CrumbLabel } from "@/components/layout/crumb-label";
+import { FilterTabs } from "@/components/layout/filter-tabs";
 import { ProjectActions } from "@/components/project/project-dialog";
 import { CreationCard, TypeCounts } from "@/components/studio/creation-card";
 import { CREATION_TYPE_META } from "@/components/studio/labels";
@@ -12,7 +13,6 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { serverApi, type Project } from "@/lib/api";
 import { projectHref } from "@/lib/creation-state";
 import { loadCreations } from "@/lib/overview";
-import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -62,26 +62,17 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
         </div>
       </div>
 
-      <nav aria-label="Filtrer par type" className="flex gap-1 overflow-x-auto px-4 lg:px-6">
-        {tabs.map((tab) => {
-          const Icon = tab.value ? CREATION_TYPE_META[tab.value].icon : null;
-          return (
-            <Link
-              key={tab.label}
-              href={tab.value ? `${projectHref(id)}?type=${tab.value}` : projectHref(id)}
-              aria-current={tab.value === type ? "page" : undefined}
-              className={cn(
-                "flex shrink-0 items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition-colors hover:bg-accent",
-                tab.value === type ? "border-primary bg-accent font-medium" : "bg-card",
-              )}
-            >
-              {Icon && <Icon className="size-4 text-muted-foreground" />}
-              {tab.label}
-              <span className="rounded-md bg-muted px-1.5 text-xs tabular-nums text-muted-foreground">{tab.count}</span>
-            </Link>
-          );
-        })}
-      </nav>
+      <FilterTabs
+        label="Filtrer par type"
+        className="px-4 lg:px-6"
+        tabs={tabs.map((tab) => ({
+          label: tab.label,
+          href: tab.value ? `${projectHref(id)}?type=${tab.value}` : projectHref(id),
+          active: tab.value === type,
+          count: tab.count,
+          icon: tab.value ? CREATION_TYPE_META[tab.value].icon : undefined,
+        }))}
+      />
 
       <div className="px-4 lg:px-6">
         {shown.length === 0 ? (

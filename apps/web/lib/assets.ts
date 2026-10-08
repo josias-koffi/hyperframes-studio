@@ -10,6 +10,15 @@ export function kindFromFile(file: Pick<File, "type" | "name">): AssetKind {
   return "other";
 }
 
+/** The kinds a list of assets is filtered by: images and logos together, the rarer kinds under "Autres". */
+export const ASSET_FILTERS: { value: string; label: string; kinds: AssetKind[] }[] = [
+  { value: "all", label: "Tout", kinds: [] },
+  { value: "image", label: "Images", kinds: ["image", "logo"] },
+  { value: "video", label: "Vidéos", kinds: ["video"] },
+  { value: "audio", label: "Sons", kinds: ["audio"] },
+  { value: "other", label: "Autres", kinds: ["font", "document", "other"] },
+];
+
 const UNITS = ["o", "Ko", "Mo", "Go"];
 
 export function formatBytes(size: number): string {

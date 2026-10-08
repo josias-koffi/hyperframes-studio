@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { clientApi, type Asset, type AssetKind } from "@/lib/api";
-import { formatBytes } from "@/lib/assets";
+import { ASSET_FILTERS, formatBytes } from "@/lib/assets";
 import { formatRelative } from "@/lib/format";
 
 const KIND_ICON: Record<AssetKind, LucideIcon> = {
@@ -30,14 +30,6 @@ const KIND_ICON: Record<AssetKind, LucideIcon> = {
   document: FileTextIcon,
   other: FileIcon,
 };
-
-const FILTERS: { value: string; label: string; kinds: AssetKind[] }[] = [
-  { value: "all", label: "Tout", kinds: [] },
-  { value: "image", label: "Images", kinds: ["image", "logo"] },
-  { value: "video", label: "Vidéos", kinds: ["video"] },
-  { value: "audio", label: "Sons", kinds: ["audio"] },
-  { value: "other", label: "Autres", kinds: ["font", "document", "other"] },
-];
 
 function Preview({ asset }: { asset: Asset }) {
   if (asset.kind === "image" || asset.kind === "logo") {
@@ -54,12 +46,22 @@ function Preview({ asset }: { asset: Asset }) {
   );
 }
 
-/** The files of the library or of a project, filterable by kind, each removable. */
-export function AssetGrid({ assets, emptyText, extraAction }: { assets: Asset[]; emptyText: string; extraAction?: (asset: Asset) => React.ReactNode }) {
+/** The files of the library or of a project, filterable by kind (unless the page filters them), each removable. */
+export function AssetGrid({
+  assets,
+  emptyText,
+  extraAction,
+  filters = true,
+}: {
+  assets: Asset[];
+  emptyText: string;
+  extraAction?: (asset: Asset) => React.ReactNode;
+  filters?: boolean;
+}) {
   const router = useRouter();
   const [filter, setFilter] = useState("all");
   const shown = useMemo(() => {
-    const kinds = FILTERS.find((f) => f.value === filter)?.kinds ?? [];
+    const kinds = ASSET_FILTERS.find((f) => f.value === filter)?.kinds ?? [];
     return kinds.length ? assets.filter((asset) => kinds.includes(asset.kind)) : assets;
   }, [assets, filter]);
 
@@ -77,13 +79,15 @@ export function AssetGrid({ assets, emptyText, extraAction }: { assets: Asset[];
 
   return (
     <div className="space-y-4">
-      <ToggleGroup type="single" variant="outline" size="sm" value={filter} onValueChange={(v) => v && setFilter(v)} className="bg-card">
-        {FILTERS.map((f) => (
-          <ToggleGroupItem key={f.value} value={f.value}>
-            {f.label}
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
+      {filters && (
+        <ToggleGroup type="single" variant="outline" size="sm" value={filter} onValueChange={(v) => v && setFilter(v)} className="bg-card">
+          {ASSET_FILTERS.map((f) => (
+            <ToggleGroupItem key={f.value} value={f.value}>
+              {f.label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      )}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
         {shown.map((asset) => {
           const Icon = KIND_ICON[asset.kind];
