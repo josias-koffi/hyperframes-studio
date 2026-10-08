@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { StepHeader } from "@/components/project/step-page";
 import { IterationsTable } from "@/components/template/iterations-table";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { serverApi, type CreationVariables } from "@/lib/api";
+import { type CreationVariables } from "@/lib/api";
+import { serverApi } from "@/lib/server-api";
 import { loadCreation } from "@/lib/creation-data";
 
 export const metadata: Metadata = { title: "Itérations" };

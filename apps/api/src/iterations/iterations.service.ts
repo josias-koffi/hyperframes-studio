@@ -1,8 +1,9 @@
 import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { iterations, jobs, renders, type Database } from "@studio/db";
+import { creations, iterations, jobs, projects, renders, type Database } from "@studio/db";
 import { allowedFormats, defaultVariableValues, deliverableFor, resolveWorkspaceDir, validateVariableValues, type RenderFormat } from "@studio/shared";
 import type { Storage } from "@studio/storage";
 import { and, desc, eq } from "drizzle-orm";
+import { currentUserId } from "../auth/request-context";
 import { DATABASE } from "../database/database.module";
 import { readCreationVariables } from "../creations/creation-variables";
 import { CreationsService, type Creation } from "../creations/creations.service";
@@ -56,10 +57,16 @@ export class IterationsService {
     );
   }
 
+  /** The signed-in person's iteration (through its template's project). */
   async get(id: string) {
-    const [row] = await this.db.select().from(iterations).where(eq(iterations.id, id));
+    const [row] = await this.db
+      .select({ iteration: iterations })
+      .from(iterations)
+      .innerJoin(creations, eq(creations.id, iterations.creationId))
+      .innerJoin(projects, eq(projects.id, creations.projectId))
+      .where(and(eq(iterations.id, id), eq(projects.ownerId, currentUserId())));
     if (!row) throw new NotFoundException("iteration not found");
-    return row;
+    return row.iteration;
   }
 
   private async check(slug: string, values: Record<string, unknown>) {
@@ -124,11 +131,13 @@ export class IterationsService {
     return this.creations.render(creation.id, { format, variables, frames: format === "png" ? (request.frames ?? 1) : undefined }, id);
   }
 
-  renders(id: string) {
+  async renders(id: string) {
+    await this.get(id);
     return listRenders(this.db, this.storage, eq(renders.iterationId, id));
   }
 
-  jobsOf(id: string) {
+  async jobsOf(id: string) {
+    await this.get(id);
     return this.jobs.listForIteration(id);
   }
 }

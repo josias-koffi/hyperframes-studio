@@ -1,7 +1,7 @@
 import { Markdown } from "@/components/project/markdown";
 import { StepPage } from "@/components/project/step-page";
 import { Card, CardContent } from "@/components/ui/card";
-import { serverFile } from "@/lib/api";
+import { serverFile } from "@/lib/server-api";
 import { loadCreation } from "@/lib/creation-data";
 import { stepReached } from "@/lib/creation-state";
 

@@ -22,6 +22,10 @@ secrets:
   - MINIO_ROOT_PASSWORD
   - CLAUDE_CODE_OAUTH_TOKEN
   - OPENROUTER_API_KEY
+  - AUTH_SESSION_SECRET
+  - SMTP_USER
+  - SMTP_PASSWORD
+  - NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
 optionalSecrets:
   - POSTIZ_API_KEY
 
@@ -35,6 +39,15 @@ vars:
   TTS_VOICE: fr_marie_neutral
   TTS_PEAK_DB: "-1"
   MUSIC_MODEL: google/lyria-3-clip-preview
+  # Passwordless sign-in: the e-mailed link is redeemed through the web app, which holds the session cookie.
+  AUTH_COOKIE_NAME: framesmith_session
+  AUTH_MAGIC_LINK_TTL_MINUTES: "15"
+  AUTH_SESSION_TTL_DAYS: "7"
+  # Same Resend account and sender domain as cvforge.
+  SMTP_PROVIDER: resend
+  SMTP_SERVER: smtp.resend.com
+  SMTP_PORT: "587"
+  EMAIL_FROM: Framesmith <no-reply@koklo.dev>
 
 apps:
   web:
@@ -42,7 +55,7 @@ apps:
     port: 3000
     domain: web
     uses: [api]               # injects API_URL=https://<api domain>
-    secrets: []
+    secrets: [NEXT_SERVER_ACTIONS_ENCRYPTION_KEY]
     resources: { cpus: 0.5, memory: 512m }
   api:
     image: ghcr.io/josias-koffi/studio-api
@@ -54,7 +67,7 @@ apps:
     vars:
       WEB_URL: 'https://${domains.web}'
       HF_STUDIO_URL: 'http://${app}${env == "production" ? "" : "-${env}"}-hf-studio:3000'
-    secrets: [DB_PASSWORD, CACHE_PASSWORD, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD, POSTIZ_API_KEY, HF_STUDIO_TOKEN]
+    secrets: [DB_PASSWORD, CACHE_PASSWORD, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD, POSTIZ_API_KEY, HF_STUDIO_TOKEN, AUTH_SESSION_SECRET, SMTP_USER, SMTP_PASSWORD]
     resources: { cpus: 1, memory: 1g }
   # HyperFrames engine behind the Framesmith editor (apps/hf-studio): preview, file mutations, thumbnails of every
   # project the API opens, in process. Internal only: the browser reaches it through the API (/creations/<id>/engine).
@@ -102,4 +115,4 @@ environments:
     branch: develop
     domains: { web: studio-staging.<domaine>, api: studio-api-staging.<domaine>, files: studio-files-staging.<domaine> }
     # Staging shares the Claude subscription quota with production: no Claude jobs by default.
-    vars: { CLAUDE_JOBS_ENABLED: "false" }
+    vars: { CLAUDE_JOBS_ENABLED: "false", EMAIL_FROM: "Framesmith staging <no-reply@koklo.dev>" }

@@ -10,7 +10,8 @@ import { CreationCard, TypeCounts } from "@/components/studio/creation-card";
 import { CREATION_TYPE_META } from "@/components/studio/labels";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { serverApi, type Project } from "@/lib/api";
+import { type Project } from "@/lib/api";
+import { serverApi } from "@/lib/server-api";
 import { projectHref } from "@/lib/creation-state";
 import { loadCreations } from "@/lib/overview";
 

@@ -2,7 +2,9 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CrumbLabelProvider } from "@/components/layout/crumb-label";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { redirect } from "next/navigation";
 import { loadCreations } from "@/lib/overview";
+import { readSessionUser } from "@/lib/server-api";
 
 /** Sidebar counters must not take the whole shell down when the API is unreachable: the page will say so. */
 async function loadCounters() {
@@ -20,6 +22,8 @@ async function loadCounters() {
 }
 
 export default async function StudioLayout({ children }: LayoutProps<"/">) {
+  const user = await readSessionUser();
+  if (!user) redirect("/login?error=session_required");
   const counters = await loadCounters();
 
   return (
@@ -34,7 +38,7 @@ export default async function StudioLayout({ children }: LayoutProps<"/">) {
       }
     >
       <CrumbLabelProvider>
-        <AppSidebar variant="inset" {...counters} />
+        <AppSidebar variant="inset" user={user} {...counters} />
         <SidebarInset className="min-h-0 overflow-clip">
           <SiteHeader />
           <div className="@container/main flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto py-4 *:shrink-0 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 md:py-6">

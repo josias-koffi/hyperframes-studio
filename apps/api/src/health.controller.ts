@@ -2,9 +2,11 @@ import { Controller, Get, Inject, ServiceUnavailableException } from "@nestjs/co
 import type { Database } from "@studio/db";
 import { sql } from "drizzle-orm";
 import type IORedis from "ioredis";
+import { Public } from "./auth/auth.guard";
 import { DATABASE } from "./database/database.module";
 import { REDIS } from "./queues/queues.module";
 
+@Public()
 @Controller()
 export class HealthController {
   constructor(

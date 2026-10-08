@@ -16,6 +16,7 @@ import {
 } from "@studio/shared";
 import type { Storage } from "@studio/storage";
 import { and, count, desc, eq, inArray, isNull, like, type SQL } from "drizzle-orm";
+import { currentUserId } from "../auth/request-context";
 import { DATABASE } from "../database/database.module";
 import { STORAGE } from "../storage/storage.module";
 import { readCreationVariables, writeCreationVariables } from "./creation-variables";
@@ -45,6 +46,7 @@ export class CreationsService {
    */
   async list(filter: CreationFilter = {}) {
     const conditions = [
+      eq(projects.ownerId, currentUserId()),
       filter.projectId ? eq(creations.projectId, filter.projectId) : undefined,
       filter.type ? eq(creations.type, filter.type) : undefined,
       filter.kind ? eq(creations.kind, filter.kind) : undefined,
@@ -53,7 +55,7 @@ export class CreationsService {
       .select({ creation: creations, projectName: projects.name })
       .from(creations)
       .innerJoin(projects, eq(projects.id, creations.projectId))
-      .where(conditions.length ? and(...conditions) : undefined)
+      .where(and(...conditions))
       .orderBy(desc(creations.updatedAt));
     if (rows.length === 0) return [];
 
@@ -118,18 +120,22 @@ export class CreationsService {
     );
   }
 
+  /** The signed-in person's création (through its project): someone else's is as unknown as a missing one. */
   async get(id: string) {
     const [row] = await this.db
       .select({ creation: creations, projectName: projects.name })
       .from(creations)
       .innerJoin(projects, eq(projects.id, creations.projectId))
-      .where(eq(creations.id, id));
+      .where(and(eq(creations.id, id), eq(projects.ownerId, currentUserId())));
     if (!row) throw new NotFoundException("creation not found");
     return { ...row.creation, projectName: row.projectName };
   }
 
   async create(projectId: string, input: CreateCreation) {
-    const [project] = await this.db.select({ id: projects.id }).from(projects).where(eq(projects.id, projectId));
+    const [project] = await this.db
+      .select({ id: projects.id })
+      .from(projects)
+      .where(and(eq(projects.id, projectId), eq(projects.ownerId, currentUserId())));
     if (!project) throw new NotFoundException("project not found");
     const base = input.slug ?? slugify(input.name);
     const taken = await this.db.select({ slug: creations.slug }).from(creations).where(like(creations.slug, `${base}%`));

@@ -1,7 +1,7 @@
 import { Controller, Get, Inject, Param, ParseUUIDPipe, Sse, type MessageEvent } from "@nestjs/common";
 import { jobEventsChannel } from "@studio/shared";
 import IORedis from "ioredis";
-import { Observable } from "rxjs";
+import { Observable, from, switchMap } from "rxjs";
 import { REDIS } from "../queues/queues.module";
 import { JobsService } from "./jobs.service";
 
@@ -26,6 +26,11 @@ export class JobsController {
    */
   @Sse(":id/events")
   stream(@Param("id", ParseUUIDPipe) id: string): Observable<MessageEvent> {
+    // Ownership first, inside the request: the stream itself outlives the request context.
+    return from(this.jobs.get(id)).pipe(switchMap(() => this.feed(id)));
+  }
+
+  private feed(id: string): Observable<MessageEvent> {
     return new Observable<MessageEvent>((subscriber) => {
       const sub = this.redis.duplicate();
       const channel = jobEventsChannel(id);
@@ -51,11 +56,11 @@ export class JobsController {
             lastSeq = row.seq;
             subscriber.next({ data: { seq: row.seq, event: row.event } });
           }
-          const job = await this.jobs.get(id);
+          const status = await this.jobs.status(id);
           replayed = true;
           pending.splice(0).forEach(deliver);
-          if (FINAL.has(job.status)) {
-            subscriber.next({ data: { status: job.status } });
+          if (FINAL.has(status)) {
+            subscriber.next({ data: { status } });
             subscriber.complete();
           }
         })

@@ -1,5 +1,6 @@
 import { cache } from "react";
-import { serverApi, type Asset, type Creation, type IterationListItem, type Job, type Render } from "./api";
+import type { Asset, Creation, IterationListItem, Job, Render } from "./api";
+import { serverApi } from "./server-api";
 import { creationState } from "./creation-state";
 
 /** One fetch per request, shared by the création layout and whichever step page it wraps. */

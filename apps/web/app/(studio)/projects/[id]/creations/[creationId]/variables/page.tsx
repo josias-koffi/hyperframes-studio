@@ -5,7 +5,8 @@ import { StepPage } from "@/components/project/step-page";
 import { VariablesEditor, type EditorMode } from "@/components/template/variables-editor";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { serverApi, type CreationVariables } from "@/lib/api";
+import { type CreationVariables } from "@/lib/api";
+import { serverApi } from "@/lib/server-api";
 import { loadCreation } from "@/lib/creation-data";
 import { stepJob, stepReached } from "@/lib/creation-state";
 

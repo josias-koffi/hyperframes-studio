@@ -3,7 +3,8 @@ import { SparklesIcon } from "lucide-react";
 import type { Metadata } from "next";
 import { NewCreationForm } from "@/components/creation/new-creation-form";
 import { PageHeader } from "@/components/layout/page-header";
-import { serverApi, type ProjectListItem } from "@/lib/api";
+import { type ProjectListItem } from "@/lib/api";
+import { serverApi } from "@/lib/server-api";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Nouvelle création" };

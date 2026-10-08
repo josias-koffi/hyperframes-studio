@@ -127,27 +127,18 @@ export type Asset = {
 
 export type JobStreamMessage = { seq?: number; event?: StudioEvent; status?: JobStatus };
 
-/** A file of the création's folder (BRIEF.md, audio_meta.json…) as text, or null when it does not exist yet. */
-export async function serverFile(creationId: string, path: string): Promise<string | null> {
-  const base = process.env.API_URL ?? "http://localhost:3343";
-  const response = await fetch(`${base}/creations/${creationId}/files/${path}`, { cache: "no-store" });
-  return response.ok ? response.text() : null;
-}
-
-/** Server components call the API directly on the internal network; the browser goes through `/api`. */
-export async function serverApi<T>(path: string): Promise<T> {
-  const base = process.env.API_URL ?? "http://localhost:3343";
-  const response = await fetch(`${base}${path}`, { cache: "no-store" });
-  if (!response.ok) throw new Error(`${path}: ${response.status}`);
-  return (await response.json()) as T;
-}
-
 export async function clientApi<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`/api${path}`, {
     ...init,
     headers: { "content-type": "application/json", ...init?.headers },
   });
   const body = await response.json().catch(() => null);
+  // The session ended (expired, signed out elsewhere): back to the sign-in page, then here.
+  if (response.status === 401 && typeof window !== "undefined") {
+    // A full load, not a client navigation: every cached screen belonged to the session that ended.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    window.location.href = `/login?error=session_required&next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+  }
   if (!response.ok) {
     const message = body && typeof body.message === "string" ? body.message : `Erreur ${response.status}`;
     throw new Error(message);

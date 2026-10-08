@@ -2,7 +2,7 @@ import { MicIcon, MusicIcon, VolumeXIcon } from "lucide-react";
 import { StepPage } from "@/components/project/step-page";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { serverFile } from "@/lib/api";
+import { serverFile } from "@/lib/server-api";
 import { parseAudioMeta } from "@/lib/audio-meta";
 import { loadCreation } from "@/lib/creation-data";
 import { stepReached } from "@/lib/creation-state";

@@ -4,7 +4,8 @@ import { LibraryImport } from "@/components/assets/library-import";
 import { CrumbLabel } from "@/components/layout/crumb-label";
 import { PageHeader } from "@/components/layout/page-header";
 import { SectionCard } from "@/components/layout/section-card";
-import { serverApi, type Asset, type Project } from "@/lib/api";
+import { type Asset, type Project } from "@/lib/api";
+import { serverApi } from "@/lib/server-api";
 
 export const dynamic = "force-dynamic";
 

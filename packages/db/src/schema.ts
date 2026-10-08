@@ -1,4 +1,10 @@
-import { CREATION_KINDS, CREATION_TYPES, GENERATION_STEPS, JOB_STATUSES, RENDER_FORMATS } from "@studio/shared";
+import {
+  CREATION_KINDS,
+  CREATION_TYPES,
+  GENERATION_STEPS,
+  JOB_STATUSES,
+  RENDER_FORMATS,
+} from "@studio/shared";
 import {
   bigint,
   bigserial,
@@ -25,15 +31,56 @@ export const creationType = pgEnum("creation_type", CREATION_TYPES);
 export const jobStatus = pgEnum("job_status", JOB_STATUSES);
 export const jobKind = pgEnum("job_kind", ["claude", "render"]);
 export const renderFormat = pgEnum("render_format", RENDER_FORMATS);
-export const assetKind = pgEnum("asset_kind", ["image", "video", "audio", "font", "logo", "document", "other"]);
-export const publicationStatus = pgEnum("publication_status", ["draft", "scheduled", "published", "failed"]);
+export const assetKind = pgEnum("asset_kind", [
+  "image",
+  "video",
+  "audio",
+  "font",
+  "logo",
+  "document",
+  "other",
+]);
+export const publicationStatus = pgEnum("publication_status", [
+  "draft",
+  "scheduled",
+  "published",
+  "failed",
+]);
 
+export const userRole = pgEnum("user_role", ["admin", "user"]);
+export const userStatus = pgEnum("user_status", ["active", "suspended"]);
+
+/** What the person agreed to when the account was created by their first magic link. */
+export type UserConsent = { acceptedAt: string; source: "passwordless"; version: string };
+
+/** An account, created by its first magic link (passwordless: no password is ever stored). */
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
   name: text("name"),
+  role: userRole("role").notNull().default("user"),
+  status: userStatus("status").notNull().default("active"),
+  consent: jsonb("consent").$type<UserConsent>(),
+  /** Sessions issued before this instant are refused (forced logout, suspension). Null: none revoked. */
+  sessionsValidFrom: timestamp("sessions_valid_from", { withTimezone: true }),
   ...timestamps,
 });
+
+/** A pending sign-in link. Only its SHA-256 is stored, and redeeming it deletes the row. */
+export const authMagicLinks = pgTable(
+  "auth_magic_links",
+  {
+    tokenHash: text("token_hash").primaryKey(),
+    email: text("email").notNull(),
+    consent: jsonb("consent").$type<UserConsent>(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("auth_magic_links_email_idx").on(t.email),
+    index("auth_magic_links_expires_idx").on(t.expiresAt),
+  ],
+);
 
 /** A brand = a reusable design system (palette, fonts, logos, frame.md). */
 export const brands = pgTable("brands", {
@@ -46,14 +93,20 @@ export const brands = pgTable("brands", {
 });
 
 /** A project = a campaign: it groups créations (videos, carousels, images) and their shared assets. */
-export const projects = pgTable("projects", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  brandId: uuid("brand_id").references(() => brands.id, { onDelete: "set null" }),
-  /** Campaign context shared by every création of the project (audience, tone, offer…). */
-  context: text("context").notNull().default(""),
-  ...timestamps,
-});
+export const projects = pgTable(
+  "projects",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** Who sees the campaign and everything in it. Null only for rows older than accounts: nobody sees them. */
+    ownerId: uuid("owner_id").references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    brandId: uuid("brand_id").references(() => brands.id, { onDelete: "set null" }),
+    /** Campaign context shared by every création of the project (audience, tone, offer…). */
+    context: text("context").notNull().default(""),
+    ...timestamps,
+  },
+  (t) => [index("projects_owner_idx").on(t.ownerId, t.updatedAt)],
+);
 
 /** One création = one HyperFrames folder `<workspace>/videos/<slug>`, one Claude session, one deliverable. */
 export const creations = pgTable(
@@ -91,7 +144,9 @@ export const assets = pgTable(
   "assets",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    /** Null = shared library asset; set = belongs to one project (campaign). */
+    /** Whose library or campaign it is in, so the library (no project) is private too. */
+    ownerId: uuid("owner_id").references(() => users.id, { onDelete: "cascade" }),
+    /** Null = the owner's library asset; set = belongs to one project (campaign). */
     projectId: uuid("project_id").references(() => projects.id, { onDelete: "cascade" }),
     /** Set = uploaded for one création only (its footage, its music). */
     creationId: uuid("creation_id").references(() => creations.id, { onDelete: "cascade" }),
@@ -105,7 +160,7 @@ export const assets = pgTable(
     tags: text("tags").array().notNull().default([]),
     ...timestamps,
   },
-  (t) => [index("assets_project_idx").on(t.projectId)],
+  (t) => [index("assets_project_idx").on(t.projectId), index("assets_owner_idx").on(t.ownerId)],
 );
 
 /** One use of a template: a named set of variable values and the renders made from it. */

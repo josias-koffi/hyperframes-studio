@@ -6,7 +6,8 @@ import { PageHeader } from "@/components/layout/page-header";
 import { PaginationNav } from "@/components/layout/pagination-nav";
 import { SearchInput } from "@/components/layout/search-input";
 import { SectionCard } from "@/components/layout/section-card";
-import { serverApi, type Asset } from "@/lib/api";
+import { type Asset } from "@/lib/api";
+import { serverApi } from "@/lib/server-api";
 import { ASSET_FILTERS } from "@/lib/assets";
 import { listHref, matches, paginate, param } from "@/lib/listing";
 

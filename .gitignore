@@ -13,3 +13,4 @@ coverage
 tmp/
 # Dev workspace mounted by the workers (videos are runtime data, not source)
 .workspace/
+.email-previews/

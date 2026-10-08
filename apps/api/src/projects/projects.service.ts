@@ -1,7 +1,8 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { assets, creations, projects, type Database } from "@studio/db";
 import { CREATION_TYPES, type CreationType } from "@studio/shared";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
+import { currentUserId } from "../auth/request-context";
 import { CreationsService } from "../creations/creations.service";
 import { DATABASE } from "../database/database.module";
 import type { CreateProject, UpdateProject } from "./projects.schemas";
@@ -30,7 +31,7 @@ export class ProjectsService {
 
   /** Projects, most recently active first (a création's activity counts as the project's). */
   async list() {
-    const [rows, items] = await Promise.all([this.db.select().from(projects).orderBy(desc(projects.updatedAt)), this.creations.list()]);
+    const [rows, items] = await Promise.all([this.db.select().from(projects).where(eq(projects.ownerId, currentUserId())).orderBy(desc(projects.updatedAt)), this.creations.list()]);
     return rows
       .map((row) => {
         const own = items.filter((item) => item.projectId === row.id);
@@ -40,14 +41,18 @@ export class ProjectsService {
       .sort((a, b) => b.activityAt.getTime() - a.activityAt.getTime());
   }
 
+  /** The signed-in person's project: someone else's is as unknown as a missing one. */
   async get(id: string) {
-    const [row] = await this.db.select().from(projects).where(eq(projects.id, id));
+    const [row] = await this.db
+      .select()
+      .from(projects)
+      .where(and(eq(projects.id, id), eq(projects.ownerId, currentUserId())));
     if (!row) throw new NotFoundException("project not found");
     return row;
   }
 
   async create(input: CreateProject) {
-    const [row] = await this.db.insert(projects).values(input).returning();
+    const [row] = await this.db.insert(projects).values({ ...input, ownerId: currentUserId() }).returning();
     return row;
   }
 

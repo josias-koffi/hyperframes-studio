@@ -4,7 +4,8 @@ import { BadGatewayException, BadRequestException, ConflictException, Inject, In
 import { assets, type Database } from "@studio/db";
 import { commitCheckpoint, resolveWorkspaceDir } from "@studio/shared";
 import type { Storage } from "@studio/storage";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { currentUserId } from "../auth/request-context";
 import { DATABASE } from "../database/database.module";
 import { STORAGE } from "../storage/storage.module";
 import { CreationsService, type Creation } from "../creations/creations.service";
@@ -71,10 +72,12 @@ export class EditorService {
    * one database read is enough.
    */
   async engineTarget(id: string): Promise<Creation> {
-    const known = this.targets.get(id);
+    // Remembered per person: the lookup is also the ownership check.
+    const key = `${currentUserId()}:${id}`;
+    const known = this.targets.get(key);
     if (known && known.until > Date.now()) return known.creation;
     const creation = await this.creations.get(id);
-    this.targets.set(id, { creation, until: Date.now() + 60_000 });
+    this.targets.set(key, { creation, until: Date.now() + 60_000 });
     if (this.targets.size > 1000) this.targets.delete(this.targets.keys().next().value!);
     return creation;
   }
@@ -96,13 +99,16 @@ export class EditorService {
   }
 
   /**
-   * Copies an asset the création may use (the campaign's, its own, or the shared library's) into its folder, where
+   * Copies an asset the création may use (the campaign's, its own, or the owner's library) into its folder, where
    * the composition can reference it.
    */
   async importAsset(id: string, assetId: string) {
     const creation = await this.creations.get(id);
     await this.assertWritable(id);
-    const [asset] = await this.db.select().from(assets).where(eq(assets.id, assetId));
+    const [asset] = await this.db
+      .select()
+      .from(assets)
+      .where(and(eq(assets.id, assetId), eq(assets.ownerId, currentUserId())));
     if (!asset) throw new NotFoundException("asset not found");
     const visible = (asset.projectId === null || asset.projectId === creation.projectId) && (asset.creationId === null || asset.creationId === id);
     if (!visible) throw new BadRequestException("Ce média n'appartient pas à cette campagne.");

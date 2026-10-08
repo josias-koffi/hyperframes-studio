@@ -5,7 +5,10 @@ import type { NextRequest } from "next/server";
  * build). The response body is streamed through, so the job SSE feed stays live,
  * and so are the editor's engine calls: media ranges, file versions (ETag,
  * If-Match), preview pages that load their assets back through `/api`.
- * Authentication will be enforced here before the first deployment.
+ *
+ * The session cookie lives on this origin: it is handed to the API, which checks
+ * it on every call, and the cookies the API sets (sign-in link, logout) come back
+ * here along with their redirect.
  */
 async function proxy(request: NextRequest, ctx: RouteContext<"/api/[...path]">) {
   const { path } = await ctx.params;
@@ -15,7 +18,7 @@ async function proxy(request: NextRequest, ctx: RouteContext<"/api/[...path]">) 
 
   const headers = new Headers();
   headers.set("x-forwarded-prefix", "/api");
-  for (const name of ["content-type", "accept", "last-event-id", "range", "if-match", "if-none-match"]) {
+  for (const name of ["content-type", "accept", "last-event-id", "range", "if-match", "if-none-match", "cookie"]) {
     const value = request.headers.get(name);
     if (value) headers.set(name, value);
   }
@@ -25,14 +28,16 @@ async function proxy(request: NextRequest, ctx: RouteContext<"/api/[...path]">) 
     headers,
     body: hasBody ? await request.arrayBuffer() : undefined,
     cache: "no-store",
+    redirect: "manual",
     signal: request.signal,
   });
 
   const responseHeaders = new Headers();
-  for (const name of ["content-type", "cache-control", "content-length", "content-range", "accept-ranges", "etag", "last-modified"]) {
+  for (const name of ["content-type", "cache-control", "content-length", "content-range", "accept-ranges", "etag", "last-modified", "location"]) {
     const value = upstream.headers.get(name);
     if (value) responseHeaders.set(name, value);
   }
+  for (const cookie of upstream.headers.getSetCookie()) responseHeaders.append("set-cookie", cookie);
   return new Response(upstream.body, { status: upstream.status, headers: responseHeaders });
 }
 

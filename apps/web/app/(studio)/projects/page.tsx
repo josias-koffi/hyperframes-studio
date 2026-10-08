@@ -9,7 +9,8 @@ import { NewProjectButton } from "@/components/project/project-dialog";
 import { ProjectCard } from "@/components/studio/creation-card";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { serverApi, type ProjectListItem } from "@/lib/api";
+import { type ProjectListItem } from "@/lib/api";
+import { serverApi } from "@/lib/server-api";
 import { listHref, matches, paginate, param } from "@/lib/listing";
 
 export const dynamic = "force-dynamic";

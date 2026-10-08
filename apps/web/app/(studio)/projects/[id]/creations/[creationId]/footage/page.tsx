@@ -3,7 +3,7 @@ import { StepPage } from "@/components/project/step-page";
 import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { serverFile } from "@/lib/api";
+import { serverFile } from "@/lib/server-api";
 import { loadCreation } from "@/lib/creation-data";
 import { stepJob, stepReached } from "@/lib/creation-state";
 import { parseFootageMap } from "@/lib/footage-map";

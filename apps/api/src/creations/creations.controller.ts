@@ -88,7 +88,8 @@ export class CreationsController {
   }
 
   @Get(":id/jobs")
-  listJobs(@Param("id", ParseUUIDPipe) id: string) {
+  async listJobs(@Param("id", ParseUUIDPipe) id: string) {
+    await this.creations.get(id);
     return this.jobs.listForCreation(id);
   }
 
@@ -109,7 +110,8 @@ export class CreationsController {
 
   /** The création's exports (iteration renders excluded: they live on their iteration), with download URLs. */
   @Get(":id/renders")
-  renders(@Param("id", ParseUUIDPipe) id: string) {
+  async renders(@Param("id", ParseUUIDPipe) id: string) {
+    await this.creations.get(id);
     return listRenders(this.db, this.storage, and(eq(renders.creationId, id), isNull(renders.iterationId))!);
   }
 

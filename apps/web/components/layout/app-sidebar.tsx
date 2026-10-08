@@ -4,6 +4,7 @@ import { BookOpenIcon, FolderKanbanIcon, FolderOpenIcon, LayoutDashboardIcon, La
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Brand } from "@/components/brand";
+import { NavUser } from "@/components/layout/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -16,6 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import type { SessionUser } from "@/lib/server-api";
 
 const ITEMS = [
   { href: "/", icon: LayoutDashboardIcon, title: "Tableau de bord" },
@@ -31,9 +33,10 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   templateReviewCount: number;
   /** Créations Claude or a render is working on right now. */
   liveCount: number;
+  user: SessionUser;
 };
 
-export function AppSidebar({ reviewCount, templateReviewCount, liveCount, ...props }: AppSidebarProps) {
+export function AppSidebar({ reviewCount, templateReviewCount, liveCount, user, ...props }: AppSidebarProps) {
   const pathname = usePathname();
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || (pathname.startsWith(`${href}/`) && !pathname.endsWith("/new"));
@@ -107,6 +110,7 @@ export function AppSidebar({ reviewCount, templateReviewCount, liveCount, ...pro
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   );

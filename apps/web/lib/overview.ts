@@ -1,5 +1,6 @@
 import type { CreationKind, CreationType } from "@studio/shared/browser";
-import { serverApi, type CreationListItem } from "./api";
+import type { CreationListItem } from "./api";
+import { serverApi } from "./server-api";
 import { itemState, type CreationState } from "./creation-state";
 
 export type CreationOverview = CreationListItem & { state: CreationState };
