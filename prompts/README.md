@@ -11,7 +11,9 @@ Chaque prompt reçoit le format de sa création, ajouté à la fin : `partials/v
 création de type template, `partials/template.md` (le contrat `VARIABLES.json`) est ajouté aux prompts
 `storyboard`, `build` et `feedback`. L'étape `footage` (analyse des rushs, `workspace/scripts/footage.mjs`)
 n'existe que pour une vidéo dont le brief a un champ `footage`, `variables` que pour un template, `media` que pour
-une vidéo, `storyboard` pour une vidéo ou un carrousel.
+une vidéo, `storyboard` pour une vidéo ou un carrousel. Le brief d'une image ou d'un carrousel peut nommer ses
+images de fond (`backgrounds`, noms de fichiers dans `assets/uploads/`) : `partials/image.md` et
+`partials/carousel.md` disent à Claude de s'en servir.
 
 Chaque prompt se termine sur une **consigne d'arrêt** : le studio, pas Claude, décide de la suite (checkpoint de
 validation ou étape suivante). Les règles HyperFrames restent dans les skills et le `CLAUDE.md` du workspace.

@@ -20,6 +20,7 @@ const BRIEF_FIELDS: { key: string; label: string }[] = [
   { key: "message", label: "Message clé" },
   { key: "audience", label: "Audience" },
   { key: "footage", label: "Vidéo source" },
+  { key: "backgrounds", label: "Images de fond" },
   { key: "notes", label: "Notes" },
 ];
 
@@ -31,6 +32,13 @@ const STATE_TEXT: Record<StepState, { label: string; tone: string }> = {
   failed: { label: "Échec", tone: "text-destructive" },
   todo: { label: "À venir", tone: "text-muted-foreground" },
 };
+
+/** A brief field as text: a string, or a list of file names (`backgrounds`). */
+function briefText(value: unknown): string {
+  if (typeof value === "string") return value.trim();
+  if (Array.isArray(value)) return value.filter((item) => typeof item === "string").join(", ");
+  return "";
+}
 
 /** Variables the user listed in the wizard (`brief.variables`), for Claude's proposal. */
 function suggestedVariables(brief: Record<string, unknown>): { label: string }[] {
@@ -44,7 +52,7 @@ export default async function CreationOverviewPage({ params }: PageProps<"/proje
   const { creation, state, jobs, renders, iterations } = await loadCreation(id);
   const base = creationHref(creation);
   const suggested = suggestedVariables(creation.brief);
-  const fields = BRIEF_FIELDS.filter(({ key }) => typeof creation.brief[key] === "string" && (creation.brief[key] as string).trim());
+  const fields = BRIEF_FIELDS.map(({ key, label }) => ({ key, label, value: briefText(creation.brief[key]) })).filter(({ value }) => value);
 
   return (
     <div className="flex flex-col gap-6">
@@ -70,10 +78,10 @@ export default async function CreationOverviewPage({ params }: PageProps<"/proje
                   <dd>{workflowMeta(creation.workflow).label}</dd>
                 </div>
               )}
-              {fields.map(({ key, label }) => (
+              {fields.map(({ key, label, value }) => (
                 <div key={key}>
                   <dt className="text-xs text-muted-foreground">{label}</dt>
-                  <dd className="whitespace-pre-wrap">{String(creation.brief[key])}</dd>
+                  <dd className="whitespace-pre-wrap">{value}</dd>
                 </div>
               ))}
               {suggested.length > 0 && (

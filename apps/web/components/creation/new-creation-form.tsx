@@ -219,6 +219,7 @@ export function NewCreationForm({
   const [audience, setAudience] = useState("");
   const [notes, setNotes] = useState("");
   const [mainFile, setMainFile] = useState<File[]>([]);
+  const [backgrounds, setBackgrounds] = useState<File[]>([]);
   const [extras, setExtras] = useState<File[]>([]);
   const [aspect, setAspect] = useState<Aspect>(ASPECTS_BY_TYPE[initialType ?? "video"][0]);
   const [duration, setDuration] = useState(30);
@@ -261,6 +262,7 @@ export function NewCreationForm({
 
   function pickType(value: CreationType) {
     setType(value);
+    if (value === "video") setBackgrounds([]);
     if (!ASPECTS_BY_TYPE[value].includes(aspect)) setAspect(ASPECTS_BY_TYPE[value][0]);
   }
 
@@ -302,17 +304,19 @@ export function NewCreationForm({
           brief,
         }),
       });
-      const files = [...mainFile, ...extras];
-      let main: string | null = null;
+      const files = [...mainFile, ...backgrounds, ...extras];
+      const named: Record<string, unknown> = {};
+      const backgroundNames: string[] = [];
       for (const [i, file] of files.entries()) {
         setProgress(`Envoi de ${file.name} (${i + 1}/${files.length})…`);
         const asset = await uploadAsset(file, { creationId: creation.id });
-        if (i === 0 && mainFile.length) main = asset.filename;
+        if (i === 0 && mainFile.length) named[start === "footage" ? "footage" : "music"] = asset.filename;
+        else if (i < mainFile.length + backgrounds.length) backgroundNames.push(asset.filename);
       }
+      if (backgroundNames.length) named.backgrounds = backgroundNames;
       // The stored name is sanitized by the API: the brief points at it, not at the local file name.
-      if (main) {
-        const key = start === "footage" ? "footage" : "music";
-        await clientApi(`/creations/${creation.id}`, { method: "PATCH", body: JSON.stringify({ brief: { ...brief, [key]: main } }) });
+      if (Object.keys(named).length) {
+        await clientApi(`/creations/${creation.id}`, { method: "PATCH", body: JSON.stringify({ brief: { ...brief, ...named } }) });
       }
       router.push(creationHref(creation));
     } catch (error) {
@@ -502,6 +506,20 @@ export function NewCreationForm({
                 />
                 {video && start === "site" && <FieldDescription>Claude capture les visuels du site à partir de l&apos;URL.</FieldDescription>}
               </Field>
+              {!video && (
+                <FilePicker
+                  label="Images de fond (facultatif)"
+                  accept="image/*"
+                  multiple
+                  files={backgrounds}
+                  onChange={setBackgrounds}
+                  description={
+                    type === "carousel"
+                      ? "Photos ou visuels posés en fond ou dans les formes. Un seul fond sert à toutes les slides ; plusieurs sont répartis dans l'ordre."
+                      : "Photos ou visuels posés en fond ou dans les formes."
+                  }
+                />
+              )}
               <FilePicker
                 label="Fichiers propres à cette création (facultatif)"
                 multiple
@@ -680,6 +698,12 @@ export function NewCreationForm({
                         ? filledSuggestions.map((suggestion) => suggestion.label).join(", ")
                         : "Aucune : Claude les proposera à partir du brief."}
                     </dd>
+                  </>
+                )}
+                {backgrounds.length > 0 && (
+                  <>
+                    <dt className="text-muted-foreground">Images de fond</dt>
+                    <dd>{backgrounds.map((f) => f.name).join(", ")}</dd>
                   </>
                 )}
                 {mainFile.length + extras.length > 0 && (

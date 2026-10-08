@@ -63,6 +63,16 @@ describe("buildPrompt", () => {
     expect(await buildPrompt(PROMPTS, { ...footage, step: "storyboard" })).toContain("FOOTAGE.md");
   });
 
+  it("tells an image or a carousel to use the backgrounds the user provided", async () => {
+    const brief = { message: "m", backgrounds: ["plage.jpg"] };
+    const image = await buildPrompt(PROMPTS, { ...base, step: "brief", type: "image", brief });
+    expect(image).toContain("plage.jpg");
+    expect(image).toContain("`backgrounds` (à recopier dans `BRIEF.md`)");
+    expect(await buildPrompt(PROMPTS, { ...base, step: "build", type: "image", brief })).toContain("background-image");
+    const carousel = await buildPrompt(PROMPTS, { ...base, step: "storyboard", type: "carousel", slideCount: 4, brief });
+    expect(carousel).toContain("Un seul fond sert à toutes les slides");
+  });
+
   it("keeps the build's checks in the foreground: a headless turn ends when Claude hands back", async () => {
     expect(await buildPrompt(PROMPTS, { ...base, step: "build" })).toContain("jamais en arrière-plan");
   });

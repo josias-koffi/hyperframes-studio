@@ -1,7 +1,7 @@
 "use client";
 
 import type { Layer } from "@studio/shared/browser";
-import { AlignCenterIcon, AlignLeftIcon, AlignRightIcon, ArrowDownIcon, ArrowUpIcon, BoldIcon, ImageIcon, Trash2Icon } from "lucide-react";
+import { AlignCenterIcon, AlignLeftIcon, AlignRightIcon, ArrowDownIcon, ArrowUpIcon, BoldIcon, ImageIcon, Trash2Icon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -31,6 +31,8 @@ type Snapshot = {
   color: string;
   textAlign: string;
   background: string;
+  /** The URL of a background image, or "". */
+  backgroundImage: string;
   opacity: number;
   radius: number;
   objectFit: string;
@@ -63,6 +65,7 @@ function useSnapshot(element: () => HTMLElement | null, deps: unknown[]): Snapsh
         color: toHex(style.color),
         textAlign: style.textAlign === "start" ? "left" : style.textAlign,
         background: toHex(style.backgroundColor === "rgba(0, 0, 0, 0)" ? "" : style.backgroundColor),
+        backgroundImage: imageFile(style.backgroundImage),
         opacity: Number.parseFloat(style.opacity) || 1,
         radius: Number.parseFloat(style.borderTopLeftRadius) || 0,
         objectFit: style.objectFit,
@@ -86,6 +89,60 @@ function layerOrder(snapshot: Snapshot | null, step: number): Record<string, str
   const values: Record<string, string> = { "z-index": String((snapshot?.zIndex ?? 0) + step) };
   if (snapshot && !snapshot.positioned) values.position = "relative";
   return values;
+}
+
+const BACKGROUND_IMAGE = ["background-image", "background-size", "background-position", "background-repeat"];
+
+/** Setting a color drops the background image: the `background` shorthand overrides it. */
+function colorFill(value: string): Record<string, string | null> {
+  return { background: value, ...Object.fromEntries(BACKGROUND_IMAGE.map((property) => [property, null])) };
+}
+
+/** `url("…/assets/uploads/x.jpg")` → `…/assets/uploads/x.jpg`. */
+function imageFile(backgroundImage: string): string {
+  return /url\(["']?([^"')]+)["']?\)/.exec(backgroundImage)?.[1] ?? "";
+}
+
+/** An image filling a slide or a shape, in place of (or over) its color. */
+function BackgroundImage({ current, disabled, onChange }: { current: string; disabled: boolean; onChange: (values: Record<string, string | null>, label: string) => void }) {
+  const [picking, setPicking] = useState(false);
+  return (
+    <>
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" className="flex-1" onClick={() => setPicking((value) => !value)} disabled={disabled}>
+          <ImageIcon />
+          {picking ? "Fermer" : current ? "Changer l'image de fond" : "Image de fond"}
+        </Button>
+        {current && (
+          <Button
+            variant="outline"
+            size="icon-sm"
+            aria-label="Retirer l'image de fond"
+            // "none", not a removal: the image may come from the composition's stylesheet.
+            onClick={() => onChange({ ...Object.fromEntries(BACKGROUND_IMAGE.map((property) => [property, null])), "background-image": "none" }, "Retirer l'image de fond")}
+            disabled={disabled}
+          >
+            <XIcon />
+          </Button>
+        )}
+      </div>
+      {current && <p className="truncate text-xs text-muted-foreground">{current.split("/").pop()}</p>}
+      {picking && (
+        <div className="-mx-3 max-h-80 overflow-y-auto border-y">
+          <MediaPanel
+            kinds={IMAGE_KINDS}
+            onAdd={(asset) => {
+              setPicking(false);
+              onChange(
+                { "background-image": `url(${asset.path})`, "background-size": "cover", "background-position": "center", "background-repeat": "no-repeat" },
+                "Image de fond",
+              );
+            }}
+          />
+        </div>
+      )}
+    </>
+  );
 }
 
 /** Properties of the selected layer, or of the slide (its background) when nothing is selected. */
@@ -118,9 +175,12 @@ export function LayerProperties({
       <div>
         <Section title={containerLabel}>
           {container ? (
-            <Field label="Couleur de fond">
-              <ColorInput value={snapshot?.background || "#ffffff"} onCommit={(value) => void actions.style(container.target, { background: value }, "Couleur de fond")} disabled={Boolean(lock)} />
-            </Field>
+            <>
+              <Field label="Couleur de fond">
+                <ColorInput value={snapshot?.background || "#ffffff"} onCommit={(value) => void actions.style(container.target, colorFill(value), "Couleur de fond")} disabled={Boolean(lock)} />
+              </Field>
+              <BackgroundImage current={snapshot?.backgroundImage ?? ""} disabled={Boolean(lock)} onChange={(values, label) => void actions.style(container.target, values, label)} />
+            </>
           ) : (
             <p className="text-xs text-muted-foreground">Chargement…</p>
           )}
@@ -241,8 +301,9 @@ export function LayerProperties({
       {layer.kind === "shape" && (
         <Section title="Forme">
           <Field label="Couleur">
-            <ColorInput value={snapshot?.background || "#000000"} onCommit={(value) => set({ background: value }, "Couleur de la forme")} />
+            <ColorInput value={snapshot?.background || "#000000"} onCommit={(value) => set(colorFill(value), "Couleur de la forme")} />
           </Field>
+          <BackgroundImage current={snapshot?.backgroundImage ?? ""} disabled={Boolean(lock)} onChange={set} />
         </Section>
       )}
 
