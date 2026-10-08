@@ -157,9 +157,14 @@ export function duplicateSlide(html: string, index: number): string {
   const source = slides[index];
   if (!source) return html;
   const { markup, renamed } = cloneElement(html, source, usedIds(document));
-  const copy = markup
-    .replace(/(\sdata-start=)"[^"]*"/, `$1"${index + 1}"`)
-    .replace(/(\sdata-layer=)"([^"]*)"/, (_, name: string, label: string) => `${name}"${label} (copie)"`);
+  // Only the slide's own tag: its layers keep their names.
+  const root = parseHtml(markup).children[0];
+  const copy = applyEdits(markup, [
+    setAttributesEdit(markup, root, {
+      "data-start": String(index + 1),
+      ...(root.attrs["data-layer"] ? { "data-layer": `${root.attrs["data-layer"]} (copie)` } : {}),
+    }),
+  ]);
   const order: Array<HtmlNode | null> = [...slides];
   order.splice(index + 1, 0, null);
   return applyEdits(html, [

@@ -133,6 +133,15 @@ describe("carousel slides", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
+  it("names the copy of a slide, not the first layer in it", () => {
+    const html =
+      '<div id="root" data-composition-id="m" data-duration="2"><section id="a" class="slide" data-start="0" data-duration="1"><div data-layer="Rectangle"></div></section>' +
+      '<section id="b" class="slide" data-start="1" data-duration="1" data-layer="Fin"></section></div>';
+    expect(duplicateSlide(html, 0)).toContain('<div data-layer="Rectangle"></div></section>');
+    expect(duplicateSlide(html, 0)).not.toContain("Rectangle (copie)");
+    expect(duplicateSlide(html, 1)).toContain('data-layer="Fin (copie)"');
+  });
+
   it("moves, removes and adds slides", () => {
     expect(starts(moveSlide(carousel, 2, 0))).toEqual(["s2@0", "s0@1", "s1@2"]);
     const removed = removeSlide(carousel, 1);

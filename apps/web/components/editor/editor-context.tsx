@@ -85,6 +85,13 @@ export function EditorProvider({ creation, initialLock, children }: { creation: 
   const saving = useRef(new Map<string, Promise<void>>());
   const loading = useRef(new Map<string, Promise<EngineFile>>());
   const wroteRef = useRef(false);
+  // The edits of each file not yet written, to replay them on what the engine has when someone else wrote it
+  // meanwhile (`null`: an undo or redo, a whole version that cannot be replayed).
+  const pending = useRef(new Map<string, Array<Edit | null>>());
+  const showRef = useRef<(before: string, after: string) => void>(() => {});
+  const retries = useRef(new Map<string, { attempt: number; timer: ReturnType<typeof setTimeout> | null }>());
+  // The preview reloads from the engine's files: asked while an edit is not written, it waits for the write.
+  const reloadWanted = useRef(false);
   const [save, setSave] = useState<SaveState>("saved");
 
   const store = useCallback((path: string, file: EngineFile) => {
@@ -133,33 +140,89 @@ export function EditorProvider({ creation, initialLock, children }: { creation: 
           const file = filesRef.current[path];
           if (!file || file.content === file.saved) return;
           const content = file.content;
+          const sent = pending.current.get(path)?.length ?? 0;
           const result = await writeFile(creation.id, path, content, file.version);
           if ("conflict" in result) {
-            // The engine stamped ids on the file when building a preview, or it was written elsewhere: Claude's
-            // edits lock the editor, so the editor's copy wins.
-            if (++conflicts > 2) throw new Error("Le fichier change sans arrêt sur le serveur.");
-            store(path, { ...filesRef.current[path], version: result.conflict.version, saved: result.conflict.content ?? "" });
+            if (++conflicts > 3) throw new Error("Le fichier change sans arrêt sur le serveur.");
+            const theirs = result.conflict.content;
+            if (theirs === null) throw new Error("Le fichier n'existe plus sur le serveur.");
+            // Someone else wrote the file (another session of the editor): the edits not yet written are replayed
+            // on their version, so nobody's work is lost; undo restarts from there.
+            const edits = pending.current.get(path) ?? [];
+            let rebased: string | null = theirs;
+            for (const edit of edits) {
+              if (!edit || rebased === null) {
+                rebased = null;
+                break;
+              }
+              try {
+                rebased = edit(rebased) ?? rebased;
+              } catch {
+                rebased = null;
+              }
+            }
+            const current = filesRef.current[path].content;
+            const next = rebased ?? theirs;
+            if (rebased === null) pending.current.delete(path);
+            store(path, { content: next, version: result.conflict.version, saved: theirs });
+            showRef.current(current, next);
+            setHistoryBoth({ undo: [], redo: [] });
+            toast.info(
+              rebased === null
+                ? "La création a été modifiée ailleurs : l'éditeur montre sa dernière version."
+                : "La création a aussi été modifiée ailleurs : tes retouches ont été ajoutées à sa dernière version.",
+              { id: "editor-conflict" },
+            );
             continue;
           }
           wroteRef.current = true;
+          pending.current.set(path, (pending.current.get(path) ?? []).slice(sent));
           store(path, { ...filesRef.current[path], version: result.version, saved: content });
         }
       })()
         .catch((error: Error) => {
           failed = true;
-          toast.error(`Enregistrement impossible : ${error.message}`, { id: "editor-save" });
+          // Tried again on its own, a little later each time (the server restarting, the network gone).
+          const retry = retries.current.get(path) ?? { attempt: 0, timer: null };
+          retry.attempt += 1;
+          if (retry.timer) clearTimeout(retry.timer);
+          retry.timer = setTimeout(() => void persistRef.current(path), Math.min(30_000, 1000 * 2 ** retry.attempt));
+          retries.current.set(path, retry);
+          toast.error(`Enregistrement impossible : ${error.message}`, {
+            id: "editor-save",
+            description: "Nouvel essai automatique dans quelques secondes.",
+            action: { label: "Réessayer", onClick: () => void persistRef.current(path) },
+          });
         })
         .finally(() => {
           saving.current.delete(path);
-          if (failed) setSave("error");
-          else if (saving.current.size === 0) setSave("saved");
+          if (failed) {
+            setSave("error");
+            return;
+          }
+          const retry = retries.current.get(path);
+          if (retry?.timer) clearTimeout(retry.timer);
+          retries.current.delete(path);
+          if (retries.current.size === 0) toast.dismiss("editor-save");
+          if (saving.current.size === 0 && retries.current.size === 0) {
+            setSave("saved");
+            if (reloadWanted.current) {
+              reloadWanted.current = false;
+              setPreviewKey((key) => key + 1);
+            }
+          }
         });
       saving.current.set(path, task);
       setSave("saving");
       return task;
     },
-    [creation.id, store],
+    [creation.id, setHistoryBoth, store],
   );
+
+  const persistRef = useRef(persist);
+  useEffect(() => {
+    persistRef.current = persist;
+  }, [persist]);
 
   const flush = useCallback(async () => {
     for (const path of Object.keys(filesRef.current)) void persist(path);
@@ -168,7 +231,8 @@ export function EditorProvider({ creation, initialLock, children }: { creation: 
 
   const reloadPreview = useCallback(async () => {
     await flush();
-    setPreviewKey((key) => key + 1);
+    if (Object.values(filesRef.current).some((file) => file.content !== file.saved)) reloadWanted.current = true;
+    else setPreviewKey((key) => key + 1);
   }, [flush]);
 
   /** Shows a change of the source in the preview, by replaying it there or, failing that, by reloading it. */
@@ -183,11 +247,15 @@ export function EditorProvider({ creation, initialLock, children }: { creation: 
     },
     [control, reloadPreview],
   );
+  useEffect(() => {
+    showRef.current = show;
+  }, [show]);
 
-  /** Puts `after` in the editor's copy of `path`, shows it, and writes it. */
+  /** Puts `after` (made by `edit`) in the editor's copy of `path`, shows it, and writes it. */
   const commit = useCallback(
-    (path: string, before: string, after: string, live: boolean) => {
+    (path: string, before: string, after: string, edit: Edit | null, live: boolean) => {
       store(path, { ...filesRef.current[path], content: after });
+      pending.current.set(path, [...(pending.current.get(path) ?? []), edit]);
       if (!live) show(before, after);
       void persist(path);
     },
@@ -210,7 +278,7 @@ export function EditorProvider({ creation, initialLock, children }: { creation: 
         return false;
       }
       if (after === null || after === before) return false;
-      commit(path, before, after, Boolean(options.live));
+      commit(path, before, after, edit, Boolean(options.live));
       setHistoryBoth({ undo: [...historyRef.current.undo, { path, before, after, label: options.label }].slice(-100), redo: [] });
       return true;
     },
@@ -224,7 +292,7 @@ export function EditorProvider({ creation, initialLock, children }: { creation: 
       if (!change || lockRef.current) return;
       const current = filesRef.current[change.path]?.content;
       if (current === undefined) return;
-      commit(change.path, current, from === "undo" ? change.before : change.after, false);
+      commit(change.path, current, from === "undo" ? change.before : change.after, null, false);
       const rest = stack.slice(0, -1);
       setHistoryBoth(from === "undo" ? { undo: rest, redo: [...historyRef.current.redo, change] } : { undo: [...historyRef.current.undo, change], redo: rest });
     },
@@ -232,6 +300,7 @@ export function EditorProvider({ creation, initialLock, children }: { creation: 
   );
 
   const reloadAll = useCallback(async () => {
+    pending.current.clear();
     await Promise.all(Object.keys(filesRef.current).map((path) => load(path, true).catch(() => null)));
     setHistoryBoth({ undo: [], redo: [] });
     setPreviewKey((key) => key + 1);
