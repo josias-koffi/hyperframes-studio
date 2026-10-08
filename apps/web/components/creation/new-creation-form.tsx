@@ -241,7 +241,7 @@ export function NewCreationForm({
   const filledSuggestions = suggestions.filter((suggestion) => suggestion.label.trim() !== "");
   const required = video ? REQUIRED_FILE[start] : undefined;
   const choices = WORKFLOWS.filter((w) => w.start === start);
-  const chosen = WORKFLOWS.find((w) => w.value === workflow);
+  const chosen = choices.find((w) => w.value === workflow);
   const projectLabel = projectId === "new" ? projectName : projects.find((p) => p.id === projectId)?.name;
 
   const ready: Record<Step, boolean> = {

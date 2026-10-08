@@ -14,6 +14,7 @@ import {
   MusicIcon,
   PresentationIcon,
   RocketIcon,
+  ScanSearchIcon,
   SparklesIcon,
   SquareUserIcon,
   VariableIcon,
@@ -23,6 +24,7 @@ import type { PipelineStep } from "@/lib/creation-state";
 
 export const STEP_LABELS: Record<GenerationStep, string> = {
   brief: "Brief",
+  footage: "Analyse des rushs",
   variables: "Variables",
   storyboard: "Storyboard",
   media: "Voix et musique",
@@ -36,6 +38,12 @@ export const PIPELINE: Record<PipelineStep, { label: string; icon: LucideIcon; d
     icon: FileTextIcon,
     doing: "Claude rédige le brief",
     hint: "Claude reformule ta demande dans BRIEF.md, puis enchaîne sur le storyboard.",
+  },
+  footage: {
+    label: "Analyse des rushs",
+    icon: ScanSearchIcon,
+    doing: "Claude analyse le rush",
+    hint: "Plans, moments clés et zones libres du rush fourni, horodatés. Tu corriges les repères et tu les valides avant le storyboard.",
   },
   variables: {
     label: "Variables",
@@ -202,6 +210,14 @@ export const WORKFLOWS = [
     label: "Habillage interview",
     description: "Interview, podcast ou face caméra habillé : titres animés, chiffres, citations, bandeaux.",
     icon: SquareUserIcon,
+  },
+  {
+    // The same skill as "Vidéo libre": over a rush, it lays graphics on the moments of the footage analysis.
+    value: "general-video",
+    start: "footage",
+    label: "Habillage sur l'action",
+    description: "Ta vidéo en fond, des graphismes 2D calés sur ce qui s'y passe : titres, étiquettes, compte à rebours, appel à l'action.",
+    icon: LayersIcon,
   },
 ] as const satisfies readonly { value: string; start: StartPoint; label: string; description: string; icon: LucideIcon }[];
 

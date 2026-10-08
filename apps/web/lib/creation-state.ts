@@ -19,6 +19,7 @@ export type PipelineStep = GenerationStep | "export" | "iterations";
 /** URL segment of each step page. Lives here, not in a "use client" module, so server pages can read it. */
 export const STEP_SEGMENTS: Record<PipelineStep, string> = {
   brief: "brief",
+  footage: "footage",
   variables: "variables",
   storyboard: "storyboard",
   media: "media",

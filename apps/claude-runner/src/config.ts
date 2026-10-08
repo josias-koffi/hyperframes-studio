@@ -3,9 +3,10 @@ import { join } from "node:path";
 import { GENERATION_STEPS, resolveFromRoot, resolveWorkspaceDir, type GenerationStep } from "@studio/shared";
 
 /**
- * Steps that follow a recipe (write BRIEF.md and VARIABLES.json, run scripts/audio.mjs) run on Sonnet; the storyboard and the
- * build, where the video is designed, run on `CLAUDE_MODEL` (Opus by default). `CLAUDE_MODEL_<STEP>` overrides
- * either. Every step names its model: `--resume` without `--model` keeps the model of the previous step.
+ * Steps that follow a recipe (write BRIEF.md and VARIABLES.json, run scripts/audio.mjs) run on Sonnet; the footage
+ * analysis, which reads the rush as images, and the storyboard and the build, where the video is designed, run on
+ * `CLAUDE_MODEL` (Opus by default). `CLAUDE_MODEL_<STEP>` overrides either. Every step names its model: `--resume`
+ * without `--model` keeps the model of the previous step.
  */
 const RECIPE_STEP_MODEL = "sonnet";
 const DESIGN_STEP_MODEL = "opus";

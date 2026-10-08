@@ -60,6 +60,13 @@ describe("creationState", () => {
     const built = creationState({ currentStep: "build", type: "video", kind: "template" }, [job({ step: "build", status: "succeeded" })], 0, 2);
     expect(built.steps.at(-1)).toEqual({ step: "iterations", state: "done" });
   });
+
+  it("reviews the footage analysis of a video made from an uploaded clip", () => {
+    const creation = { currentStep: "footage", type: "video", kind: "oneshot", brief: { footage: "rush.mp4" } } as const;
+    const state = creationState(creation, [job({ step: "footage", status: "waiting_review" })]);
+    expect(state.steps.map((step) => step.step)).toEqual(["brief", "footage", "storyboard", "media", "build", "export"]);
+    expect(states(state)).toEqual(["done", "review", "todo", "todo", "todo", "todo"]);
+  });
 });
 
 describe("stills", () => {

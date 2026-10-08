@@ -9,8 +9,9 @@ ne s'appliquent pas). Un placeholder inconnu fait échouer le job.
 Chaque prompt reçoit le format de sa création, ajouté à la fin : `partials/video.md`, `partials/carousel.md`,
 `partials/image.md`, ou `partials/video-source.md` pour une vidéo sans cadre imposé (rushs fournis). Pour une
 création de type template, `partials/template.md` (le contrat `VARIABLES.json`) est ajouté aux prompts
-`storyboard`, `build` et `feedback`. L'étape `variables` n'existe que pour un template, `media` que pour une
-vidéo, `storyboard` pour une vidéo ou un carrousel.
+`storyboard`, `build` et `feedback`. L'étape `footage` (analyse des rushs, `workspace/scripts/footage.mjs`)
+n'existe que pour une vidéo dont le brief a un champ `footage`, `variables` que pour un template, `media` que pour
+une vidéo, `storyboard` pour une vidéo ou un carrousel.
 
 Chaque prompt se termine sur une **consigne d'arrêt** : le studio, pas Claude, décide de la suite (checkpoint de
 validation ou étape suivante). Les règles HyperFrames restent dans les skills et le `CLAUDE.md` du workspace.

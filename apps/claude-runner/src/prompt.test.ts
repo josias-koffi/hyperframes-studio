@@ -29,7 +29,8 @@ describe("buildPrompt", () => {
   it("renders every step of every kind of création", async () => {
     for (const type of CREATION_TYPES) {
       for (const kind of CREATION_KINDS) {
-        for (const step of stepsFor({ type, kind })) {
+        // With footage, a video goes through every step there is.
+        for (const step of stepsFor({ type, kind, brief: { footage: "rush.mp4" } })) {
           const prompt = await buildPrompt(PROMPTS, { ...base, step, type, kind, slideCount: type === "carousel" ? 6 : null });
           expect(prompt).toContain("videos/demo");
         }
@@ -52,6 +53,18 @@ describe("buildPrompt", () => {
     const prompt = await buildPrompt(PROMPTS, { ...base, step: "brief", width: null, height: null, durationSeconds: null });
     expect(prompt).toContain("footage");
     expect(prompt).not.toContain("×");
+  });
+
+  it("analyses the footage with the workspace script before the storyboard", async () => {
+    const footage = { ...base, width: null, height: null, durationSeconds: null, brief: { footage: "rush.mp4" } };
+    const prompt = await buildPrompt(PROMPTS, { ...footage, step: "footage" });
+    expect(prompt).toContain("node scripts/footage.mjs videos/demo");
+    expect(prompt).toContain("videos/demo/FOOTAGE.md");
+    expect(await buildPrompt(PROMPTS, { ...footage, step: "storyboard" })).toContain("FOOTAGE.md");
+  });
+
+  it("keeps the build's checks in the foreground: a headless turn ends when Claude hands back", async () => {
+    expect(await buildPrompt(PROMPTS, { ...base, step: "build" })).toContain("jamais en arrière-plan");
   });
 
   it("quotes the campaign in the brief", async () => {

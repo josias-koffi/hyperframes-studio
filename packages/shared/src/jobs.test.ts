@@ -17,6 +17,14 @@ describe("stepsFor", () => {
     expect(stepsFor({ type: "image", kind: "oneshot" })).toEqual(["brief", "build"]);
     expect(stepsFor({ type: "image", kind: "template" })).toEqual(["brief", "variables", "build"]);
   });
+
+  it("analyses the footage of a video made from an uploaded clip", () => {
+    const brief = { footage: "rush.mp4" };
+    expect(stepsFor({ type: "video", kind: "oneshot", brief })).toEqual(["brief", "footage", "storyboard", "media", "build"]);
+    expect(stepsFor({ type: "video", kind: "template", brief })).toEqual(["brief", "footage", "variables", "storyboard", "media", "build"]);
+    expect(stepsFor({ type: "video", kind: "oneshot", brief: { footage: "" } })).not.toContain("footage");
+    expect(stepsFor({ type: "image", kind: "oneshot", brief })).not.toContain("footage");
+  });
 });
 
 describe("nextStep", () => {
@@ -30,6 +38,12 @@ describe("nextStep", () => {
     expect(nextStep("brief", { type: "video", kind: "oneshot" })).toBe("storyboard");
     expect(nextStep("storyboard", { type: "carousel", kind: "oneshot" })).toBe("build");
     expect(nextStep("brief", { type: "image", kind: "oneshot" })).toBe("build");
+  });
+
+  it("goes from the brief to the footage analysis, then the storyboard", () => {
+    const creation = { type: "video", kind: "oneshot", brief: { footage: "rush.mp4" } } as const;
+    expect(nextStep("brief", creation)).toBe("footage");
+    expect(nextStep("footage", creation)).toBe("storyboard");
   });
 
   it("ends after the build", () => {

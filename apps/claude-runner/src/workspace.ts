@@ -106,6 +106,8 @@ export function stepOutputs(type: CreationType, step: GenerationStep): readonly 
   switch (step) {
     case "brief":
       return ["BRIEF.md"];
+    case "footage":
+      return ["FOOTAGE.md", "footage_map.json"];
     case "variables":
       return ["VARIABLES.json"];
     case "storyboard":

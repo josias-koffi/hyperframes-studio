@@ -6,22 +6,31 @@ import { SLIDE_COUNT, STILL_TIME, carouselTimes, type CreationKind, type Creatio
  * waits for the user: approving moves to the next step, a comment resumes the
  * same session (`claude --resume`) on the same step.
  */
-export const GENERATION_STEPS = ["brief", "variables", "storyboard", "media", "build"] as const;
+export const GENERATION_STEPS = ["brief", "footage", "variables", "storyboard", "media", "build"] as const;
 export type GenerationStep = (typeof GENERATION_STEPS)[number];
 
-export const CHECKPOINT_STEPS: readonly GenerationStep[] = ["variables", "storyboard", "build"];
+export const CHECKPOINT_STEPS: readonly GenerationStep[] = ["footage", "variables", "storyboard", "build"];
 
 export interface CreationShape {
   type: CreationType;
   kind: CreationKind;
+  /** Only `footage` is read: the uploaded source video, analysed before the storyboard. */
+  brief?: Record<string, unknown>;
+}
+
+export function hasFootage({ type, brief }: CreationShape): boolean {
+  return type === "video" && typeof brief?.footage === "string" && brief.footage !== "";
 }
 
 /**
- * Steps a création goes through: only a template proposes variables, only a video
- * has a soundtrack, and a single image goes straight from the brief to the build.
+ * Steps a création goes through: only a video made from uploaded footage analyses it, only a
+ * template proposes variables, only a video has a soundtrack, and a single image goes straight
+ * from the brief to the build.
  */
-export function stepsFor({ type, kind }: CreationShape): readonly GenerationStep[] {
+export function stepsFor(creation: CreationShape): readonly GenerationStep[] {
+  const { type, kind } = creation;
   return GENERATION_STEPS.filter((step) => {
+    if (step === "footage") return hasFootage(creation);
     if (step === "variables") return kind === "template";
     if (step === "media") return type === "video";
     if (step === "storyboard") return type !== "image";

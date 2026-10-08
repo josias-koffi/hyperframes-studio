@@ -1,0 +1,1 @@
+ALTER TYPE "public"."generation_step" ADD VALUE 'footage' BEFORE 'variables';

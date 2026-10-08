@@ -52,6 +52,7 @@ describe("missingStepOutputs", () => {
     expect(await missingStepOutputs(workspace, "demo", "video", "brief")).toEqual(["BRIEF.md"]);
     expect(await missingStepOutputs(workspace, "demo", "video", "storyboard")).toEqual(["SCRIPT.md", "storyboard.html"]);
     expect(await missingStepOutputs(workspace, "demo", "carousel", "storyboard")).toEqual(["storyboard.html"]);
+    expect(await missingStepOutputs(workspace, "demo", "video", "footage")).toEqual(["FOOTAGE.md", "footage_map.json"]);
     expect(await missingStepOutputs(workspace, "demo", "video", "media")).toEqual([]);
   });
 });

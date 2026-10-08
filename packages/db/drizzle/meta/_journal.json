@@ -71,6 +71,13 @@
       "when": 1791448994118,
       "tag": "0009_big_ultimo",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791455779059,
+      "tag": "0010_wakeful_metal_master",
+      "breakpoints": true
     }
   ]
 }
