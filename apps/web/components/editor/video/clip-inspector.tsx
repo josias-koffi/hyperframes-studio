@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useEditor } from "../editor-context";
 import { ColorInput, Field, NumberInput, Section, SliderInput, TextArea, TextInput, TextPieces, textOperation, toHex } from "../fields";
+import { BoundVariable, TemplateVariables } from "../variables";
 import type { VideoActions } from "./use-video-actions";
 
 const KIND_NAME: Record<Clip["kind"], string> = {
@@ -27,25 +28,30 @@ function SceneTexts({ path }: { path: string }) {
     void load(path).catch(() => null);
   }, [load, path]);
   if (!source) return <p className="text-xs text-muted-foreground">Chargement des textes…</p>;
-  const texts = layersOf(source).filter((layer) => layer.kind === "text" && layer.text);
+  const texts = layersOf(source).filter((layer) => layer.kind === "text" && (layer.text || layer.variable));
   if (texts.length === 0) return <p className="text-xs text-muted-foreground">Cette scène n&apos;a pas de texte modifiable ici. Demande à Claude.</p>;
   return (
     <div className="space-y-3">
-      {texts.map((layer) => (
-        <Field key={layer.key} label={layer.named ? layer.label : `Texte (${layer.tag})`}>
-          <TextPieces
-            runs={layer.runs}
-            onCommit={(value, index) =>
-              void run(
-                path,
-                (html) =>
-                  applyPatches(html, [{ target: layer.target, operations: [textOperation(value, index)] }]),
-                { label: "Texte de la scène" },
-              )
-            }
-          />
-        </Field>
-      ))}
+      {texts.map((layer) =>
+        // A bound text shows its variable, declared by the template (index.html), not the scene's fallback.
+        layer.variable ? (
+          <BoundVariable key={layer.key} id={layer.variable} kind="text" />
+        ) : (
+          <Field key={layer.key} label={layer.named ? layer.label : `Texte (${layer.tag})`}>
+            <TextPieces
+              runs={layer.runs}
+              onCommit={(value, index) =>
+                void run(
+                  path,
+                  (html) =>
+                    applyPatches(html, [{ target: layer.target, operations: [textOperation(value, index)] }]),
+                  { label: "Texte de la scène" },
+                )
+              }
+            />
+          </Field>
+        ),
+      )}
     </div>
   );
 }
@@ -65,6 +71,7 @@ export function ClipInspector({ clip, composition, actions, source }: { clip: Cl
             <NumberInput value={composition.duration} min={0.5} step={0.5} suffix="s" onCommit={(value) => void actions.length(value)} disabled={Boolean(lock)} />
           </Field>
         </Section>
+        <TemplateVariables />
         <Section title="Astuces">
           <ul className="list-disc space-y-1 pl-4 text-xs text-muted-foreground">
             <li>Clique sur un clip de la timeline pour le modifier.</li>
@@ -101,9 +108,13 @@ export function ClipInspector({ clip, composition, actions, source }: { clip: Cl
 
       {clip.kind === "text" && (
         <Section title="Texte">
-          <Field label="Contenu">
-            <TextArea value={clip.text} onCommit={(value) => void actions.text(clip, value)} />
-          </Field>
+          {clip.variable ? (
+            <BoundVariable id={clip.variable} kind="text" />
+          ) : (
+            <Field label="Contenu">
+              <TextArea value={clip.text} onCommit={(value) => void actions.text(clip, value)} />
+            </Field>
+          )}
           <div className="grid grid-cols-2 gap-2">
             <Field label="Taille">
               <NumberInput value={fontSize} min={8} max={600} suffix="px" onCommit={(value) => void actions.style(clip.target, "font-size", `${value}px`, "Taille du texte")} />
@@ -112,6 +123,12 @@ export function ClipInspector({ clip, composition, actions, source }: { clip: Cl
               <ColorInput value={toHex(style.get("color")) || "#ffffff"} onCommit={(value) => void actions.style(clip.target, "color", value, "Couleur du texte")} />
             </Field>
           </div>
+        </Section>
+      )}
+
+      {clip.kind === "image" && clip.variable && (
+        <Section title="Image">
+          <BoundVariable id={clip.variable} kind="image" />
         </Section>
       )}
 

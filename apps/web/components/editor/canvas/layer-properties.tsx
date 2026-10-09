@@ -10,6 +10,7 @@ import type { AssetKind } from "@/lib/api";
 import { useEditor } from "../editor-context";
 import { ColorInput, Field, NumberInput, Section, SliderInput, TextInput, TextPieces, toHex } from "../fields";
 import { MediaPanel } from "../media-panel";
+import { BoundVariable, TemplateVariables, useTemplateVariables } from "../variables";
 import type { CanvasActions } from "./use-canvas-actions";
 
 const FONTS = [
@@ -164,6 +165,7 @@ export function LayerProperties({
   const target = layer?.target ?? container?.target ?? null;
   const snapshot = useSnapshot(() => (target ? actions.element(target) : null), [target?.hfId, target?.id, content, previewKey]);
   const [replacing, setReplacing] = useState(false);
+  const { byId, setDefault } = useTemplateVariables();
   const textBox = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -185,6 +187,7 @@ export function LayerProperties({
             <p className="text-xs text-muted-foreground">Chargement…</p>
           )}
         </Section>
+        <TemplateVariables />
         <Section title="Astuces">
           <ul className="list-disc space-y-1 pl-4 text-xs text-muted-foreground">
             <li>Clique sur un élément pour le sélectionner, glisse-le pour le déplacer.</li>
@@ -210,9 +213,7 @@ export function LayerProperties({
       {layer.kind === "text" && (
         <Section title="Texte">
           {layer.variable ? (
-            <p className="rounded-md bg-muted px-2 py-1.5 text-xs text-muted-foreground">
-              Texte lié à la variable « {layer.variable} » du template : il se change dans les variables de chaque itération.
-            </p>
+            <BoundVariable id={layer.variable} kind="text" />
           ) : (
             <div ref={textBox}>
               <Field label="Contenu">
@@ -278,13 +279,17 @@ export function LayerProperties({
             <ImageIcon />
             {replacing ? "Fermer" : "Remplacer l'image"}
           </Button>
+          {layer.variable && <BoundVariable id={layer.variable} kind="image" />}
           {replacing && (
             <div className="-mx-3 max-h-80 overflow-y-auto border-y">
               <MediaPanel
                 kinds={IMAGE_KINDS}
                 onAdd={async (asset) => {
                   setReplacing(false);
-                  await actions.attribute(layer.target, "src", asset.path, "Remplacer l'image");
+                  // A bound image shows its variable: the authored `src` is only the fallback.
+                  const variable = byId(layer.variable);
+                  if (variable?.type === "string") await setDefault(variable, asset.path);
+                  else await actions.attribute(layer.target, "src", asset.path, "Remplacer l'image");
                 }}
               />
             </div>

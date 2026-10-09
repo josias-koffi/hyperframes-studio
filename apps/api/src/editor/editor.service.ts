@@ -2,12 +2,13 @@ import { stat } from "node:fs/promises";
 import { join } from "node:path";
 import { BadGatewayException, BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { assets, type Database } from "@studio/db";
-import { commitCheckpoint, resolveWorkspaceDir } from "@studio/shared";
+import { commitCheckpoint, resolveWorkspaceDir, syncContractDefaults } from "@studio/shared";
 import type { Storage } from "@studio/storage";
 import { and, eq } from "drizzle-orm";
 import { currentUserId } from "../auth/request-context";
 import { DATABASE } from "../database/database.module";
 import { STORAGE } from "../storage/storage.module";
+import { readCreationVariables, writeCreationVariables } from "../creations/creation-variables";
 import { CreationsService, type Creation } from "../creations/creations.service";
 import { JobsService } from "../creations/jobs.service";
 
@@ -121,8 +122,18 @@ export class EditorService {
   async checkpoint(id: string) {
     const creation = await this.creations.get(id);
     await this.assertWritable(id);
+    if (creation.kind === "template") await this.syncVariableDefaults(creation);
     await commitCheckpoint(resolveWorkspaceDir(), creation.slug, `${creation.slug}: édition manuelle`);
     return { ok: true };
+  }
+
+  /** The editor changes a variable's default in index.html: the validated contract (VARIABLES.json) follows. */
+  private async syncVariableDefaults(creation: Creation) {
+    const workspace = resolveWorkspaceDir();
+    const { proposed, declared, errors } = await readCreationVariables(workspace, creation.slug);
+    if (!proposed || errors.length > 0) return;
+    const synced = syncContractDefaults(proposed, declared);
+    if (JSON.stringify(synced) !== JSON.stringify(proposed)) await writeCreationVariables(workspace, creation.slug, synced);
   }
 
   /**

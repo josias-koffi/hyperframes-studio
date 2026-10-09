@@ -52,6 +52,8 @@ export type Clip = {
   /** Name of the attribute holding `mediaStart`. */
   mediaStartAttr: "data-playback-start" | "data-media-start";
   text: string;
+  /** Template variable bound to the clip's text or image (`data-var-text`, `data-var-src`). */
+  variable: string | null;
 };
 
 export type Composition = {
@@ -182,6 +184,7 @@ export function parseComposition(html: string): Composition {
       mediaStart: number(node.attrs[mediaStartAttr], 0),
       mediaStartAttr,
       text: kind === "text" ? textOf(html, node) : "",
+      variable: node.attrs["data-var-text"] ?? node.attrs["data-var-src"] ?? null,
     };
   });
 

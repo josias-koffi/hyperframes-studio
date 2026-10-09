@@ -6,6 +6,7 @@ import {
   diffVariables,
   isVariablesDiffEmpty,
   parseCompositionVariables,
+  syncContractDefaults,
   validateVariableValues,
 } from "./variables";
 
@@ -97,5 +98,17 @@ describe("diffVariables", () => {
 describe("defaultVariableValues", () => {
   it("starts from every declared default", () => {
     expect(defaultVariableValues(parseCompositionVariables(html))).toEqual({ title: "Hello", accent: "#66d9ef", layout: "a" });
+  });
+});
+
+describe("syncContractDefaults", () => {
+  it("takes the declared default of a variable of the same id and type", () => {
+    const declared = parseCompositionVariables(applyVariableDefaults(html, { title: "Soldes" }));
+    const validated = [
+      { id: "title", type: "string", label: "Titre", default: "Hello", maxLength: 20 },
+      { id: "accent", type: "number", label: "Accent", default: 1 },
+      { id: "logo", type: "string", label: "Logo", default: "" },
+    ] as const;
+    expect(syncContractDefaults([...validated], declared)).toEqual([{ ...validated[0], default: "Soldes" }, validated[1], validated[2]]);
   });
 });

@@ -101,6 +101,16 @@ describe("video timeline", () => {
     expect(shiftClipTweens(html, "el-06-final", 0)).toBe(html);
   });
 
+  it("names the template variable a clip is bound to", () => {
+    const html = `<html><body><div data-composition-id="main" data-width="1920" data-height="1080" data-duration="5">
+      <h1 id="title" class="clip" data-start="0" data-duration="5" data-var-text="headline">Fallback</h1>
+      <h2 id="plain" class="clip" data-start="0" data-duration="5">Fixe</h2>
+    </div></body></html>`;
+    const clips = parseComposition(html).clips;
+    expect(clips.find((clip) => clip.id === "title")).toMatchObject({ kind: "text", variable: "headline" });
+    expect(clips.find((clip) => clip.id === "plain")).toMatchObject({ variable: null });
+  });
+
   it("snaps to the nearest target in range", () => {
     expect(snapTime(4.02, [0, 4, 4.1], 0.05)).toBe(4);
     expect(snapTime(4.5, [0, 4], 0.05)).toBe(4.5);

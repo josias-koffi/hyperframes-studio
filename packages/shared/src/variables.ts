@@ -63,6 +63,18 @@ export function diffVariables(validated: CompositionVariable[], declared: Compos
   };
 }
 
+/**
+ * The contract with the defaults the composition declares (edited in the editor): same id and same type only,
+ * the rest of the contract is kept.
+ */
+export function syncContractDefaults(validated: CompositionVariable[], declared: CompositionVariable[]): CompositionVariable[] {
+  const declaredById = new Map(declared.map((variable) => [variable.id, variable]));
+  return validated.map((variable) => {
+    const twin = declaredById.get(variable.id);
+    return twin && twin.type === variable.type ? ({ ...variable, default: twin.default } as CompositionVariable) : variable;
+  });
+}
+
 export function isVariablesDiffEmpty(diff: VariablesDiff): boolean {
   return diff.missing.length === 0 && diff.extra.length === 0 && diff.changed.length === 0;
 }
