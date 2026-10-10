@@ -8,7 +8,11 @@ allowBuilds:
   # Links the OpenCode binary of the platform, which the desktop app runs.
   opencode-ai: true
   esbuild: true
+  # Downloads the ffmpeg binary of the platform, shipped with the desktop app.
+  ffmpeg-static: true
   # Optional native accelerators: the pure-JS fallbacks are enough here.
   msgpackr-extract: false
   sharp: false
   unrs-resolver: false
+  # Windows Squirrel installer of electron-builder: not built.
+  electron-winstaller: false

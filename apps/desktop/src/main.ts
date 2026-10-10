@@ -4,9 +4,8 @@ import { createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync, 
 import { createServer } from "node:net";
 import { dirname, join, resolve } from "node:path";
 import { app, BrowserWindow, dialog, shell } from "electron";
+import { packagedLayout, repoLayout, servicePath, type Layout } from "./layout";
 
-/** The prototype runs from the monorepo: the services' builds, the workspace skeleton, the prompts, `.env`. */
-const REPO = resolve(__dirname, "../../..");
 /** Every service listens on the loopback only: nothing on the network reaches this machine's studio. */
 const HOST = "127.0.0.1";
 
@@ -39,11 +38,19 @@ async function start() {
   }
 }
 
+/** Installed, the app runs from its resources; built in the repository, from the repository (apps/desktop/dist). */
+function layoutOf(data: string): { layout: Layout; cwd: string } {
+  if (app.isPackaged) return { layout: packagedLayout(process.resourcesPath, data), cwd: join(process.resourcesPath, "runtime") };
+  const repo = resolve(__dirname, "../../..");
+  return { layout: repoLayout(repo, dirname(require.resolve("opencode-ai/package.json"))), cwd: repo };
+}
+
 async function startServices() {
   const data = app.getPath("userData");
   mkdirSync(data, { recursive: true });
   log = createWriteStream(logPath(), { flags: "a" });
-  if (existsSync(join(REPO, ".env"))) process.loadEnvFile(join(REPO, ".env"));
+  const { layout, cwd } = layoutOf(data);
+  if (existsSync(layout.envFile)) process.loadEnvFile(layout.envFile);
 
   const [webPort, apiPort, enginePort] = await Promise.all([freePort(), freePort(), freePort()]);
   const web = `http://${HOST}:${webPort}`;
@@ -54,7 +61,12 @@ async function startServices() {
     // Electron's binary runs the services as plain Node.
     ELECTRON_RUN_AS_NODE: "1",
     NODE_ENV: "production",
+    PATH: servicePath(layout, process.env.PATH),
+    ...(layout.hyperframes ? { HYPERFRAMES_BIN: JSON.stringify(layout.hyperframes) } : {}),
+    ...(layout.ffmpeg ? { FFMPEG_PATH: layout.ffmpeg.ffmpeg, FFPROBE_PATH: layout.ffmpeg.ffprobe } : {}),
     HOST,
+    // The front's standalone server reads these two.
+    HOSTNAME: HOST,
     PORT: String(apiPort),
     API_URL: api,
     WEB_URL: web,
@@ -62,10 +74,9 @@ async function startServices() {
     STORAGE_DIR: join(data, "storage"),
     STORAGE_PUBLIC_URL: api,
     WORKSPACE_DIR: join(data, "workspace"),
-    WORKSPACE_SKELETON_DIR: join(REPO, "workspace"),
-    PROMPTS_DIR: join(REPO, "prompts"),
-    // The OpenCode of this platform, installed with the app (`opencode-ai` links it at install).
-    OPENCODE_BIN: join(dirname(require.resolve("opencode-ai/package.json")), "bin", "opencode.exe"),
+    WORKSPACE_SKELETON_DIR: layout.workspaceSkeleton,
+    PROMPTS_DIR: layout.prompts,
+    OPENCODE_BIN: layout.opencode,
     AGENT_TMP_DIR: join(data, "agent-tmp"),
     HF_STUDIO_URL: `http://${HOST}:${enginePort}`,
     PORT_HF_STUDIO: String(enginePort),
@@ -74,13 +85,14 @@ async function startServices() {
     DESKTOP_LOGIN_TOKEN: loginToken,
   };
 
-  const webDir = join(REPO, "apps/web");
-  if (!existsSync(join(webDir, ".next/BUILD_ID"))) throw new Error("Le front n'est pas construit : lance `pnpm build` à la racine du dépôt.");
+  for (const file of [layout.core, layout.engine, layout.web]) {
+    if (!existsSync(file)) throw new Error(`Fichier manquant : ${file}. Depuis le dépôt, lance \`pnpm build\` d'abord.`);
+  }
 
   // The engine and the web front first: the core's workers may call the engine as soon as they run.
-  const engine = launch("engine", join(REPO, "apps/hf-studio/dist/main.js"), [], env, join(REPO, "apps/hf-studio"));
-  const front = launch("web", require.resolve("next/dist/bin/next", { paths: [webDir] }), ["start", "-p", String(webPort), "-H", HOST], env, webDir);
-  const core = launch("core", join(__dirname, "core.js"), [], env, REPO);
+  const engine = launch("engine", layout.engine, [], env, dirname(layout.engine));
+  const front = launch("web", layout.web, [], { ...env, PORT: String(webPort) }, dirname(layout.web));
+  const core = launch("core", layout.core, [], env, cwd);
   await Promise.all([
     waitFor(`${api}/ready`, core),
     waitFor(`${web}/login`, front),

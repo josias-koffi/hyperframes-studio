@@ -12,6 +12,20 @@ const CONTENT_TYPES: Record<string, string> = {
   pdf: "application/pdf",
 };
 
+/**
+ * The HyperFrames CLI command: words split on spaces (`npx --yes hyperframes@<version>`), or a JSON array, whose
+ * items may hold spaces (the app's Node and CLI under `Application Support`, `Program Files`).
+ */
+export function hyperframesCommand(value: string | undefined): string[] {
+  const command = value?.trim() || "hyperframes";
+  if (!command.startsWith("[")) return command.split(/\s+/);
+  const parsed: unknown = JSON.parse(command);
+  if (!Array.isArray(parsed) || !parsed.length || !parsed.every((part) => typeof part === "string")) {
+    throw new Error(`HYPERFRAMES_BIN: expected a JSON array of strings, got ${command}`);
+  }
+  return parsed;
+}
+
 export function contentTypeOf(file: string): string {
   return CONTENT_TYPES[file.split(".").pop()?.toLowerCase() ?? ""] ?? "application/octet-stream";
 }

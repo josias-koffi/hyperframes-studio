@@ -1,0 +1,34 @@
+name: Desktop installers
+
+# Builds the installers on the system each is for (Actions → Desktop installers → Run workflow): AppImage and deb on
+# Linux, dmg on macOS. They are not signed yet: macOS asks to confirm the first opening (right click → Open).
+on:
+  workflow_dispatch:
+
+jobs:
+  installers:
+    name: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm desktop:dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: framesmith-${{ runner.os }}
+          path: |
+            apps/desktop/release/*.AppImage
+            apps/desktop/release/*.deb
+            apps/desktop/release/*.dmg
+          if-no-files-found: error

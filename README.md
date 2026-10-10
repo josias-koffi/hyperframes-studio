@@ -80,6 +80,28 @@ Données dans `~/.config/Framesmith` (Linux), `~/Library/Application Support/Fra
 poste (ou `CLAUDE_CODE_OAUTH_TOKEN`). OpenCode est installé avec l'app (`opencode-ai`) et passe par OpenRouter avec
 `OPENROUTER_API_KEY`, que l'agent ne voit jamais : un proxy local lui donne un jeton par job.
 
+## Installateurs
+
+```bash
+pnpm desktop:dist        # build, puis apps/desktop/release/ : AppImage et .deb (Linux), .dmg (macOS)
+```
+
+Un installateur se construit sur le système auquel il est destiné (workflow « Desktop installers », lancé à la main,
+pour Linux et macOS). `apps/desktop/scripts/stage.mjs` prépare `apps/desktop/build/`, qu'electron-builder copie à
+côté de l'app (`electron-builder.config.mjs`) :
+
+- `runtime/` : le core et le moteur avec leurs dépendances de production (`pnpm deploy`, `node_modules` à plat),
+  OpenCode compris ;
+- `web/` : le serveur standalone de Next.js ;
+- `workspace/`, `prompts/` ;
+- `node/` : Node (node, npm, npx), en tête du PATH des agents et de la CLI HyperFrames ;
+- `ffmpeg/` : ffmpeg et ffprobe.
+
+Installée, l'app lit ses réglages dans `.env` de son dossier de données (`OPENROUTER_API_KEY`…). Chrome est téléchargé
+par HyperFrames au premier rendu, et la CLI des agents (`npx hyperframes@…`) au premier tour : il faut le réseau.
+Sur le poste : git, et pour Claude Code la commande `claude` connectée. Windows n'est pas encore visé : le workspace
+lance des scripts `sh`.
+
 ## Développement
 
 ```bash
@@ -94,9 +116,8 @@ Vérifications : `pnpm lint && pnpm typecheck && pnpm test`.
 
 ## Reste à faire
 
-- Installateur (electron-builder), avec Node, Chrome et ffmpeg embarqués : l'app tourne aujourd'hui depuis le dépôt
-  et demande Node sur le poste (CLI HyperFrames).
-- Signature (macOS, Windows) et mises à jour automatiques.
+- Signature (macOS) et mises à jour automatiques ; Windows.
+- Réglages dans l'app (clé OpenRouter) au lieu du `.env` du dossier de données.
 - Catalogue de modèles préchargé : une installation neuve n'en a aucun.
 - Clé OpenRouter : celle de la personne, ou un relais avec abonnement.
 - Postiz (lot 5).

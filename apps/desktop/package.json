@@ -1,6 +1,8 @@
 {
   "name": "@studio/desktop",
+  "version": "0.1.0",
   "private": true,
+  "description": "Studio HyperFrames : vid\u00e9os, carrousels et images g\u00e9n\u00e9r\u00e9s par un agent, sur le poste.",
   "main": "./dist/main.js",
   "scripts": {
     "dev": "tsx watch --tsconfig ../api/tsconfig.json src/core.ts",
@@ -8,7 +10,8 @@
     "start": "electron .",
     "lint": "eslint src --max-warnings=0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "dist": "node scripts/stage.mjs && electron-builder --config electron-builder.config.mjs --publish never"
   },
   "dependencies": {
     "@studio/api": "workspace:*",
@@ -18,12 +21,14 @@
     "@studio/render-worker": "workspace:*",
     "@studio/shared": "workspace:*",
     "@studio/storage": "workspace:*",
-    "@studio/web": "workspace:*",
     "drizzle-orm": "0.45.2",
     "opencode-ai": "1.18.35"
   },
   "devDependencies": {
     "@studio/config": "workspace:*",
-    "electron": "^44.7.0"
+    "electron": "^44.7.0",
+    "electron-builder": "26.16.1",
+    "ffmpeg-static": "5.3.0",
+    "ffprobe-static": "3.1.0"
   }
 }

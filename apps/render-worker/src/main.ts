@@ -8,14 +8,13 @@ import { createDatabaseClient, createJobBus, createJobReporter, renders, type Da
 import { applyVariableDefaults, QUEUES, renderJobSchema, resolveWorkspaceDir, type RenderJob } from "@studio/shared";
 import { createStorage, storageKeys, type Storage } from "@studio/storage";
 import { assemblePdf } from "./pdf";
-import { compositionDuration, contentTypeOf, isStill, planRender, postFrameTimes, sortShots } from "./render-args";
+import { compositionDuration, contentTypeOf, hyperframesCommand, isStill, planRender, postFrameTimes, sortShots } from "./render-args";
 
 const exec = promisify(execFile);
 
 const config = {
   workspaceDir: resolveWorkspaceDir(),
-  /** The HyperFrames CLI. A command with arguments is allowed: `npx --yes hyperframes@<version>`. */
-  hyperframes: (process.env.HYPERFRAMES_BIN?.trim() || "hyperframes").split(/\s+/),
+  hyperframes: hyperframesCommand(process.env.HYPERFRAMES_BIN),
   concurrency: Number.parseInt(process.env.RENDER_CONCURRENCY ?? "", 10) || 1,
 };
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compositionDuration, contentTypeOf, planRender, postFrameTimes, sortShots } from "./render-args";
+import { compositionDuration, contentTypeOf, hyperframesCommand, planRender, postFrameTimes, sortShots } from "./render-args";
 
 const base = { jobId: "00000000-0000-4000-8000-000000000000", creationId: "00000000-0000-4000-8000-000000000001", slug: "demo" };
 
@@ -46,5 +46,15 @@ describe("post images", () => {
   it("spreads the frames over the video without t=0", () => {
     expect(postFrameTimes(8, 3)).toEqual([2.53, 5.07, 7.6]);
     expect(postFrameTimes(10, 1)).toEqual([9.5]);
+  });
+});
+
+describe("hyperframesCommand", () => {
+  it("splits a command on spaces, or reads a JSON array whose paths may hold spaces", () => {
+    expect(hyperframesCommand(undefined)).toEqual(["hyperframes"]);
+    expect(hyperframesCommand(" npx --yes hyperframes@0.8.134 ")).toEqual(["npx", "--yes", "hyperframes@0.8.134"]);
+    const app = ["/Users/a/Library/Application Support/node", "/Applications/Framesmith.app/cli.mjs"];
+    expect(hyperframesCommand(JSON.stringify(app))).toEqual(app);
+    expect(() => hyperframesCommand("[1]")).toThrow("JSON array of strings");
   });
 });
