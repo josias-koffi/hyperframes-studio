@@ -11,15 +11,14 @@
     "email:preview": "tsx src/mail/mail-preview.main.ts"
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@nestjs/common": "^11.1.8",
     "@nestjs/core": "^11.1.8",
     "@nestjs/platform-express": "^11.1.8",
     "@studio/db": "workspace:*",
     "@studio/shared": "workspace:*",
     "@studio/storage": "workspace:*",
-    "bullmq": "^5.61.0",
     "drizzle-orm": "0.45.2",
-    "ioredis": "^5.8.2",
     "nodemailer": "^10.0.16",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",

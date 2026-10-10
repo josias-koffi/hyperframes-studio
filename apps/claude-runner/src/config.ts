@@ -14,7 +14,6 @@ const DESIGN_STEP_MODEL = "opus";
 const RECIPE_STEPS: readonly GenerationStep[] = ["brief", "variables", "media"];
 
 export type RunnerConfig = {
-  redisUrl: string;
   /** Mounted HyperFrames workspace (CLAUDE.md, scripts, videos/<slug>). Claude runs from here. */
   workspaceDir: string;
   /** Read-only copy of the workspace skeleton baked into the image, synced on start. */
@@ -57,7 +56,6 @@ export type RunnerConfig = {
 
 export function resolveRunnerConfig(env: NodeJS.ProcessEnv = process.env): RunnerConfig {
   return {
-    redisUrl: env.REDIS_URL?.trim() || "redis://localhost:6390",
     workspaceDir: resolveWorkspaceDir(env),
     skeletonDir: env.WORKSPACE_SKELETON_DIR?.trim() ? resolveFromRoot(env.WORKSPACE_SKELETON_DIR.trim(), env) : null,
     promptsDir: resolveFromRoot(env.PROMPTS_DIR?.trim() || "prompts", env),

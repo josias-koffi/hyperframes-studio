@@ -13,6 +13,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { createDiskStorage, resolveDiskStorageConfig, type DiskFiles } from "./disk";
 
 export type StorageConfig = {
   endpoint: string;
@@ -45,9 +46,14 @@ function client(config: StorageConfig, endpoint: string): S3Client {
   });
 }
 
-export type Storage = ReturnType<typeof createStorage>;
+export type Storage = ReturnType<typeof createS3Storage>;
 
-export function createStorage(config: StorageConfig = resolveStorageConfig()) {
+/** S3 (MinIO) on the servers; `STORAGE_DIR` keeps the files in that folder instead (the desktop app). */
+export function createStorage(env: NodeJS.ProcessEnv = process.env): Storage {
+  return env.STORAGE_DIR?.trim() ? createDiskStorage(resolveDiskStorageConfig(env)) : createS3Storage(resolveStorageConfig(env));
+}
+
+export function createS3Storage(config: StorageConfig = resolveStorageConfig()) {
   const s3 = client(config, config.endpoint);
   const publicS3 = client(config, config.publicEndpoint);
   const Bucket = config.bucket;
@@ -93,5 +99,8 @@ export function createStorage(config: StorageConfig = resolveStorageConfig()) {
     presignDownload(key: string, expiresIn = 3600): Promise<string> {
       return getSignedUrl(publicS3, new GetObjectCommand({ Bucket, Key: key }), { expiresIn });
     },
+
+    /** The files the API serves itself, behind the presigned URLs: none, S3 serves them. */
+    files: null as DiskFiles | null,
   };
 }

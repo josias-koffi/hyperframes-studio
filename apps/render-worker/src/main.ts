@@ -4,20 +4,17 @@ import { cp, mkdtemp, readdir, readFile, rename, rm, writeFile } from "node:fs/p
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { promisify } from "node:util";
-import { createDatabaseClient, createJobReporter, renders, type Database, type Publish } from "@studio/db";
+import { createDatabaseClient, createJobBus, createJobReporter, renders, type Database, type Publish } from "@studio/db";
 import { applyVariableDefaults, loadEnvironmentFiles, QUEUES, renderJobSchema, resolveWorkspaceDir, type RenderJob } from "@studio/shared";
 import { createStorage, storageKeys, type Storage } from "@studio/storage";
-import { Worker } from "bullmq";
-import IORedis from "ioredis";
 import { assemblePdf } from "./pdf";
 import { compositionDuration, contentTypeOf, isStill, planRender, postFrameTimes, sortShots } from "./render-args";
 
 const exec = promisify(execFile);
 
-loadEnvironmentFiles();
+if (require.main === module) loadEnvironmentFiles();
 
 const config = {
-  redisUrl: process.env.REDIS_URL?.trim() || "redis://localhost:6390",
   workspaceDir: resolveWorkspaceDir(),
   /**
    * The HyperFrames CLI pinned in the image (`npm i -g hyperframes@<version>`). A command with arguments is
@@ -113,33 +110,38 @@ async function processRender(job: RenderJob, deps: { db: Database; storage: Stor
   }
 }
 
-async function main() {
-  const connection = new IORedis(config.redisUrl, { maxRetriesPerRequest: null });
-  const publisher = new IORedis(config.redisUrl);
+/** Starts the worker; resolves with its stop. The desktop app's core process calls it, next to the API. */
+export async function startRenderWorker() {
+  const bus = createJobBus();
   const { db, close } = createDatabaseClient();
   const storage = createStorage();
   await storage.ensureBucket();
 
-  const worker = new Worker(
-    QUEUES.render,
-    (job) => processRender(renderJobSchema.parse(job.data), { db, storage, publish: (c, m) => publisher.publish(c, m) }),
-    { connection, concurrency: config.concurrency, lockDuration: 10 * 60 * 1000 },
-  );
-  worker.on("failed", (job, error) => console.error(`[render-worker] job ${job?.id} failed:`, error.message));
+  const worker = bus.work(QUEUES.render, (data) => processRender(renderJobSchema.parse(data), { db, storage, publish: bus.publish }), {
+    concurrency: config.concurrency,
+    lockDuration: 10 * 60 * 1000,
+    onFailed: (jobId, error) => console.error(`[render-worker] job ${jobId} failed:`, error.message),
+  });
   console.log(`[render-worker] listening on ${QUEUES.render} (concurrency=${config.concurrency})`);
 
-  const shutdown = async () => {
-    await worker.close();
-    await close();
-    publisher.disconnect();
-    connection.disconnect();
-    process.exit(0);
+  return {
+    async close() {
+      await worker.close();
+      await bus.close();
+      await close();
+    },
   };
-  process.on("SIGTERM", shutdown);
-  process.on("SIGINT", shutdown);
 }
 
-main().catch((error: unknown) => {
-  console.error("[render-worker] failed to start", error);
-  process.exit(1);
-});
+if (require.main === module) {
+  startRenderWorker()
+    .then((worker) => {
+      const shutdown = () => worker.close().finally(() => process.exit(0));
+      process.on("SIGTERM", shutdown);
+      process.on("SIGINT", shutdown);
+    })
+    .catch((error: unknown) => {
+      console.error("[render-worker] failed to start", error);
+      process.exit(1);
+    });
+}

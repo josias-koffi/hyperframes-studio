@@ -10,6 +10,11 @@ export type AuthConfig = {
   cookieName: string;
   sessionSecret: string;
   secureCookies: boolean;
+  /**
+   * The desktop app signs its one person in without an e-mail: the window it opens hands this token, drawn at each
+   * start, to `GET /auth/desktop`. Absent on the servers.
+   */
+  desktopLogin?: { token: string; email: string } | null;
 };
 
 export type AuthAccount = {

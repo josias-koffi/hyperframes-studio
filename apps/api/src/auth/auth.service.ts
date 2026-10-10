@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
-import { randomBytes } from "node:crypto";
+import { randomBytes, timingSafeEqual } from "node:crypto";
 import { createConsentRecord, hashToken, normalizeEmail } from "./auth.helpers";
 import { buildMagicLink, signedInUrl } from "./auth.links";
 import type { AuthAccountStore, AuthConfig, SessionUser } from "./auth.types";
@@ -53,6 +53,20 @@ export class AuthService {
     if (account.status === "suspended") throw new ForbiddenException(SUSPENDED_MESSAGE);
     const session = this.cookies.createSession(account.id, account.email, account.role);
     return { redirectUrl: signedInUrl(this.config, next), session, cookie: this.cookies.serialize(session) };
+  }
+
+  /** The desktop app's sign-in: its token opens a session for its one person, created on the first start. */
+  async desktopSignIn(rawToken: string | undefined) {
+    const login = this.config.desktopLogin;
+    const token = Buffer.from(rawToken?.trim() ?? "");
+    const expected = Buffer.from(login?.token ?? "");
+    if (!login || token.length !== expected.length || !timingSafeEqual(token, expected)) {
+      throw new UnauthorizedException("Ce lien de connexion est invalide ou a expiré.");
+    }
+    const account = await this.store.findOrCreate(login.email, createConsentRecord());
+    if (account.status === "suspended") throw new ForbiddenException(SUSPENDED_MESSAGE);
+    const session = this.cookies.createSession(account.id, account.email, account.role);
+    return { redirectUrl: signedInUrl(this.config, null), cookie: this.cookies.serialize(session) };
   }
 
   /**

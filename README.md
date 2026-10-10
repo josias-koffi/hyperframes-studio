@@ -47,9 +47,11 @@ apps/web             Next.js 16 + shadcn/ui (radix-nova) — projets, créations
 apps/api             NestJS 11 — projets, créations, variables, itérations, jobs (SSE), assets (URL présignées MinIO), rendus
 apps/claude-runner   worker BullMQ « studio-claude » : lance Claude Code, diffuse les événements
 apps/render-worker   worker BullMQ « studio-render » : hyperframes render / snapshot (+ PDF des carrousels) → MinIO
+apps/hf-studio       moteur de l'éditeur HyperFrames, appelé par l'API
+apps/desktop         prototype Electron : toute la stack sur le poste, sans Postgres, Redis ni MinIO
 packages/shared      types, schémas zod, files, parseur stream-json, variables HyperFrames
-packages/db          schéma Drizzle + migrations + reporter de jobs
-packages/storage     client S3/MinIO + clés d'objets
+packages/db          schéma Drizzle + migrations, files de jobs (Redis ou mémoire), reporter de jobs
+packages/storage     stockage S3/MinIO ou disque + clés d'objets
 prompts/             un prompt par étape
 workspace/           squelette du workspace HyperFrames (copié dans l'image claude-runner)
 docker/              une image par app
@@ -71,6 +73,30 @@ vide. Pour tester sans consommer de quota :
 `CLAUDE_BIN=$PWD/apps/claude-runner/test/fake-claude.mjs`.
 
 Vérifications : `pnpm lint && pnpm typecheck && pnpm test`.
+
+## App desktop (prototype)
+
+`apps/desktop` fait tourner le studio sur le poste de la personne, GPU compris pour les rendus. Electron lance trois
+processus sur `127.0.0.1` (ports libres) et ouvre une fenêtre déjà connectée :
+
+- `core` : l'API et les deux workers dans un seul processus, qui se partagent un Postgres embarqué
+  (`DATABASE_URL=pglite:<dossier>`) et une file en mémoire (`REDIS_URL=memory`) ;
+- `hf-studio`, le moteur de l'éditeur ;
+- le front Next.js (`next start`).
+
+Les fichiers vont sur le disque (`STORAGE_DIR`) : l'API sert elle-même les URL présignées sous `/files`. La
+connexion se fait par un jeton tiré à chaque lancement (`DESKTOP_LOGIN_TOKEN`) pour une seule personne, admin.
+Données dans `~/.config/Framesmith` (Linux), `~/Library/Application Support/Framesmith` (macOS) ou `%APPDATA%\Framesmith`.
+
+```bash
+pnpm build
+pnpm --filter @studio/desktop start
+```
+
+Le prototype tourne depuis le dépôt : il lit `.env` (clé OpenRouter, `HYPERFRAMES_BIN`), le squelette `workspace/`
+et `prompts/`, et demande Node sur la machine (CLI HyperFrames). OpenCode est installé avec l'app (`opencode-ai`).
+Reste pour une app distribuable : installateur (electron-builder), Node, Chrome et ffmpeg embarqués, signature,
+mises à jour, catalogue de modèles et clé OpenRouter fournis par un serveur (abonnement, relais OpenRouter).
 
 ## Déploiement
 

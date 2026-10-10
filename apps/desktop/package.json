@@ -1,0 +1,27 @@
+{
+  "name": "@studio/desktop",
+  "private": true,
+  "main": "./dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "electron .",
+    "lint": "eslint src --max-warnings=0",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@studio/api": "workspace:*",
+    "@studio/claude-runner": "workspace:*",
+    "@studio/db": "workspace:*",
+    "@studio/hf-studio": "workspace:*",
+    "@studio/render-worker": "workspace:*",
+    "@studio/shared": "workspace:*",
+    "@studio/web": "workspace:*",
+    "drizzle-orm": "0.45.2",
+    "opencode-ai": "1.18.35"
+  },
+  "devDependencies": {
+    "@studio/config": "workspace:*",
+    "electron": "^44.7.0"
+  }
+}

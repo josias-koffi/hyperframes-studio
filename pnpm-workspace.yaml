@@ -3,6 +3,10 @@ packages:
   - packages/*
 
 allowBuilds:
+  # Downloads the Electron binary of the desktop app.
+  electron: true
+  # Links the OpenCode binary of the platform, which the desktop app runs.
+  opencode-ai: true
   esbuild: true
   # Optional native accelerators: the pure-JS fallbacks are enough here.
   msgpackr-extract: false

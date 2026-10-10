@@ -1,35 +1,18 @@
-import { Global, Inject, Injectable, Module, type OnApplicationShutdown } from "@nestjs/common";
-import { QUEUES } from "@studio/shared";
-import { Queue } from "bullmq";
-import IORedis from "ioredis";
+import { Global, Inject, Module, type OnApplicationShutdown } from "@nestjs/common";
+import { createJobBus, type JobBus } from "@studio/db";
 
-export const REDIS = Symbol("REDIS");
-
-@Injectable()
-export class QueuesService implements OnApplicationShutdown {
-  readonly claude: Queue;
-  readonly render: Queue;
-
-  constructor(@Inject(REDIS) private readonly redis: IORedis) {
-    this.claude = new Queue(QUEUES.claude, { connection: redis });
-    this.render = new Queue(QUEUES.render, { connection: redis });
-  }
-
-  async onApplicationShutdown() {
-    await Promise.all([this.claude.close(), this.render.close()]);
-    this.redis.disconnect();
-  }
-}
+/** The queues of the workers and the live channels of their jobs: Redis, or memory in the desktop app. */
+export const JOB_BUS = Symbol("JOB_BUS");
 
 @Global()
 @Module({
-  providers: [
-    {
-      provide: REDIS,
-      useFactory: () => new IORedis(process.env.REDIS_URL?.trim() || "redis://localhost:6390", { maxRetriesPerRequest: null }),
-    },
-    QueuesService,
-  ],
-  exports: [REDIS, QueuesService],
+  providers: [{ provide: JOB_BUS, useFactory: () => createJobBus() }],
+  exports: [JOB_BUS],
 })
-export class QueuesModule {}
+export class QueuesModule implements OnApplicationShutdown {
+  constructor(@Inject(JOB_BUS) private readonly bus: JobBus) {}
+
+  async onApplicationShutdown() {
+    await this.bus.close();
+  }
+}

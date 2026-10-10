@@ -1,8 +1,8 @@
 import { Controller, Get, Inject, Param, ParseUUIDPipe, Sse, type MessageEvent } from "@nestjs/common";
+import type { JobBus } from "@studio/db";
 import { jobEventsChannel } from "@studio/shared";
-import IORedis from "ioredis";
 import { Observable, from, switchMap } from "rxjs";
-import { REDIS } from "../queues/queues.module";
+import { JOB_BUS } from "../queues/queues.module";
 import { JobsService } from "./jobs.service";
 
 const FINAL = new Set(["succeeded", "failed", "cancelled", "waiting_review"]);
@@ -11,7 +11,7 @@ const FINAL = new Set(["succeeded", "failed", "cancelled", "waiting_review"]);
 export class JobsController {
   constructor(
     @Inject(JobsService) private readonly jobs: JobsService,
-    @Inject(REDIS) private readonly redis: IORedis,
+    @Inject(JOB_BUS) private readonly bus: JobBus,
   ) {}
 
   @Get(":id")
@@ -20,7 +20,7 @@ export class JobsController {
   }
 
   /**
-   * Server-sent events: the stored history first, then the live Redis channel.
+   * Server-sent events: the stored history first, then the live channel.
    * Subscribing before reading the history and dropping already-sent sequence
    * numbers means no event is lost or duplicated in between.
    */
@@ -32,8 +32,8 @@ export class JobsController {
 
   private feed(id: string): Observable<MessageEvent> {
     return new Observable<MessageEvent>((subscriber) => {
-      const sub = this.redis.duplicate();
-      const channel = jobEventsChannel(id);
+      let unsubscribe: (() => void) | null = null;
+      let ended = false;
       let lastSeq = 0;
       let replayed = false;
       const pending: string[] = [];
@@ -48,10 +48,11 @@ export class JobsController {
         if (message.status && FINAL.has(message.status)) subscriber.complete();
       };
 
-      sub.on("message", (_channel: string, raw: string) => (replayed ? deliver(raw) : pending.push(raw)));
-      sub
-        .subscribe(channel)
-        .then(async () => {
+      this.bus
+        .subscribe(jobEventsChannel(id), (raw) => (replayed ? deliver(raw) : pending.push(raw)))
+        .then(async (off) => {
+          if (ended) return off();
+          unsubscribe = off;
           for (const row of await this.jobs.events(id)) {
             lastSeq = row.seq;
             subscriber.next({ data: { seq: row.seq, event: row.event } });
@@ -67,7 +68,8 @@ export class JobsController {
         .catch((error: unknown) => subscriber.error(error));
 
       return () => {
-        sub.disconnect();
+        ended = true;
+        unsubscribe?.();
       };
     });
   }

@@ -19,5 +19,8 @@ export function resolveAuthConfig(env: NodeJS.ProcessEnv): AuthConfig {
     cookieName: env.AUTH_COOKIE_NAME?.trim() || "framesmith_session",
     sessionSecret,
     secureCookies: appUrl.startsWith("https://"),
+    desktopLogin: env.DESKTOP_LOGIN_TOKEN?.trim()
+      ? { token: env.DESKTOP_LOGIN_TOKEN.trim(), email: env.DESKTOP_USER_EMAIL?.trim() || "studio@localhost" }
+      : null,
   };
 }

@@ -2,12 +2,10 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { chmod } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
-import { createDatabaseClient, creations, jobs, projects, users } from "@studio/db";
+import { createDatabaseClient, createJobBus, creations, jobs, projects, users } from "@studio/db";
 import { claudeJobSchema, loadEnvironmentFiles, QUEUES, type AgentBackend, type ClaudeJob } from "@studio/shared";
 import { createStorage } from "@studio/storage";
-import { Queue, Worker } from "bullmq";
 import { eq } from "drizzle-orm";
-import IORedis from "ioredis";
 import { createClaudeCodeRunner } from "./agents/claude-code";
 import { createOpencodeHttpClient, createOpencodeRunner, startOpencodeServer } from "./agents/opencode";
 import { createOpencodePool } from "./agents/opencode-pool";
@@ -21,15 +19,12 @@ import { syncWorkspaceSkeleton } from "./workspace";
 /** What Claude Code needs from the runner's environment: its subscription token, not the database or storage. */
 const CLAUDE_CODE_ENV = ["CLAUDE_CODE_OAUTH_TOKEN", "CLAUDE_CONFIG_DIR", "DISABLE_AUTOUPDATER", "SHELL", "USER"] as const;
 
-loadEnvironmentFiles();
-
-async function main() {
+/** Starts the worker; resolves with its stop. The desktop app's core process calls it, next to the API. */
+export async function startClaudeRunner() {
   const config = resolveRunnerConfig();
-  const connection = new IORedis(config.redisUrl, { maxRetriesPerRequest: null });
-  const publisher = new IORedis(config.redisUrl);
+  const bus = createJobBus();
   const { db, close } = createDatabaseClient();
   const storage = createStorage();
-  const queue = new Queue(QUEUES.claude, { connection });
 
   const sandbox: Sandbox = {
     mode: config.sandbox,
@@ -66,7 +61,7 @@ async function main() {
   const enqueueNext = async (next: Omit<ClaudeJob, "jobId">) => {
     const jobId = randomUUID();
     await db.insert(jobs).values({ id: jobId, creationId: next.creationId, kind: "claude", step: next.step, input: next });
-    await queue.add(next.step, { ...next, jobId }, { jobId });
+    await bus.add(QUEUES.claude, next.step, { ...next, jobId }, jobId);
   };
 
   const claudeCode = config.claudeCodeEnabled
@@ -114,40 +109,50 @@ async function main() {
   const runners: Record<AgentBackend, AgentRunner | null> = { "claude-code": claudeCode, opencode: opencode.runner };
 
   // Claude Code turns stay one at a time inside their runner: the subscription quota is shared by every job.
-  const worker = new Worker(
+  const worker = bus.work(
     QUEUES.claude,
-    async (job) =>
-      processClaudeJob(claudeJobSchema.parse(job.data), {
+    async (data) =>
+      processClaudeJob(claudeJobSchema.parse(data), {
         config,
         db,
         storage,
-        publish: (channel, message) => publisher.publish(channel, message),
+        publish: bus.publish,
         enqueueNext,
         runnerFor: (backend) => runners[backend],
         grantVideo: (slug, uid) => grantFolder(sandbox, join(config.workspaceDir, "videos", slug), uid),
         proxy,
       }),
     // A step interrupted by a restart fails instead of running again on its own: a Claude turn costs.
-    { connection, concurrency: config.concurrency, lockDuration: 5 * 60 * 1000, maxStalledCount: 0 },
+    {
+      concurrency: config.concurrency,
+      lockDuration: 5 * 60 * 1000,
+      maxStalledCount: 0,
+      onFailed: (jobId, error) => console.error(`[claude-runner] job ${jobId} failed:`, error.message),
+    },
   );
-  worker.on("failed", (job, error) => console.error(`[claude-runner] job ${job?.id} failed:`, error.message));
   console.log(`[claude-runner] listening on ${QUEUES.claude} (enabled=${config.enabled})`);
 
-  const shutdown = async () => {
-    await worker.close();
-    opencode.stopAll();
-    await proxy?.close();
-    await queue.close();
-    await close();
-    publisher.disconnect();
-    connection.disconnect();
-    process.exit(0);
+  return {
+    async close() {
+      await worker.close();
+      opencode.stopAll();
+      await proxy?.close();
+      await bus.close();
+      await close();
+    },
   };
-  process.on("SIGTERM", shutdown);
-  process.on("SIGINT", shutdown);
 }
 
-main().catch((error: unknown) => {
-  console.error("[claude-runner] failed to start", error);
-  process.exit(1);
-});
+if (require.main === module) {
+  loadEnvironmentFiles();
+  startClaudeRunner()
+    .then((runner) => {
+      const shutdown = () => runner.close().finally(() => process.exit(0));
+      process.on("SIGTERM", shutdown);
+      process.on("SIGINT", shutdown);
+    })
+    .catch((error: unknown) => {
+      console.error("[claude-runner] failed to start", error);
+      process.exit(1);
+    });
+}

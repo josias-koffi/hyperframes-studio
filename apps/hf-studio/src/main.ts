@@ -14,7 +14,7 @@ async function main() {
     internalHost: `127.0.0.1:${port}`,
   });
   const server = createAdaptorServer({ fetch: gateway.app.fetch });
-  server.listen(port, "0.0.0.0", () => console.log(`hf-studio engine on :${port}`));
+  server.listen(port, process.env.HOST?.trim() || "0.0.0.0", () => console.log(`hf-studio engine on :${port}`));
 
   for (const signal of ["SIGINT", "SIGTERM"] as const) {
     process.on(signal, () => {

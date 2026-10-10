@@ -1,23 +1,23 @@
 import { randomUUID } from "node:crypto";
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { creations, jobEvents, jobs, projects, type Database } from "@studio/db";
-import type { ClaudeJob, RenderJob } from "@studio/shared";
+import { creations, jobEvents, jobs, projects, type Database, type JobBus } from "@studio/db";
+import { QUEUES, type ClaudeJob, type RenderJob } from "@studio/shared";
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { currentUserId } from "../auth/request-context";
 import { AiService } from "../ai/ai.service";
 import { DATABASE } from "../database/database.module";
-import { QueuesService } from "../queues/queues.module";
+import { JOB_BUS } from "../queues/queues.module";
 
 @Injectable()
 export class JobsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
-    @Inject(QueuesService) private readonly queues: QueuesService,
+    @Inject(JOB_BUS) private readonly bus: JobBus,
     @Inject(AiService) private readonly ai: AiService,
   ) {}
 
   /**
-   * Records the job, then queues it under the same id so the row and the BullMQ job match. The signed-in person's
+   * Records the job, then queues it under the same id so the row and the queued job match. The signed-in person's
    * AI settings are frozen into it: the runner queues the following steps with the same ones.
    */
   async enqueueClaude(request: Omit<ClaudeJob, "jobId">) {
@@ -27,7 +27,7 @@ export class JobsService {
       .insert(jobs)
       .values({ id: jobId, creationId: input.creationId, kind: "claude", step: input.step, input })
       .returning();
-    await this.queues.claude.add(input.step, { ...input, jobId }, { jobId });
+    await this.bus.add(QUEUES.claude, input.step, { ...input, jobId }, jobId);
     return row;
   }
 
@@ -37,7 +37,7 @@ export class JobsService {
       .insert(jobs)
       .values({ id: jobId, creationId: input.creationId, iterationId: input.iterationId ?? null, kind: "render", input })
       .returning();
-    await this.queues.render.add(input.format, { ...input, jobId }, { jobId });
+    await this.bus.add(QUEUES.render, input.format, { ...input, jobId }, jobId);
     return row;
   }
 

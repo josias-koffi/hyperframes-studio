@@ -9,11 +9,15 @@ export async function bootstrap() {
   app.enableCors({ credentials: true, origin: process.env.WEB_URL ?? "http://localhost:3010" });
   app.set("trust proxy", 1);
   app.enableShutdownHooks();
-  await app.listen(process.env.PORT ?? 3333);
+  // HOST=127.0.0.1 in the desktop app: nothing on the network reaches it.
+  const port = process.env.PORT ?? 3333;
+  const host = process.env.HOST?.trim();
+  await (host ? app.listen(port, host) : app.listen(port));
   return app;
 }
 
-if (process.env.NODE_ENV !== "test") {
+// Started by the desktop app's core process, which imports `bootstrap` instead.
+if (process.env.NODE_ENV !== "test" && require.main === module) {
   loadEnvironmentFiles();
   void bootstrap();
 }

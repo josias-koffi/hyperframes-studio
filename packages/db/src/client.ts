@@ -2,6 +2,9 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
+import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
+import { migrate as migratePglite } from "drizzle-orm/pglite/migrator";
+import { PGlite } from "@electric-sql/pglite";
 import { Pool } from "pg";
 import * as schema from "./schema";
 
@@ -14,9 +17,44 @@ export function resolveDatabaseUrl(env: NodeJS.ProcessEnv = process.env): string
   return env.DATABASE_URL?.trim() || DEFAULT_DEV_URL;
 }
 
+/** `pglite:<folder>`: Postgres embedded in the process (the desktop app), its data in that folder. */
+const PGLITE = "pglite:";
+
 export function createDatabaseClient(url: string = resolveDatabaseUrl(), poolMax = 10): DatabaseClient {
+  if (url.startsWith(PGLITE)) return openPglite(url.slice(PGLITE.length));
   const pool = new Pool({ connectionString: url, max: poolMax });
   return { db: drizzle(pool, { schema }), close: () => pool.end() };
+}
+
+type SharedPglite = { pg: PGlite; db: Database; users: number };
+const pglites = new Map<string, SharedPglite>();
+
+/**
+ * One PGlite per folder and process, shared by the API and the workers that run alongside it: it holds its folder
+ * alone. Closed when its last user closes it.
+ */
+function openPglite(folder: string): DatabaseClient {
+  let shared = pglites.get(folder);
+  if (!shared) {
+    const pg = new PGlite(folder);
+    // Same SQL, same schema: only the driver's types differ from node-postgres.
+    shared = { pg, db: drizzlePglite({ client: pg, schema }) as unknown as Database, users: 0 };
+    pglites.set(folder, shared);
+  }
+  const opened = shared;
+  opened.users += 1;
+  let closed = false;
+  return {
+    db: opened.db,
+    async close() {
+      if (closed) return;
+      closed = true;
+      opened.users -= 1;
+      if (opened.users > 0) return;
+      pglites.delete(folder);
+      await opened.pg.close();
+    },
+  };
 }
 
 /**
@@ -31,8 +69,17 @@ export function resolveMigrationsDir(env: NodeJS.ProcessEnv = process.env): stri
 }
 
 export async function runMigrations(url: string = resolveDatabaseUrl()): Promise<string> {
-  const pool = new Pool({ connectionString: url, max: 1 });
   const folder = resolveMigrationsDir();
+  if (url.startsWith(PGLITE)) {
+    const client = openPglite(url.slice(PGLITE.length));
+    try {
+      await migratePglite(client.db as never, { migrationsFolder: folder });
+    } finally {
+      await client.close();
+    }
+    return folder;
+  }
+  const pool = new Pool({ connectionString: url, max: 1 });
   try {
     await migrate(drizzle(pool), { migrationsFolder: folder });
   } finally {

@@ -118,4 +118,21 @@ describe("AuthService", () => {
     const { auth } = setup();
     expect(auth.clearSessionCookie()).toMatchObject({ name: "framesmith_session", value: "", options: { maxAge: 0 } });
   });
+
+  it("signs the desktop app's one person in with its launch token, and refuses any other", async () => {
+    const store = new InMemoryAccountStore();
+    const auth = new AuthService({ ...config, desktopLogin: { token: "launch-token", email: "studio@localhost" } }, store);
+    await expect(auth.desktopSignIn("nope")).rejects.toThrow("invalide");
+    await expect(auth.desktopSignIn(undefined)).rejects.toThrow("invalide");
+    const first = await auth.desktopSignIn("launch-token");
+    const again = await auth.desktopSignIn("launch-token");
+    expect(first.redirectUrl).toBe("https://studio.example.com/");
+    expect(await auth.authenticate(`framesmith_session=${first.cookie.value}`)).toMatchObject({ email: "studio@localhost", role: "admin" });
+    expect((await auth.authenticate(`framesmith_session=${again.cookie.value}`))?.id).toBe((await auth.authenticate(`framesmith_session=${first.cookie.value}`))?.id);
+  });
+
+  it("has no desktop sign-in on the servers", async () => {
+    const { auth } = setup();
+    await expect(auth.desktopSignIn("")).rejects.toThrow("invalide");
+  });
 });
