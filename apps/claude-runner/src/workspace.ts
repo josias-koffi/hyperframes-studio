@@ -91,6 +91,10 @@ export async function syncWorkspaceSkeleton(skeletonDir: string, workspaceDir: s
   if (!(await exists(join(workspaceDir, ".git")))) {
     await git(workspaceDir, "init", "-q", "-b", "main");
   }
+  // OpenCode names a project after its root commit: in a repository without one, its sessions fall in a "global"
+  // project, where the agent answers "what would you like help with?" instead of doing the step.
+  const head = await git(workspaceDir, "rev-parse", "--verify", "-q", "HEAD").catch(() => null);
+  if (!head) await git(workspaceDir, "commit", "-q", "--allow-empty", "-m", "workspace");
 }
 
 const git = workspaceGit;

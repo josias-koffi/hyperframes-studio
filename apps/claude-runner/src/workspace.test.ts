@@ -44,7 +44,16 @@ describe("syncWorkspaceSkeleton", () => {
     await commitCheckpoint(workspace, "demo", "demo: brief");
     await commitCheckpoint(workspace, "demo", "demo: nothing changed");
     const log = execFileSync("git", ["log", "--format=%s"], { cwd: workspace }).toString().trim();
-    expect(log).toBe("demo: brief");
+    expect(log).toBe("demo: brief\nworkspace");
+  });
+
+  it("gives a new repository a root commit, once: OpenCode names its project after it", async () => {
+    const skeleton = await mkdtemp(join(tmpdir(), "skel-"));
+    const workspace = await mkdtemp(join(tmpdir(), "ws-"));
+    await syncWorkspaceSkeleton(skeleton, workspace);
+    await syncWorkspaceSkeleton(skeleton, workspace);
+    const log = execFileSync("git", ["log", "--format=%s"], { cwd: workspace }).toString().trim();
+    expect(log).toBe("workspace");
   });
 });
 
