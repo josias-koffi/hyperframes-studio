@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 type Upload = { name: string; size: number; progress: number };
 
-/** Drop or pick files: each goes straight to MinIO, then the page reloads its list. */
+/** Drop or pick files: each is uploaded on its presigned URL, then the page reloads its list. */
 export function AssetDropzone({
   projectId,
   creationId,

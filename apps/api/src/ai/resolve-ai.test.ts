@@ -10,7 +10,7 @@ const defaults = {
   models: { build: "anthropic/claude-opus", brief: "qwen/qwen3-coder" },
   media: { ttsModel: "mistralai/voxtral-mini-tts", ttsVoice: "fr_marie_neutral", musicModel: "google/lyria-3-clip-preview" },
 };
-const base: ResolveAiInput = { role: "user", user: null, defaults, enabled, claudeCodeEnabled: true };
+const base: ResolveAiInput = { user: null, defaults, enabled };
 
 describe("resolveAi", () => {
   it("uses the platform defaults, the build's for every slot left empty", () => {
@@ -35,11 +35,9 @@ describe("resolveAi", () => {
     expect(own({ ttsVoice: "alloy" })).toMatchObject({ ttsModel: "mistralai/voxtral-mini-tts", ttsVoice: "fr_marie_neutral" });
   });
 
-  it("runs Claude Code only for an admin, where it is enabled, with the runner's own models", () => {
+  it("runs Claude Code for whoever chose it, on its subscription, with the runner's own models", () => {
     const user = { agentBackend: "claude-code" as const, preferences: { models: {}, media: {} } };
-    expect(resolveAi({ ...base, role: "admin", user })).toMatchObject({ backend: "claude-code", models: {} });
-    expect(resolveAi({ ...base, role: "user", user }).backend).toBe("opencode");
-    expect(resolveAi({ ...base, role: "admin", user, claudeCodeEnabled: false }).backend).toBe("opencode");
+    expect(resolveAi({ ...base, user })).toMatchObject({ backend: "claude-code", models: {} });
   });
 
   it("refuses to start when no model can be found for a slot", () => {

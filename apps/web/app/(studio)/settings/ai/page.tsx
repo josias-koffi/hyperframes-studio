@@ -22,7 +22,7 @@ export default async function AiSettingsPage() {
           models={models}
           value={settings.preferences}
           fallback={settings.defaults}
-          backend={{ value: settings.agentBackend, available: settings.claudeCodeAvailable }}
+          backend={{ value: settings.agentBackend }}
         />
       </div>
     </>

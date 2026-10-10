@@ -1,7 +1,7 @@
-import { Global, Inject, Module, type OnApplicationShutdown } from "@nestjs/common";
-import { createJobBus, type JobBus } from "@studio/db";
+import { Global, Module } from "@nestjs/common";
+import { createJobBus } from "@studio/db";
 
-/** The queues of the workers and the live channels of their jobs: Redis, or memory in the desktop app. */
+/** The queues of the workers and the live channels of their jobs, shared in the process with the workers. */
 export const JOB_BUS = Symbol("JOB_BUS");
 
 @Global()
@@ -9,10 +9,4 @@ export const JOB_BUS = Symbol("JOB_BUS");
   providers: [{ provide: JOB_BUS, useFactory: () => createJobBus() }],
   exports: [JOB_BUS],
 })
-export class QueuesModule implements OnApplicationShutdown {
-  constructor(@Inject(JOB_BUS) private readonly bus: JobBus) {}
-
-  async onApplicationShutdown() {
-    await this.bus.close();
-  }
-}
+export class QueuesModule {}

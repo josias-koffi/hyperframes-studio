@@ -1,4 +1,4 @@
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 /** The API on the internal network (`API_URL`): server components call it directly, the browser through `/api`. */
@@ -16,22 +16,21 @@ async function forwardedHeaders(): Promise<Record<string, string>> {
   return session ? { cookie: `${session.name}=${session.value}` } : {};
 }
 
-/** Where to come back after signing in again: the page being rendered, when the proxy said which. */
-async function signInAgain(): Promise<never> {
-  const path = (await headers()).get("x-studio-path");
-  redirect(`/login?error=session_required${path ? `&next=${encodeURIComponent(path)}` : ""}`);
+/** The session ended: the page that says to relaunch the app, which signs its person in again. */
+function signInAgain(): never {
+  redirect("/login");
 }
 
 /** A file of the création's folder (BRIEF.md, audio_meta.json…) as text, or null when it does not exist yet. */
 export async function serverFile(creationId: string, path: string): Promise<string | null> {
   const response = await fetch(`${apiBase()}/creations/${creationId}/files/${path}`, { cache: "no-store", headers: await forwardedHeaders() });
-  if (response.status === 401) await signInAgain();
+  if (response.status === 401) signInAgain();
   return response.ok ? response.text() : null;
 }
 
 export async function serverApi<T>(path: string): Promise<T> {
   const response = await fetch(`${apiBase()}${path}`, { cache: "no-store", headers: await forwardedHeaders() });
-  if (response.status === 401) await signInAgain();
+  if (response.status === 401) signInAgain();
   if (!response.ok) throw new Error(`${path}: ${response.status}`);
   return (await response.json()) as T;
 }

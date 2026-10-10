@@ -7,7 +7,7 @@ export type Publish = (channel: string, message: string) => Promise<unknown>;
 
 /**
  * Used by the workers: stores each event of a job (for replay) and publishes it
- * on the job's Redis channel (for the live view). The sequence number makes the
+ * on the job's live channel (for the live view). The sequence number makes the
  * replay + live merge in the API idempotent.
  */
 export function createJobReporter(db: Database, publish: Publish, jobId: string) {

@@ -2,9 +2,7 @@
   "name": "@studio/render-worker",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/main.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/main.js",
     "lint": "eslint src --max-warnings=0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"

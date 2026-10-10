@@ -23,7 +23,7 @@ async function loadCounters() {
 
 export default async function StudioLayout({ children }: LayoutProps<"/">) {
   const user = await readSessionUser();
-  if (!user) redirect("/login?error=session_required");
+  if (!user) redirect("/login");
   const counters = await loadCounters();
 
   return (

@@ -4,9 +4,6 @@ import type { NextConfig } from "next";
 const STEPS = "brief|variables|storyboard|media|build|exports|studio|iterations";
 
 const nextConfig: NextConfig = {
-  // Standalone server for the Docker image (docker/web.Dockerfile).
-  output: "standalone",
-  outputFileTracingRoot: new URL("../../", import.meta.url).pathname,
   transpilePackages: ["@studio/shared"],
   // A project migrated to créations kept its id for its only création: old links still land on it.
   redirects() {

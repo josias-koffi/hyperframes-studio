@@ -99,6 +99,13 @@
       "when": 1791547028896,
       "tag": "0013_closed_warlock",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791635297209,
+      "tag": "0014_desktop_only",
+      "breakpoints": true
     }
   ]
 }

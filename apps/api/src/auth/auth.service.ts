@@ -1,19 +1,17 @@
-import { BadRequestException, ForbiddenException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
-import { randomBytes, timingSafeEqual } from "node:crypto";
-import { createConsentRecord, hashToken, normalizeEmail } from "./auth.helpers";
-import { buildMagicLink, signedInUrl } from "./auth.links";
+import { ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { timingSafeEqual } from "node:crypto";
 import type { AuthAccountStore, AuthConfig, SessionUser } from "./auth.types";
 import { SessionCookieCodec } from "./session-cookie";
 
 export const SUSPENDED_MESSAGE = "Ce compte est suspendu.";
+const CONSENT_VERSION = "2026-10-studio";
 
 /**
- * Passwordless sign-in (from cvforge): an e-mailed single-use link opens a signed, stateless session. Anyone may
- * sign up; the account is created by its first redeemed link.
+ * The app's sign-in: the window it opens hands the token drawn at launch, which opens a signed, stateless session
+ * for its person. The account is created at the first launch.
  */
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
   private readonly cookies: SessionCookieCodec;
 
   constructor(
@@ -23,39 +21,6 @@ export class AuthService {
     this.cookies = new SessionCookieCodec(config);
   }
 
-  /** A new address must accept the terms: its account is created with that consent when the link is redeemed. */
-  async requestMagicLink(rawEmail: string, consentAccepted: boolean, next: string | null = null) {
-    await this.pruneExpiredLinks();
-    const email = normalizeEmail(rawEmail);
-    if (!email) throw new BadRequestException("Saisis une adresse e-mail valide.");
-    const account = await this.store.findByEmail(email);
-    if (!account && !consentAccepted) throw new BadRequestException("Accepte les conditions pour créer ton compte.");
-    if (account?.status === "suspended") throw new ForbiddenException(SUSPENDED_MESSAGE);
-
-    const token = randomBytes(24).toString("base64url");
-    const expiresAt = new Date(Date.now() + this.config.magicLinkTtlMinutes * 60_000);
-    await this.store.saveMagicLink(hashToken(token), { email, consent: account ? null : createConsentRecord(), expiresAt });
-    return {
-      email,
-      magicLink: buildMagicLink(this.config, token, next),
-      expiresAt: expiresAt.toISOString(),
-      sessionDurationDays: this.config.sessionTtlDays,
-    };
-  }
-
-  async consumeMagicLink(rawToken: string | undefined, next: string | null = null) {
-    await this.pruneExpiredLinks();
-    const token = rawToken?.trim();
-    // Redeeming deletes the link in the same write, so a double click cannot open two sessions.
-    const link = token ? await this.store.consumeMagicLink(hashToken(token), new Date()) : null;
-    if (!link) throw new UnauthorizedException("Ce lien de connexion est invalide ou a expiré.");
-    const account = await this.store.findOrCreate(link.email, link.consent);
-    if (account.status === "suspended") throw new ForbiddenException(SUSPENDED_MESSAGE);
-    const session = this.cookies.createSession(account.id, account.email, account.role);
-    return { redirectUrl: signedInUrl(this.config, next), session, cookie: this.cookies.serialize(session) };
-  }
-
-  /** The desktop app's sign-in: its token opens a session for its one person, created on the first start. */
   async desktopSignIn(rawToken: string | undefined) {
     const login = this.config.desktopLogin;
     const token = Buffer.from(rawToken?.trim() ?? "");
@@ -63,10 +28,11 @@ export class AuthService {
     if (!login || token.length !== expected.length || !timingSafeEqual(token, expected)) {
       throw new UnauthorizedException("Ce lien de connexion est invalide ou a expiré.");
     }
-    const account = await this.store.findOrCreate(login.email, createConsentRecord());
+    const consent = { acceptedAt: new Date().toISOString(), source: "desktop" as const, version: CONSENT_VERSION };
+    const account = await this.store.findOrCreate(login.email, consent);
     if (account.status === "suspended") throw new ForbiddenException(SUSPENDED_MESSAGE);
     const session = this.cookies.createSession(account.id, account.email, account.role);
-    return { redirectUrl: signedInUrl(this.config, null), cookie: this.cookies.serialize(session) };
+    return { redirectUrl: `${this.config.appUrl}/`, cookie: this.cookies.serialize(session) };
   }
 
   /**
@@ -80,19 +46,5 @@ export class AuthService {
     if (!account || account.status !== "active") return null;
     if (account.sessionsValidFrom && new Date(session.issuedAt) < account.sessionsValidFrom) return null;
     return { id: account.id, email: account.email, role: account.role };
-  }
-
-  clearSessionCookie() {
-    return this.cookies.clear();
-  }
-
-  /** Spent links are deleted on redemption; this clears the ones nobody clicked. */
-  private async pruneExpiredLinks() {
-    try {
-      await this.store.purgeExpiredMagicLinks(new Date());
-    } catch (error) {
-      // Housekeeping never blocks a sign-in.
-      this.logger.warn(`Could not purge expired magic links: ${error instanceof Error ? error.message : String(error)}`);
-    }
   }
 }

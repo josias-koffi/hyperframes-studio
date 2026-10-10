@@ -4,9 +4,9 @@ import { copyFile, mkdir, rm, stat } from "node:fs/promises";
 import { dirname, resolve, sep } from "node:path";
 import type { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import type { Storage } from "./client";
+import { resolveFromRoot } from "@studio/shared";
 
-export type DiskStorageConfig = {
+export type StorageConfig = {
   dir: string;
   /** Base of the presigned URLs handed to the browser: the API, which serves them under `/files`. */
   publicUrl: string;
@@ -14,9 +14,9 @@ export type DiskStorageConfig = {
   secret: string;
 };
 
-export function resolveDiskStorageConfig(env: NodeJS.ProcessEnv = process.env): DiskStorageConfig {
+export function resolveStorageConfig(env: NodeJS.ProcessEnv = process.env): StorageConfig {
   return {
-    dir: resolve(env.STORAGE_DIR?.trim() ?? ""),
+    dir: resolveFromRoot(env.STORAGE_DIR?.trim() || ".data/storage", env),
     publicUrl: env.STORAGE_PUBLIC_URL?.trim() || env.API_URL?.trim() || "http://localhost:3343",
     secret: env.STORAGE_SECRET?.trim() || randomBytes(32).toString("hex"),
   };
@@ -24,8 +24,8 @@ export function resolveDiskStorageConfig(env: NodeJS.ProcessEnv = process.env): 
 
 export type FileOperation = "get" | "put";
 
-/** What the API's `/files` route needs to serve a presigned URL of the disk storage. */
-export type DiskFiles = {
+/** What the API's `/files` route needs to serve a presigned URL. */
+export type StorageFiles = {
   /** The file of a key, or null for a key that would leave the storage folder. */
   pathOf(key: string): string | null;
   /** Whether the query of a presigned URL grants `operation` on `key` now. */
@@ -34,8 +34,13 @@ export type DiskFiles = {
   write(key: string, body: Readable): Promise<void>;
 };
 
-/** The files of the storage under one folder, with the S3 storage's methods: the desktop app has no MinIO. */
-export function createDiskStorage(config: DiskStorageConfig): Storage {
+export type Storage = ReturnType<typeof createStorage>;
+
+/**
+ * The files of the studio (uploads, renders) under one folder. The browser reaches them through presigned URLs of
+ * the API (`/files`), signed for one operation on one key until they expire.
+ */
+export function createStorage(config: StorageConfig = resolveStorageConfig()) {
   const root = resolve(config.dir);
   const publicUrl = config.publicUrl.replace(/\/+$/, "");
 
@@ -59,7 +64,7 @@ export function createDiskStorage(config: DiskStorageConfig): Storage {
     return url.toString();
   };
 
-  const files: DiskFiles = {
+  const files: StorageFiles = {
     pathOf,
     verify(operation, key, { expires, signature }) {
       const at = Number(expires);
@@ -76,30 +81,30 @@ export function createDiskStorage(config: DiskStorageConfig): Storage {
   };
 
   return {
-    bucket: root,
-    async ensureBucket() {
+    dir: root,
+    async ensureDir() {
       await mkdir(root, { recursive: true });
     },
-    async uploadFile(key, path) {
+    async uploadFile(key: string, path: string, _contentType?: string): Promise<number> {
       const target = fileOf(key);
       await mkdir(dirname(target), { recursive: true });
       await copyFile(path, target);
       return (await stat(target)).size;
     },
-    async downloadToFile(key, path) {
+    async downloadToFile(key: string, path: string): Promise<void> {
       await mkdir(dirname(path), { recursive: true });
       await copyFile(fileOf(key), path);
     },
-    async copy(fromKey, toKey) {
+    async copy(fromKey: string, toKey: string): Promise<void> {
       const target = fileOf(toKey);
       await mkdir(dirname(target), { recursive: true });
       await copyFile(fileOf(fromKey), target);
     },
-    async delete(key) {
+    async delete(key: string): Promise<void> {
       await rm(fileOf(key), { force: true });
     },
-    presignUpload: (key, _contentType, expiresIn = 900) => presign("put", key, expiresIn),
-    presignDownload: (key, expiresIn = 3600) => presign("get", key, expiresIn),
+    presignUpload: (key: string, _contentType: string, expiresIn = 900) => presign("put", key, expiresIn),
+    presignDownload: (key: string, expiresIn = 3600) => presign("get", key, expiresIn),
     files,
   };
 }

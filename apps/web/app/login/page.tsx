@@ -1,30 +1,26 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthLayout } from "@/components/auth/auth-layout";
-import { LoginForm } from "@/components/auth/login-form";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BRAND } from "@/lib/brand";
 import { readSessionUser } from "@/lib/server-api";
 
-export const metadata: Metadata = { title: "Connexion" };
+export const metadata: Metadata = { title: "Session expirée" };
 
-const NOTICES: Record<string, string> = {
-  session_required: "Ta session a expiré : reconnecte-toi.",
-  link_invalid: "Ce lien de connexion est invalide, déjà utilisé ou expiré. Demandes-en un nouveau.",
-};
-
-/** A path of the studio to open after signing in; anything else is dropped. */
-function safeNext(value: string | string[] | undefined) {
-  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/login") ? value : undefined;
-}
-
-export default async function LoginPage(props: PageProps<"/login">) {
-  const { error, next } = await props.searchParams;
-  const target = safeNext(next);
-  if (await readSessionUser()) redirect(target ?? "/");
-  const notice = typeof error === "string" ? NOTICES[error] : undefined;
-
+/**
+ * Where a request without a valid session lands. The app signs its person in when it opens its window: a session
+ * that expired comes back by relaunching it.
+ */
+export default async function LoginPage() {
+  if (await readSessionUser()) redirect("/");
   return (
     <AuthLayout>
-      <LoginForm notice={notice} next={target} />
+      <Card>
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl">Session expirée</CardTitle>
+          <CardDescription>Ferme {BRAND.name} et relance l&apos;application : elle te reconnecte en s&apos;ouvrant.</CardDescription>
+        </CardHeader>
+      </Card>
     </AuthLayout>
   );
 }

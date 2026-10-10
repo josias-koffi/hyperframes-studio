@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 /**
- * Who runs a generation turn. `opencode` calls OpenRouter with the platform key; `claude-code` uses the server's
- * Claude Code subscription and is only offered to an admin, for their own account.
+ * Who runs a generation turn. `opencode` calls OpenRouter through the app's proxy; `claude-code` uses the person's
+ * own Claude Code subscription, the `claude` command logged in on their machine.
  */
 export const AGENT_BACKENDS = ["opencode", "claude-code"] as const;
 export type AgentBackend = (typeof AGENT_BACKENDS)[number];

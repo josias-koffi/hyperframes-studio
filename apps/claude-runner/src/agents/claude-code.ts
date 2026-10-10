@@ -14,8 +14,8 @@ export type ClaudeCodeOptions = {
 };
 
 /**
- * Headless Claude Code (`claude -p`) on the server's subscription. The subscription quota is shared, so turns run
- * one at a time even when the worker runs several OpenCode jobs in parallel.
+ * Headless Claude Code (`claude -p`) on the person's own subscription. Its quota is shared by every job, so turns
+ * run one at a time even when the worker runs several OpenCode jobs in parallel.
  */
 export function createClaudeCodeRunner({ bin, skillsDir, workspaceDir, env }: ClaudeCodeOptions): AgentRunner {
   let queue: Promise<unknown> = Promise.resolve();

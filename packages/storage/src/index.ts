@@ -1,3 +1,2 @@
-export * from "./client";
 export * from "./keys";
-export * from "./disk";
+export * from "./storage";

@@ -8,7 +8,7 @@ export type SerializedSessionCookie = { name: string; value: string; options: Co
 type SessionCookieConfig = Pick<AuthConfig, "cookieName" | "secureCookies" | "sessionSecret" | "sessionTtlDays">;
 
 /**
- * Mints, reads and clears the stateless session cookie: a signed payload with no server-side record. Revocation
+ * Mints and reads the stateless session cookie: a signed payload with no server-side record. Revocation
  * is the account's `sessionsValidFrom`, checked on every request by `AuthService.authenticate`.
  */
 export class SessionCookieCodec {
@@ -23,10 +23,6 @@ export class SessionCookieCodec {
   serialize(session: AuthSession): SerializedSessionCookie {
     const payload = Buffer.from(JSON.stringify(session)).toString("base64url");
     return { name: this.config.cookieName, value: `${payload}.${this.sign(payload)}`, options: this.options(this.ttlMs()) };
-  }
-
-  clear(): SerializedSessionCookie {
-    return { name: this.config.cookieName, value: "", options: this.options(0) };
   }
 
   /**

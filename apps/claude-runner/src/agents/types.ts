@@ -6,8 +6,6 @@ export type AgentTurn = {
   sessionId: string | null;
   model: string;
   cwd: string;
-  /** Unix uid of the création's owner: OpenCode runs that client's turns under it. */
-  agentUid: number;
   timeoutMs: number;
   onEvent: (event: StudioEvent) => Promise<void> | void;
 };

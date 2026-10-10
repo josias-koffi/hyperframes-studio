@@ -24,7 +24,7 @@ type Props = {
   value: AiPreferences;
   /** What an empty slot falls back to (the platform defaults), shown in the « par défaut » option. */
   fallback?: AiPreferences;
-  backend?: { value: AgentBackend; available: boolean };
+  backend?: { value: AgentBackend };
 };
 
 /** The model chosen per step, per editor change and for the audio, saved in one go. */
@@ -91,16 +91,16 @@ export function PreferencesForm({ mode, models, value, fallback, backend }: Prop
 
   return (
     <div className="flex flex-col gap-6">
-      {backend?.available && (
+      {backend && (
         <SectionCard
           title="Moteur"
-          description="Réservé aux administrateurs : Claude Code tourne sur l'abonnement du serveur, sans coût par génération."
+          description="Claude Code tourne sur ton propre abonnement Claude, sans coût par génération : il faut la commande claude installée et connectée sur ce poste."
         >
           <div role="radiogroup" aria-label="Moteur de génération" className="grid gap-3 sm:grid-cols-2">
             {(
               [
                 { value: "opencode", icon: CpuIcon, title: "OpenCode · OpenRouter", text: "Les modèles choisis ci-dessous, facturés à la génération." },
-                { value: "claude-code", icon: TerminalSquareIcon, title: "Claude Code · abonnement", text: "Sonnet et Opus par étape, sur ton abonnement." },
+                { value: "claude-code", icon: TerminalSquareIcon, title: "Claude Code · abonnement", text: "Sonnet et Opus par étape, sur ton abonnement Claude." },
               ] as const
             ).map((option) => (
               <button

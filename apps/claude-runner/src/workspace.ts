@@ -39,13 +39,9 @@ export const WORKSPACE_ENV_KEYS = [
   "MUSIC_MODEL",
 ] as const;
 
-/**
- * `withKey`: without sandbox (local development), the workspace is also yours, for hand-run `scripts/audio.mjs`;
- * in the image, agents read this file, so the key stays out.
- */
-export function renderWorkspaceEnv(env: NodeJS.ProcessEnv, { withKey = false } = {}): string {
-  const keys = withKey ? ["OPENROUTER_API_KEY", "OPENROUTER_BASE_URL", ...WORKSPACE_ENV_KEYS] : WORKSPACE_ENV_KEYS;
-  return keys
+/** The workspace's `.env`: the agents read it, so the OpenRouter key stays out (they get a proxy token per job). */
+export function renderWorkspaceEnv(env: NodeJS.ProcessEnv): string {
+  return WORKSPACE_ENV_KEYS
     .filter((key) => env[key] !== undefined)
     .map((key) => `${key}=${env[key]}`)
     .join("\n")
@@ -77,17 +73,16 @@ export async function writeStudioEnv(
 }
 
 /**
- * The workspace is a volume, so the image's copy of CLAUDE.md, scripts and
- * `.claude/settings.json` is synced over it on start: a new image version
- * updates the rules, never the videos.
+ * The app's copy of CLAUDE.md, scripts and `.claude/settings.json` is synced over the workspace on start: a new
+ * version of the app updates the rules, never the videos.
  */
-export async function syncWorkspaceSkeleton(skeletonDir: string, workspaceDir: string, { withKey = false } = {}): Promise<void> {
+export async function syncWorkspaceSkeleton(skeletonDir: string, workspaceDir: string): Promise<void> {
   await mkdir(join(workspaceDir, "videos"), { recursive: true });
   for (const entry of await readdir(skeletonDir)) {
     if (RUNTIME_ENTRIES.has(entry)) continue;
     await cp(join(skeletonDir, entry), join(workspaceDir, entry), { recursive: true, force: true });
   }
-  await writeFile(join(workspaceDir, ".env"), renderWorkspaceEnv(process.env, { withKey }), { mode: 0o600 });
+  await writeFile(join(workspaceDir, ".env"), renderWorkspaceEnv(process.env), { mode: 0o600 });
   if (!(await exists(join(workspaceDir, ".git")))) {
     await git(workspaceDir, "init", "-q", "-b", "main");
   }

@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { aiDefaults, aiModels, creations, jobs, projects, userAiSettings, users, type Database } from "@studio/db";
 import { AI_MODEL_KINDS, MODEL_SLOTS, type AiModelKind, type AiPreferences, type ResolvedAi } from "@studio/shared";
 import { and, asc, desc, eq, gte, isNotNull, sql } from "drizzle-orm";
@@ -6,14 +6,9 @@ import { currentUser } from "../auth/request-context";
 import { DATABASE } from "../database/database.module";
 import type { CreateAiModel, OpenRouterSearch, UpdateAiModel, UserAiSettingsInput } from "./ai.schemas";
 import { fetchOpenRouterModels } from "./openrouter-catalog";
-import { canUseClaudeCode, MissingModelError, resolveAi } from "./resolve-ai";
+import { MissingModelError, resolveAi } from "./resolve-ai";
 
 const EMPTY: AiPreferences = { models: {}, media: {} };
-
-/** Same switch as the runner: the server's Claude Code subscription can be turned off per environment. */
-export function claudeCodeEnabled(env: NodeJS.ProcessEnv = process.env) {
-  return (env.CLAUDE_CODE_ENABLED ?? "true").trim() !== "false";
-}
 
 @Injectable()
 export class AiService {
@@ -92,15 +87,11 @@ export class AiService {
       preferences: row?.preferences ?? EMPTY,
       agentBackend: row?.agentBackend ?? "opencode",
       defaults: await this.getDefaults(),
-      claudeCodeAvailable: canUseClaudeCode(user.role, claudeCodeEnabled()),
     };
   }
 
   async saveMySettings({ preferences, agentBackend }: UserAiSettingsInput) {
     const user = currentUser();
-    if (agentBackend === "claude-code" && !canUseClaudeCode(user.role, claudeCodeEnabled())) {
-      throw new ForbiddenException("Claude Code est réservé aux administrateurs.");
-    }
     await this.assertInCatalog(preferences);
     await this.db
       .insert(userAiSettings)
@@ -122,11 +113,9 @@ export class AiService {
     ) as Record<AiModelKind, Set<string>>;
     try {
       return resolveAi({
-        role: user.role,
         user: own ? { preferences: own.preferences, agentBackend: own.agentBackend } : null,
         defaults,
         enabled,
-        claudeCodeEnabled: claudeCodeEnabled(),
       });
     } catch (error) {
       if (error instanceof MissingModelError) throw new ConflictException(error.message);

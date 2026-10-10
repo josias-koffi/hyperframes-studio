@@ -1,18 +1,22 @@
-import { bootstrap } from "@studio/api/dist/main";
-import { startClaudeRunner } from "@studio/claude-runner/dist/main";
 import { createDatabaseClient, jobs, runMigrations } from "@studio/db";
-import { startRenderWorker } from "@studio/render-worker/dist/main";
+import { loadEnvironmentFiles } from "@studio/shared";
 import { inArray } from "drizzle-orm";
 
+/** Under tsx (`pnpm dev`) the apps load from their sources, watched; in the app, from their builds. */
+const BUILD = __filename.endsWith(".ts") ? "src" : "dist";
+
 /**
- * The desktop app's backend in one process: the API and both workers share its embedded Postgres (PGlite) and its
- * in-memory queue, where the servers run them in containers around Postgres and Redis. Its environment comes from
- * the Electron process (`DATABASE_URL=pglite:…`, `REDIS_URL=memory`, `STORAGE_DIR`).
+ * The studio's backend in one process: the API and both workers share its embedded Postgres (PGlite) and its
+ * in-memory queue. The Electron process hands it its environment; `pnpm dev` reads `.env`.
  */
 async function main() {
+  loadEnvironmentFiles();
   console.log(`[core] migrations applied from ${await runMigrations()}`);
   await failInterruptedJobs();
 
+  const { bootstrap } = (await import(`@studio/api/${BUILD}/main`)) as typeof import("@studio/api/dist/main");
+  const { startClaudeRunner } = (await import(`@studio/claude-runner/${BUILD}/main`)) as typeof import("@studio/claude-runner/dist/main");
+  const { startRenderWorker } = (await import(`@studio/render-worker/${BUILD}/main`)) as typeof import("@studio/render-worker/dist/main");
   const api = await bootstrap();
   const runner = await startClaudeRunner();
   const renders = await startRenderWorker();
@@ -30,7 +34,7 @@ async function main() {
   process.on("SIGINT", shutdown);
 }
 
-/** A queue in memory does not outlive the app: the jobs it held when the app quit will never run. */
+/** The queue lives in memory and does not outlive the app: the jobs it held when the app quit will never run. */
 async function failInterruptedJobs() {
   const { db, close } = createDatabaseClient();
   try {

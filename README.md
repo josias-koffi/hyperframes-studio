@@ -1,16 +1,16 @@
 # HyperFrames Studio
 
-Studio web pour produire des vidéos, des carrousels et des images HyperFrames sans passer par le terminal : projets
-de campagne, assets, templates, génération par **la session Claude Code du serveur** (abonnement, pas l'API),
-exports MP4, PNG et PDF, puis publication via Postiz (lot 5).
+Application de bureau (Electron) pour produire des vidéos, des carrousels et des images HyperFrames sans passer par
+le terminal : projets de campagne, assets, templates, génération par un agent (Claude Code sur l'abonnement de la
+personne, ou OpenCode sur des modèles OpenRouter), exports MP4, PNG et PDF. Tout tourne sur le poste, GPU compris
+pour les rendus.
 
 ```
-web (Next.js + shadcn) ──/api proxy──▶ api (NestJS) ──BullMQ──▶ claude-runner ──▶ claude -p … --resume
-                                          │   ▲ SSE                 │  (stream-json → events)
-                                          │   └── Redis pub/sub ◀───┤
-                                          ▼                         ▼
-                                   Postgres · MinIO          /workspace/videos/<slug>  ◀── render-worker
-                                                                  (volume partagé)          (hyperframes render)
+fenêtre Electron ──▶ web (Next.js + shadcn) ──/api relais──▶ core : api (NestJS) ──file en mémoire──▶ claude-runner
+                                                                   │   ▲ SSE                              │
+                                                                   │   └──── canal des événements ◀───────┤
+                                                                   ▼                                      ▼
+                                                    PGlite · fichiers (dossier)        workspace/videos/<slug> ◀── render-worker
 ```
 
 ## Comment ça marche
@@ -38,83 +38,65 @@ web (Next.js + shadcn) ──/api proxy──▶ api (NestJS) ──BullMQ──
   et ses rendus, sans Claude, via `hyperframes render --variables-file --strict-variables`. Les images passent par
   `snapshot --at`, sur une copie dont les valeurs par défaut sont réécrites (`applyVariableDefaults`).
 - **Claude sans prompt de permission** : `--permission-mode dontAsk` + liste blanche dans
-  [`workspace/.claude/settings.json`](workspace/.claude/settings.json). Un seul job Claude à la fois.
+  [`workspace/.claude/settings.json`](workspace/.claude/settings.json). Un seul tour Claude Code à la fois.
 
 ## Structure
 
 ```
+apps/desktop         Electron : lance le core, le moteur et le front sur 127.0.0.1, ouvre la fenêtre connectée
 apps/web             Next.js 16 + shadcn/ui (radix-nova) — projets, créations par type, templates et itérations, revue, exports
-apps/api             NestJS 11 — projets, créations, variables, itérations, jobs (SSE), assets (URL présignées MinIO), rendus
-apps/claude-runner   worker BullMQ « studio-claude » : lance Claude Code, diffuse les événements
-apps/render-worker   worker BullMQ « studio-render » : hyperframes render / snapshot (+ PDF des carrousels) → MinIO
+apps/api             NestJS 11 — projets, créations, variables, itérations, jobs (SSE), assets et fichiers (URL signées), rendus
+apps/claude-runner   worker « studio-claude » : lance Claude Code ou OpenCode, diffuse les événements
+apps/render-worker   worker « studio-render » : hyperframes render / snapshot (+ PDF des carrousels)
 apps/hf-studio       moteur de l'éditeur HyperFrames, appelé par l'API
-apps/desktop         prototype Electron : toute la stack sur le poste, sans Postgres, Redis ni MinIO
-packages/shared      types, schémas zod, files, parseur stream-json, variables HyperFrames
-packages/db          schéma Drizzle + migrations, files de jobs (Redis ou mémoire), reporter de jobs
-packages/storage     stockage S3/MinIO ou disque + clés d'objets
+packages/shared      types, schémas zod, files, parseurs d'événements, variables HyperFrames
+packages/db          schéma Drizzle + migrations (PGlite), file de jobs en mémoire, reporter de jobs
+packages/storage     fichiers sur disque, URL signées + clés
 prompts/             un prompt par étape
-workspace/           squelette du workspace HyperFrames (copié dans l'image claude-runner)
-docker/              une image par app
-.deploy/manifest.yaml  déploiement josias-koffi/infra (Dokploy, mode services)
+workspace/           squelette du workspace HyperFrames, synchronisé au démarrage
 ```
 
-## Développement local
+## Lancer l'app
 
 ```bash
-cp .env.example .env
+cp .env.example .env     # clé OpenRouter, HYPERFRAMES_BIN
 pnpm install
-pnpm infra:up            # postgres :5447, redis :6390, minio :9120 (console :9121)
-pnpm build && pnpm db:migrate
-pnpm dev                 # web :3010, api :3343, workers
+pnpm desktop             # build, puis Electron
 ```
 
-Le runner utilise la commande `claude` de la machine (session déjà connectée) quand `CLAUDE_CODE_OAUTH_TOKEN` est
-vide. Pour tester sans consommer de quota :
-`CLAUDE_BIN=$PWD/apps/claude-runner/test/fake-claude.mjs`.
+Electron lance trois processus sur `127.0.0.1`, sur des ports libres, puis ouvre une fenêtre déjà connectée :
 
-Vérifications : `pnpm lint && pnpm typecheck && pnpm test`.
-
-## App desktop (prototype)
-
-`apps/desktop` fait tourner le studio sur le poste de la personne, GPU compris pour les rendus. Electron lance trois
-processus sur `127.0.0.1` (ports libres) et ouvre une fenêtre déjà connectée :
-
-- `core` : l'API et les deux workers dans un seul processus, qui se partagent un Postgres embarqué
-  (`DATABASE_URL=pglite:<dossier>`) et une file en mémoire (`REDIS_URL=memory`) ;
+- `core` : l'API et les deux workers dans un seul processus, qui se partagent le Postgres embarqué (PGlite) et la
+  file de jobs en mémoire. Un job en cours quand l'app se ferme est marqué en échec au lancement suivant ;
 - `hf-studio`, le moteur de l'éditeur ;
 - le front Next.js (`next start`).
 
-Les fichiers vont sur le disque (`STORAGE_DIR`) : l'API sert elle-même les URL présignées sous `/files`. La
-connexion se fait par un jeton tiré à chaque lancement (`DESKTOP_LOGIN_TOKEN`) pour une seule personne, admin.
-Données dans `~/.config/Framesmith` (Linux), `~/Library/Application Support/Framesmith` (macOS) ou `%APPDATA%\Framesmith`.
+Les fichiers (uploads, rendus) sont dans un dossier, servis par l'API sous `/files` derrière des URL signées. La
+connexion se fait par un jeton tiré à chaque lancement (`GET /auth/desktop`), pour la personne du poste, admin.
+Données dans `~/.config/Framesmith` (Linux), `~/Library/Application Support/Framesmith` (macOS) ou
+`%APPDATA%\Framesmith`.
+
+**Agents.** Claude Code tourne sur l'abonnement de la personne : la commande `claude` installée et connectée sur le
+poste (ou `CLAUDE_CODE_OAUTH_TOKEN`). OpenCode est installé avec l'app (`opencode-ai`) et passe par OpenRouter avec
+`OPENROUTER_API_KEY`, que l'agent ne voit jamais : un proxy local lui donne un jeton par job.
+
+## Développement
 
 ```bash
 pnpm build
-pnpm --filter @studio/desktop start
+pnpm dev                 # web :3010, core :3343 (api + workers, depuis les sources), moteur :3344
 ```
 
-Le prototype tourne depuis le dépôt : il lit `.env` (clé OpenRouter, `HYPERFRAMES_BIN`), le squelette `workspace/`
-et `prompts/`, et demande Node sur la machine (CLI HyperFrames). OpenCode est installé avec l'app (`opencode-ai`).
-Reste pour une app distribuable : installateur (electron-builder), Node, Chrome et ffmpeg embarqués, signature,
-mises à jour, catalogue de modèles et clé OpenRouter fournis par un serveur (abonnement, relais OpenRouter).
+Puis ouvrir `http://localhost:3010/api/auth/desktop?token=dev` (`DESKTOP_LOGIN_TOKEN` du `.env`). Les données de
+dev sont dans `.data/`. Pour tester sans consommer de quota : `CLAUDE_BIN=$PWD/apps/claude-runner/test/fake-claude.mjs`.
 
-## Déploiement
-
-Standard [`infra`](../infra) : `.deploy/manifest.yaml` (validé par `infra/scripts/validate-manifest.py`) et
-`.github/workflows/deploy.yml`. Staging sur `develop` (auto), production sur `main` (manuel).
-
-1. Remplacer `<domaine>` dans le manifest.
-2. `infra/scripts/set-secrets.sh --app josias-koffi/hyperframes-studio`, puis `infra/scripts/init-app-env.sh`.
-3. `CLAUDE_CODE_OAUTH_TOKEN` : sortie de `claude setup-token` sur le serveur (abonnement, usage interne).
+Vérifications : `pnpm lint && pnpm typecheck && pnpm test`.
 
 ## Reste à faire
 
-- **Authentification** (lot 1) : à brancher dans le proxy `apps/web/app/api/[...path]` avant tout déploiement
-  (l'API n'a aucune protection pour l'instant).
-- **Lot 0 sur le VPS** : construire l'image `claude-runner`, vérifier `CLAUDE_CODE_OAUTH_TOKEN`, les skills
-  installés, la liste blanche des outils et `--resume` après redéploiement (volume `claude_sessions`).
-- Vérifier le nom d'hôte interne du composant `minio` (`S3_ENDPOINT`) sur Dokploy.
-- MinIO ne publie plus d'image communautaire récente : image figée `RELEASE.2025-04-22`. Garder cette version ou
-  passer sur une alternative S3 (Garage, SeaweedFS) plus tard.
-- Les skills HyperFrames installés dans l'image suivent la dernière version (`skills update`) : pas encore figés.
-- Upload d'assets dans l'UI (l'API fournit déjà l'URL présignée), marques et design systems, Postiz (lot 5).
+- Installateur (electron-builder), avec Node, Chrome et ffmpeg embarqués : l'app tourne aujourd'hui depuis le dépôt
+  et demande Node sur le poste (CLI HyperFrames).
+- Signature (macOS, Windows) et mises à jour automatiques.
+- Catalogue de modèles préchargé : une installation neuve n'en a aucun.
+- Clé OpenRouter : celle de la personne, ou un relais avec abonnement.
+- Postiz (lot 5).

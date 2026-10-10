@@ -1,23 +1,14 @@
 import { EventEmitter } from "node:events";
-import { Queue, Worker } from "bullmq";
-import IORedis from "ioredis";
 import type { Publish } from "./job-reporter";
 
 export type JobHandler = (data: unknown) => Promise<unknown>;
 
 export type WorkOptions = {
   concurrency: number;
-  /** How long a job may run before Redis takes it for stalled (Redis only). */
-  lockDuration?: number;
-  /** How many times a stalled job runs again (Redis only). */
-  maxStalledCount?: number;
   onFailed?: (jobId: string | undefined, error: Error) => void;
 };
 
-/**
- * The jobs queued by the API and run by the workers, and the live channel of their events. Redis (BullMQ) on the
- * servers, where each runs in its own container; in memory in the desktop app, where they share one process.
- */
+/** The jobs queued by the API and run by the workers, and the live channel of their events: all in one process. */
 export type JobBus = {
   /** `jobId` is the job's row: a job is queued once. */
   add(queue: string, name: string, data: object, jobId: string): Promise<void>;
@@ -25,65 +16,20 @@ export type JobBus = {
   publish: Publish;
   /** Resolves once subscribed: what is published from then on reaches `onMessage`. Returns the unsubscribe. */
   subscribe(channel: string, onMessage: (message: string) => void): Promise<() => void>;
-  ping(): Promise<void>;
-  close(): Promise<void>;
 };
-
-/** `REDIS_URL=memory`: the API and the workers run in the same process (the desktop app). */
-export function createJobBus(env: NodeJS.ProcessEnv = process.env): JobBus {
-  const url = env.REDIS_URL?.trim() || "redis://localhost:6390";
-  return url === "memory" ? memoryJobBus() : createRedisJobBus(url);
-}
-
-export function createRedisJobBus(url: string): JobBus {
-  const connection = new IORedis(url, { maxRetriesPerRequest: null });
-  const publisher = new IORedis(url);
-  const queues = new Map<string, Queue>();
-  const queue = (name: string) => {
-    let found = queues.get(name);
-    if (!found) queues.set(name, (found = new Queue(name, { connection })));
-    return found;
-  };
-
-  return {
-    async add(name, jobName, data, jobId) {
-      await queue(name).add(jobName, data, { jobId });
-    },
-    work(name, handler, { onFailed, ...options }) {
-      const worker = new Worker(name, (job) => handler(job.data), { connection, ...options });
-      if (onFailed) worker.on("failed", (job, error) => onFailed(job?.id, error));
-      return { close: () => worker.close() };
-    },
-    publish: (channel, message) => publisher.publish(channel, message),
-    async subscribe(channel, onMessage) {
-      const subscriber = connection.duplicate();
-      subscriber.on("message", (_channel: string, message: string) => onMessage(message));
-      await subscriber.subscribe(channel);
-      return () => subscriber.disconnect();
-    },
-    async ping() {
-      await connection.ping();
-    },
-    async close() {
-      await Promise.all([...queues.values()].map((found) => found.close()));
-      publisher.disconnect();
-      connection.disconnect();
-    },
-  };
-}
 
 type MemoryJob = { name: string; data: object; jobId: string };
 type MemoryWorker = { handler: JobHandler; options: WorkOptions; running: number; closed: boolean; idle: Set<() => void> };
 
-const MEMORY_BUS = Symbol.for("studio.memoryJobBus");
+const SHARED_BUS = Symbol.for("studio.jobBus");
 
 /**
- * One per process, shared by the API and the workers it runs. Jobs live as long as the process: one queued or
- * running when the app quits is lost, as a stalled one is on Redis (`maxStalledCount: 0`).
+ * One per process, shared by the API and the workers it runs. Jobs live as long as the process: the core marks the
+ * ones a quit interrupted as failed when it starts again.
  */
-function memoryJobBus(): JobBus {
-  const global = globalThis as { [MEMORY_BUS]?: JobBus };
-  return (global[MEMORY_BUS] ??= createMemoryJobBus());
+export function createJobBus(): JobBus {
+  const global = globalThis as { [SHARED_BUS]?: JobBus };
+  return (global[SHARED_BUS] ??= createMemoryJobBus());
 }
 
 export function createMemoryJobBus(): JobBus {
@@ -115,7 +61,7 @@ export function createMemoryJobBus(): JobBus {
       pending.set(queue, jobs);
       if (jobs.some((job) => job.jobId === jobId)) return;
       jobs.push({ name, data, jobId });
-      // Never inside the caller's turn: BullMQ hands the job over later too.
+      // Never inside the caller's turn: the API answers before the job starts.
       setImmediate(() => drain(queue));
     },
     work(queue, handler, options) {
@@ -137,7 +83,5 @@ export function createMemoryJobBus(): JobBus {
       channels.on(channel, onMessage);
       return () => channels.off(channel, onMessage);
     },
-    async ping() {},
-    async close() {},
   };
 }

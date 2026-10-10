@@ -103,7 +103,6 @@ export type AiSettings = {
   preferences: AiPreferences;
   agentBackend: AgentBackend;
   defaults: AiPreferences;
-  claudeCodeAvailable: boolean;
 };
 
 /** One model of OpenRouter's list, in the admin import dialog. */
@@ -189,11 +188,11 @@ export async function clientApi<T>(path: string, init?: RequestInit): Promise<T>
     headers: { "content-type": "application/json", ...init?.headers },
   });
   const body = await response.json().catch(() => null);
-  // The session ended (expired, signed out elsewhere): back to the sign-in page, then here.
+  // The session ended: the page that says to relaunch the app.
   if (response.status === 401 && typeof window !== "undefined") {
     // A full load, not a client navigation: every cached screen belonged to the session that ended.
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-    window.location.href = `/login?error=session_required&next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+    window.location.href = "/login";
   }
   if (!response.ok) {
     const message = body && typeof body.message === "string" ? body.message : `Erreur ${response.status}`;

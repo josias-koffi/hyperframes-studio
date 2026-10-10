@@ -7,8 +7,8 @@ import { STORAGE } from "./storage.token";
 type SignedQuery = { op?: string; expires?: string; signature?: string };
 
 /**
- * The presigned URLs of the disk storage (the desktop app): what MinIO answers on the servers, where this route
- * answers 404. The signature is the only access check, as on S3: no session cookie reaches another origin's PUT.
+ * The presigned URLs of the storage: uploads from the browser, media and renders it reads. The signature is the
+ * only access check: no session cookie reaches a PUT from the front's origin.
  */
 @Public()
 @Controller("files")
@@ -26,13 +26,12 @@ export class FilesController {
   @Put("*key")
   async upload(@Req() req: Request, @Query() query: SignedQuery) {
     const { key } = this.signed("put", req, query);
-    await this.storage.files?.write(key, req);
+    await this.storage.files.write(key, req);
     return { ok: true };
   }
 
   private signed(operation: FileOperation, req: Request, query: SignedQuery) {
     const files = this.storage.files;
-    if (!files) throw new NotFoundException();
     const raw = (req.params as Record<string, string | string[]>).key;
     const key = Array.isArray(raw) ? raw.join("/") : raw;
     const path = files.pathOf(key);

@@ -3,6 +3,7 @@
   "private": true,
   "main": "./dist/main.js",
   "scripts": {
+    "dev": "tsx watch --tsconfig ../api/tsconfig.json src/core.ts",
     "build": "tsc -p tsconfig.json",
     "start": "electron .",
     "lint": "eslint src --max-warnings=0",
@@ -16,6 +17,7 @@
     "@studio/hf-studio": "workspace:*",
     "@studio/render-worker": "workspace:*",
     "@studio/shared": "workspace:*",
+    "@studio/storage": "workspace:*",
     "@studio/web": "workspace:*",
     "drizzle-orm": "0.45.2",
     "opencode-ai": "1.18.35"

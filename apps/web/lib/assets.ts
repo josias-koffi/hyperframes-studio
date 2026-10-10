@@ -31,7 +31,7 @@ export function formatBytes(size: number): string {
   return `${value.toFixed(unit === 0 || value >= 10 ? 0 : 1)} ${UNITS[unit]}`;
 }
 
-/** Registers the asset with the API, then PUTs the file straight to MinIO on the presigned URL. */
+/** Registers the asset with the API, then PUTs the file on the presigned URL it returns. */
 export async function uploadAsset(
   file: File,
   { projectId, creationId, onProgress }: { projectId?: string; creationId?: string; onProgress?: (fraction: number) => void } = {},

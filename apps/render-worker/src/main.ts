@@ -5,21 +5,16 @@ import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { createDatabaseClient, createJobBus, createJobReporter, renders, type Database, type Publish } from "@studio/db";
-import { applyVariableDefaults, loadEnvironmentFiles, QUEUES, renderJobSchema, resolveWorkspaceDir, type RenderJob } from "@studio/shared";
+import { applyVariableDefaults, QUEUES, renderJobSchema, resolveWorkspaceDir, type RenderJob } from "@studio/shared";
 import { createStorage, storageKeys, type Storage } from "@studio/storage";
 import { assemblePdf } from "./pdf";
 import { compositionDuration, contentTypeOf, isStill, planRender, postFrameTimes, sortShots } from "./render-args";
 
 const exec = promisify(execFile);
 
-if (require.main === module) loadEnvironmentFiles();
-
 const config = {
   workspaceDir: resolveWorkspaceDir(),
-  /**
-   * The HyperFrames CLI pinned in the image (`npm i -g hyperframes@<version>`). A command with arguments is
-   * allowed, for a host without the global install: `npx --yes hyperframes@<version>`.
-   */
+  /** The HyperFrames CLI. A command with arguments is allowed: `npx --yes hyperframes@<version>`. */
   hyperframes: (process.env.HYPERFRAMES_BIN?.trim() || "hyperframes").split(/\s+/),
   concurrency: Number.parseInt(process.env.RENDER_CONCURRENCY ?? "", 10) || 1,
 };
@@ -110,16 +105,15 @@ async function processRender(job: RenderJob, deps: { db: Database; storage: Stor
   }
 }
 
-/** Starts the worker; resolves with its stop. The desktop app's core process calls it, next to the API. */
+/** Starts the worker of the renders; resolves with its stop. The app's core process calls it. */
 export async function startRenderWorker() {
   const bus = createJobBus();
   const { db, close } = createDatabaseClient();
   const storage = createStorage();
-  await storage.ensureBucket();
+  await storage.ensureDir();
 
   const worker = bus.work(QUEUES.render, (data) => processRender(renderJobSchema.parse(data), { db, storage, publish: bus.publish }), {
     concurrency: config.concurrency,
-    lockDuration: 10 * 60 * 1000,
     onFailed: (jobId, error) => console.error(`[render-worker] job ${jobId} failed:`, error.message),
   });
   console.log(`[render-worker] listening on ${QUEUES.render} (concurrency=${config.concurrency})`);
@@ -127,21 +121,7 @@ export async function startRenderWorker() {
   return {
     async close() {
       await worker.close();
-      await bus.close();
       await close();
     },
   };
-}
-
-if (require.main === module) {
-  startRenderWorker()
-    .then((worker) => {
-      const shutdown = () => worker.close().finally(() => process.exit(0));
-      process.on("SIGTERM", shutdown);
-      process.on("SIGINT", shutdown);
-    })
-    .catch((error: unknown) => {
-      console.error("[render-worker] failed to start", error);
-      process.exit(1);
-    });
 }

@@ -12,15 +12,13 @@ export function resolveAuthConfig(env: NodeJS.ProcessEnv): AuthConfig {
   const appUrl = new URL(env.WEB_URL?.trim() || DEFAULT_APP_URL).toString().replace(/\/$/, "");
   const sessionSecret = env.AUTH_SESSION_SECRET?.trim() || (env.NODE_ENV === "production" ? "" : DEFAULT_DEV_SECRET);
   if (!sessionSecret) throw new Error("AUTH_SESSION_SECRET is required in production to sign sessions.");
+  const token = env.DESKTOP_LOGIN_TOKEN?.trim();
   return {
     appUrl,
-    magicLinkTtlMinutes: positiveInt(env.AUTH_MAGIC_LINK_TTL_MINUTES, 15),
-    sessionTtlDays: positiveInt(env.AUTH_SESSION_TTL_DAYS, 7),
+    sessionTtlDays: positiveInt(env.AUTH_SESSION_TTL_DAYS, 30),
     cookieName: env.AUTH_COOKIE_NAME?.trim() || "framesmith_session",
     sessionSecret,
     secureCookies: appUrl.startsWith("https://"),
-    desktopLogin: env.DESKTOP_LOGIN_TOKEN?.trim()
-      ? { token: env.DESKTOP_LOGIN_TOKEN.trim(), email: env.DESKTOP_USER_EMAIL?.trim() || "studio@localhost" }
-      : null,
+    desktopLogin: token ? { token, email: env.DESKTOP_USER_EMAIL?.trim() || "studio@localhost" } : null,
   };
 }

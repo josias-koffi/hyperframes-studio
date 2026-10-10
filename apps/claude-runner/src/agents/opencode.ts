@@ -1,6 +1,5 @@
-import type { ChildProcess } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import { createOpencodeTranslator } from "@studio/shared";
-import { spawnAgent, type AgentIdentity, type Sandbox } from "../sandbox";
 import type { AgentRunner } from "./types";
 
 /** The few calls of the OpenCode server API the runner needs (`opencode serve`, HTTP + SSE). */
@@ -13,7 +12,7 @@ export type OpencodeClient = {
   events(directory: string, signal: AbortSignal): Promise<AsyncIterable<unknown>>;
 };
 
-/** `password` is the server's `OPENCODE_SERVER_PASSWORD`: another client's agent can reach 127.0.0.1 too. */
+/** `password` is the server's `OPENCODE_SERVER_PASSWORD`: any other program of the machine can reach 127.0.0.1 too. */
 export function createOpencodeHttpClient(baseUrl: string, password?: string): OpencodeClient {
   const url = (path: string, directory: string) => `${baseUrl}${path}?directory=${encodeURIComponent(directory)}`;
   const auth: Record<string, string> = password ? { authorization: `Basic ${Buffer.from(`opencode:${password}`).toString("base64")}` } : {};
@@ -134,29 +133,23 @@ export function createOpencodeRunner(client: OpencodeClient): AgentRunner {
   };
 }
 
-/**
- * Starts `opencode serve` as a client's agent, in the workspace, and resolves with its URL once it listens. The
- * port is the system's: one server runs per client.
- */
+/** Starts `opencode serve` in the workspace, and resolves with its URL once it listens on a port of the system. */
 export function startOpencodeServer({
   bin,
   cwd,
-  sandbox,
-  identity,
   env,
   timeoutMs = 30_000,
 }: {
   bin: string;
   cwd: string;
-  sandbox: Sandbox;
-  identity: AgentIdentity;
   env: Record<string, string>;
   timeoutMs?: number;
 }) {
   return new Promise<{ url: string; process: ChildProcess }>((resolvePromise, reject) => {
-    const child = spawnAgent(sandbox, identity, bin, ["serve", "--hostname=127.0.0.1", "--port=0"], {
+    const child = spawn(bin, ["serve", "--hostname=127.0.0.1", "--port=0"], {
       cwd,
       env: { ...env, OPENCODE_DISABLE_AUTOUPDATE: "true" },
+      stdio: ["ignore", "pipe", "pipe"],
     });
     let output = "";
     const timer = setTimeout(() => {

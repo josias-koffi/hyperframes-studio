@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { assets, createJobReporter, creations, projects, users, type Database, type Publish } from "@studio/db";
+import { assets, createJobReporter, creations, projects, type Database, type Publish } from "@studio/db";
 import { CHECKPOINT_STEPS, isVariablesDiffEmpty, modelSlotFor, nextStep, type AgentBackend, type AgentChoice, type ClaudeJob } from "@studio/shared";
 import type { Storage } from "@studio/storage";
 import { and, eq, isNull, or } from "drizzle-orm";
@@ -7,7 +7,6 @@ import type { AgentRunner } from "./agents/types";
 import type { RunnerConfig } from "./config";
 import type { OpenrouterProxy } from "./openrouter-proxy";
 import { buildPrompt } from "./prompt";
-import { LEGACY_AGENT_UID } from "./sandbox";
 import { commitCheckpoint, ensureVideoFolder, missingStepOutputs, storyboardAudio, templateVariablesGap, writeStudioEnv } from "./workspace";
 
 export type ProcessDeps = {
@@ -19,8 +18,6 @@ export type ProcessDeps = {
   enqueueNext: (job: Omit<ClaudeJob, "jobId">) => Promise<void>;
   /** The runner of a backend, or null when this environment does not offer it. */
   runnerFor: (backend: AgentBackend) => AgentRunner | null;
-  /** Gives `videos/<slug>` to the owner's agent uid, and to no other client (no-op without sandbox). */
-  grantVideo: (slug: string, uid: number) => Promise<void>;
   /** Hands out the OpenRouter tokens of `scripts/audio.mjs`; null when no key is configured. */
   proxy: Pick<OpenrouterProxy, "grant"> | null;
 };
@@ -50,21 +47,13 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
   const { config, db } = deps;
   const report = createJobReporter(db, deps.publish, job.jobId);
 
-  if (!config.enabled) {
-    await report.event({ kind: "log", level: "error", text: "Claude jobs are disabled in this environment (CLAUDE_JOBS_ENABLED=false)." });
-    await report.status("failed", { resultText: "disabled" });
-    return;
-  }
-
   const [row] = await db
-    .select({ creation: creations, project: projects, agentUid: users.agentUid })
+    .select({ creation: creations, project: projects })
     .from(creations)
     .innerJoin(projects, eq(projects.id, creations.projectId))
-    .leftJoin(users, eq(users.id, projects.ownerId))
     .where(eq(creations.id, job.creationId));
   if (!row) throw new Error(`creation ${job.creationId} not found`);
   const { creation, project } = row;
-  const agentUid = row.agentUid ?? LEGACY_AGENT_UID;
   const setCreation = (values: Partial<typeof creations.$inferInsert>) =>
     db.update(creations).set({ ...values, updatedAt: new Date() }).where(eq(creations.id, creation.id));
 
@@ -75,7 +64,6 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
     await ensureVideoFolder(config.workspaceDir, job.slug, creation);
     await syncAssets(deps, project.id, creation.id, job.slug);
     await writeStudioEnv(config.workspaceDir, job.slug, job.ai?.media, media ?? undefined);
-    await deps.grantVideo(job.slug, agentUid);
 
     // A silent video has nothing to produce in the media step: no Claude turn, straight to the build.
     if (job.step === "media" && !job.feedback && (await storyboardAudio(config.workspaceDir, job.slug)) === "aucun") {
@@ -117,7 +105,6 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
       sessionId: sameBackend ? (job.resumeSessionId ?? creation.claudeSessionId) : null,
       model: agent.model,
       cwd: config.workspaceDir,
-      agentUid,
       timeoutMs: config.timeoutMs,
       onEvent: (event) => report.event(event),
     });

@@ -94,7 +94,7 @@ export class AssetsController {
     return Promise.all(rows.map(async (row) => ({ ...row, url: await this.storage.presignDownload(row.storageKey) })));
   }
 
-  /** Registers the asset and returns a presigned PUT: the browser uploads straight to MinIO. */
+  /** Registers the asset and returns a presigned PUT: the browser uploads the file to the API's `/files`. */
   @Post("uploads")
   async upload(@Body(new ZodPipe(uploadSchema)) body: UploadRequest) {
     if (body.creationId) body.projectId = (await this.ownedCreation(body.creationId)).projectId;

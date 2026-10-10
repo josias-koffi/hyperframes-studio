@@ -49,7 +49,6 @@ describe("createOpencodeRunner", () => {
       sessionId: null,
       model: "openai/gpt-5",
       cwd: "/ws",
-      agentUid: 100001,
       timeoutMs: 5_000,
       onEvent: (event) => void events.push(event),
     });
@@ -71,7 +70,6 @@ describe("createOpencodeRunner", () => {
       sessionId: "ses_old",
       model: "m",
       cwd: "/ws",
-      agentUid: 100001,
       timeoutMs: 5_000,
       onEvent: (event) => void events.push(event),
     });
@@ -82,7 +80,7 @@ describe("createOpencodeRunner", () => {
 
   it("fails the turn on a session error", async () => {
     const client = fakeClient([{ type: "session.error", properties: { sessionID: "ses_new", error: { name: "ApiError", data: { message: "402 credit" } } } }]);
-    const result = await createOpencodeRunner(client).run({ prompt: "p", sessionId: null, model: "m", cwd: "/ws", agentUid: 100001, timeoutMs: 5_000, onEvent: () => undefined });
+    const result = await createOpencodeRunner(client).run({ prompt: "p", sessionId: null, model: "m", cwd: "/ws", timeoutMs: 5_000, onEvent: () => undefined });
     expect(result).toMatchObject({ ok: false, resultText: "402 credit" });
   });
 
@@ -94,7 +92,6 @@ describe("createOpencodeRunner", () => {
       sessionId: null,
       model: "m",
       cwd: "/ws",
-      agentUid: 100001,
       timeoutMs: 50,
       onEvent: (event) => void events.push(event),
     });

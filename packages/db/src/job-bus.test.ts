@@ -78,7 +78,7 @@ describe("createMemoryJobBus", () => {
     expect(got).toEqual(["one"]);
   });
 
-  it("is one per process with REDIS_URL=memory: the API and the workers share it", () => {
-    expect(createJobBus({ REDIS_URL: "memory" })).toBe(createJobBus({ REDIS_URL: "memory" }));
+  it("is one per process: the API and the workers share it", () => {
+    expect(createJobBus()).toBe(createJobBus());
   });
 });

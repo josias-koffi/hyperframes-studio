@@ -17,14 +17,12 @@ import {
   jsonb,
   numeric,
   pgEnum,
-  pgSequence,
   pgTable,
   text,
   timestamp,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -60,13 +58,10 @@ export const aiModelKind = pgEnum("ai_model_kind", AI_MODEL_KINDS);
 export const userRole = pgEnum("user_role", ["admin", "user"]);
 export const userStatus = pgEnum("user_status", ["active", "suspended"]);
 
-/** What the person agreed to when the account was created by their first magic link. */
-export type UserConsent = { acceptedAt: string; source: "passwordless"; version: string };
+/** What the person agreed to when the account was created (`passwordless`: an account of the former web studio). */
+export type UserConsent = { acceptedAt: string; source: "passwordless" | "desktop"; version: string };
 
-/** Unix uids of the agents (100000 is kept for projects without an owner): see apps/claude-runner/src/sandbox.ts. */
-export const agentUidSeq = pgSequence("agent_uid_seq", { startWith: 100001, maxValue: 199999 });
-
-/** An account, created by its first magic link (passwordless: no password is ever stored). */
+/** The person of the app, created at its first start (no password is ever stored). */
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
@@ -76,29 +71,8 @@ export const users = pgTable("users", {
   consent: jsonb("consent").$type<UserConsent>(),
   /** Sessions issued before this instant are refused (forced logout, suspension). Null: none revoked. */
   sessionsValidFrom: timestamp("sessions_valid_from", { withTimezone: true }),
-  /** Unix uid the account's generation agent runs under: no client reads another's videos. */
-  agentUid: integer("agent_uid")
-    .notNull()
-    .unique()
-    .default(sql`nextval('agent_uid_seq')`),
   ...timestamps,
 });
-
-/** A pending sign-in link. Only its SHA-256 is stored, and redeeming it deletes the row. */
-export const authMagicLinks = pgTable(
-  "auth_magic_links",
-  {
-    tokenHash: text("token_hash").primaryKey(),
-    email: text("email").notNull(),
-    consent: jsonb("consent").$type<UserConsent>(),
-    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [
-    index("auth_magic_links_email_idx").on(t.email),
-    index("auth_magic_links_expires_idx").on(t.expiresAt),
-  ],
-);
 
 /** A brand = a reusable design system (palette, fonts, logos, frame.md). */
 export const brands = pgTable("brands", {
@@ -173,7 +147,7 @@ export const assets = pgTable(
     brandId: uuid("brand_id").references(() => brands.id, { onDelete: "cascade" }),
     kind: assetKind("kind").notNull(),
     filename: text("filename").notNull(),
-    /** Object key in the MinIO bucket. */
+    /** Key of the file in the storage folder. */
     storageKey: text("storage_key").notNull().unique(),
     contentType: text("content_type").notNull(),
     size: bigint("size", { mode: "number" }).notNull(),
@@ -255,7 +229,7 @@ export const renders = pgTable("renders", {
   iterationId: uuid("iteration_id").references(() => iterations.id, { onDelete: "set null" }),
   format: renderFormat("format").notNull(),
   variables: jsonb("variables").$type<Record<string, unknown>>(),
-  /** Object keys in MinIO: one for a video, several for PNG snapshots. */
+  /** Keys of the files in the storage folder: one for a video, several for PNG snapshots. */
   storageKeys: text("storage_keys").array().notNull().default([]),
   ...timestamps,
 });

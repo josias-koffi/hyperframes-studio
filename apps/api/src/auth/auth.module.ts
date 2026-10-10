@@ -2,9 +2,7 @@ import { Global, Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import type { Database } from "@studio/db";
 import { DATABASE } from "../database/database.module";
-import { MailModule } from "../mail/mail.module";
 import { AuthContextMiddleware } from "./auth-context.middleware";
-import { AuthMailerService } from "./auth-mailer.service";
 import { resolveAuthConfig } from "./auth.config";
 import { AuthController } from "./auth.controller";
 import { AuthGuard } from "./auth.guard";
@@ -15,7 +13,6 @@ import { AUTH_ACCOUNT_STORE, type AuthAccountStore, type AuthConfig } from "./au
 
 @Global()
 @Module({
-  imports: [MailModule],
   controllers: [AuthController],
   providers: [
     { provide: AUTH_CONFIG, useFactory: () => resolveAuthConfig(process.env) },
@@ -25,7 +22,6 @@ import { AUTH_ACCOUNT_STORE, type AuthAccountStore, type AuthConfig } from "./au
       inject: [AUTH_CONFIG, AUTH_ACCOUNT_STORE],
       useFactory: (config: AuthConfig, store: AuthAccountStore) => new AuthService(config, store),
     },
-    AuthMailerService,
     AuthContextMiddleware,
     { provide: APP_GUARD, useClass: AuthGuard },
   ],

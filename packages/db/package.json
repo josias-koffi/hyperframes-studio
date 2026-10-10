@@ -14,20 +14,15 @@
     "lint": "eslint src --max-warnings=0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx src/migrate.main.ts"
+    "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",
     "@studio/shared": "workspace:*",
-    "bullmq": "^5.81.5",
-    "drizzle-orm": "0.45.2",
-    "ioredis": "^5.11.1",
-    "pg": "^8.16.3"
+    "drizzle-orm": "0.45.2"
   },
   "devDependencies": {
     "@studio/config": "workspace:*",
-    "@types/pg": "^8.15.6",
     "drizzle-kit": "0.31.10"
   }
 }
