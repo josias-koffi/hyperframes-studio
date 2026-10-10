@@ -10,7 +10,7 @@ export type PooledServer = { runner: AgentRunner; stop(): void; onExit(listener:
  */
 export function createOpencodePool({
   start,
-  idleMs = 15 * 60 * 1000,
+  idleMs = 60 * 1000,
   max,
   log = (text: string) => console.log(`[claude-runner] ${text}`),
 }: {

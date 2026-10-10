@@ -81,9 +81,11 @@ async function main() {
       })
     : null;
 
-  // One `opencode serve` per client, under the client's uid, behind a password of its own.
+  // One `opencode serve` per client, under the client's uid, behind a password of its own. No more servers than
+  // turns at a time: an idle one only saves a second of start-up, not worth its memory.
   const opencode = createOpencodePool({
-    max: config.concurrency + 2,
+    max: config.concurrency,
+    idleMs: config.opencodeIdleMs,
     async start(uid) {
       const identity = agentIdentity(sandbox, uid, homedir());
       await prepareAgentHome(sandbox, identity);

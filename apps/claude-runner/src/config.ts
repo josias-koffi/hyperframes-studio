@@ -36,6 +36,11 @@ export type RunnerConfig = {
   /** The server's Claude Code subscription: off where no admin should use it (`CLAUDE_CODE_ENABLED=false`). */
   claudeCodeEnabled: boolean;
   opencodeBin: string;
+  /**
+   * A client's `opencode serve` stops after this long without a turn: it holds 0.6 to 1.3 GB and restarts in about
+   * a second, its sessions staying on disk in the agent home.
+   */
+  opencodeIdleMs: number;
   /** Jobs run at the same time. Claude Code turns stay one at a time whatever this says. */
   concurrency: number;
   /** `uid` (image): each client's agent under its own Unix uid. `off` (local): under the runner's user. */
@@ -70,6 +75,7 @@ export function resolveRunnerConfig(env: NodeJS.ProcessEnv = process.env): Runne
     timeoutMs: Number.parseInt(env.CLAUDE_STEP_TIMEOUT_MS ?? "", 10) || 60 * 60 * 1000,
     claudeCodeEnabled: (env.CLAUDE_CODE_ENABLED ?? "true").trim() !== "false",
     opencodeBin: env.OPENCODE_BIN?.trim() || "opencode",
+    opencodeIdleMs: Number.parseInt(env.OPENCODE_IDLE_MS ?? "", 10) || 60 * 1000,
     concurrency: Math.max(1, Number.parseInt(env.AGENT_CONCURRENCY ?? "", 10) || 1),
     sandbox: env.AGENT_SANDBOX?.trim() === "uid" ? "uid" : "off",
     agentExec: env.AGENT_EXEC?.trim() || "/usr/local/bin/agent-exec",

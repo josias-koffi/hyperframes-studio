@@ -12,6 +12,11 @@ describe("resolveRunnerConfig", () => {
     expect(stepModels).toEqual({ brief: "sonnet", footage: "opus", variables: "sonnet", storyboard: "opus", media: "opus", build: "sonnet" });
   });
 
+  it("stops an idle OpenCode server after a minute unless OPENCODE_IDLE_MS says otherwise", () => {
+    expect(resolveRunnerConfig({ WORKSPACE_DIR: "/ws" }).opencodeIdleMs).toBe(60_000);
+    expect(resolveRunnerConfig({ WORKSPACE_DIR: "/ws", OPENCODE_IDLE_MS: "300000" }).opencodeIdleMs).toBe(300_000);
+  });
+
   it("names a model for every step, even without CLAUDE_MODEL: --resume would keep the previous one", () => {
     expect(Object.values(resolveRunnerConfig({ WORKSPACE_DIR: "/ws" }).stepModels)).not.toContain(null);
   });
