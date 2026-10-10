@@ -1,6 +1,17 @@
 "use client";
 
-import { BookOpenIcon, FolderKanbanIcon, FolderOpenIcon, LayoutDashboardIcon, LayoutTemplateIcon, PlusIcon } from "lucide-react";
+import {
+  BookOpenIcon,
+  BotIcon,
+  BoxesIcon,
+  ChartColumnIcon,
+  FolderKanbanIcon,
+  FolderOpenIcon,
+  LayoutDashboardIcon,
+  LayoutTemplateIcon,
+  PlusIcon,
+  SlidersHorizontalIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Brand } from "@/components/brand";
@@ -11,6 +22,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuBadge,
@@ -24,6 +36,13 @@ const ITEMS = [
   { href: "/projects", icon: FolderKanbanIcon, title: "Projets" },
   { href: "/templates", icon: LayoutTemplateIcon, title: "Templates" },
   { href: "/assets", icon: FolderOpenIcon, title: "Assets" },
+  { href: "/settings/ai", icon: BotIcon, title: "Modèles IA" },
+];
+
+const ADMIN_ITEMS = [
+  { href: "/admin/models", icon: BoxesIcon, title: "Catalogue des modèles" },
+  { href: "/admin/defaults", icon: SlidersHorizontalIcon, title: "Modèles par défaut" },
+  { href: "/admin/usage", icon: ChartColumnIcon, title: "Usage et coûts" },
 ];
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
@@ -98,6 +117,25 @@ export function AppSidebar({ reviewCount, templateReviewCount, liveCount, user, 
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {user.role === "admin" && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administration</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {ADMIN_ITEMS.map((item) => (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton asChild isActive={isActive(item.href)} tooltip={item.title}>
+                      <Link href={item.href}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

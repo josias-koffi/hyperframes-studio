@@ -4,6 +4,7 @@ import { creations, jobEvents, jobs, projects, type Database } from "@studio/db"
 import type { ClaudeJob, RenderJob } from "@studio/shared";
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { currentUserId } from "../auth/request-context";
+import { AiService } from "../ai/ai.service";
 import { DATABASE } from "../database/database.module";
 import { QueuesService } from "../queues/queues.module";
 
@@ -12,10 +13,15 @@ export class JobsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     @Inject(QueuesService) private readonly queues: QueuesService,
+    @Inject(AiService) private readonly ai: AiService,
   ) {}
 
-  /** Records the job, then queues it under the same id so the row and the BullMQ job match. */
-  async enqueueClaude(input: Omit<ClaudeJob, "jobId">) {
+  /**
+   * Records the job, then queues it under the same id so the row and the BullMQ job match. The signed-in person's
+   * AI settings are frozen into it: the runner queues the following steps with the same ones.
+   */
+  async enqueueClaude(request: Omit<ClaudeJob, "jobId">) {
+    const input = { ...request, ai: request.ai ?? (await this.ai.resolveForCurrentUser()) };
     const jobId = randomUUID();
     const [row] = await this.db
       .insert(jobs)

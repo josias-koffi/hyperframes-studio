@@ -1,6 +1,7 @@
 // Every constructor dependency uses an explicit @Inject(...): `pnpm dev` runs through tsx (esbuild), which
 // emits no decorator metadata, so Nest cannot resolve dependencies by their type there.
 import { Module, type MiddlewareConsumer, type NestModule } from "@nestjs/common";
+import { AiModule } from "./ai/ai.module";
 import { AssetsController } from "./assets/assets.controller";
 import { AuthContextMiddleware } from "./auth/auth-context.middleware";
 import { AuthModule } from "./auth/auth.module";
@@ -14,7 +15,7 @@ import { QueuesModule } from "./queues/queues.module";
 import { StorageModule } from "./storage/storage.module";
 
 @Module({
-  imports: [DatabaseModule, AuthModule, QueuesModule, StorageModule, CreationsModule, EditorModule, ProjectsModule, IterationsModule],
+  imports: [DatabaseModule, AuthModule, AiModule, QueuesModule, StorageModule, CreationsModule, EditorModule, ProjectsModule, IterationsModule],
   controllers: [HealthController, AssetsController],
 })
 export class AppModule implements NestModule {

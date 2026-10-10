@@ -9,6 +9,7 @@ import {
   parseCompositionVariables,
   type CreationType,
   type GenerationStep,
+  type MediaChoice,
   type VariablesDiff,
   workspaceGit,
 } from "@studio/shared";
@@ -27,21 +28,52 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
-/** Provider settings the workspace CLAUDE.md tells Claude to read from the root `.env`. */
+/**
+ * Provider settings the workspace CLAUDE.md tells the agent to read from the root `.env`. Never the OpenRouter key:
+ * `scripts/audio.mjs` gets a job token of the runner's proxy from `<video>/.studio.env`.
+ */
 export const WORKSPACE_ENV_KEYS = [
-  "OPENROUTER_API_KEY",
-  "OPENROUTER_BASE_URL",
   "TTS_MODEL",
   "TTS_VOICE",
   "TTS_PEAK_DB",
   "MUSIC_MODEL",
 ] as const;
 
-export function renderWorkspaceEnv(env: NodeJS.ProcessEnv): string {
-  return WORKSPACE_ENV_KEYS.filter((key) => env[key] !== undefined)
+/**
+ * `withKey`: without sandbox (local development), the workspace is also yours, for hand-run `scripts/audio.mjs`;
+ * in the image, agents read this file, so the key stays out.
+ */
+export function renderWorkspaceEnv(env: NodeJS.ProcessEnv, { withKey = false } = {}): string {
+  const keys = withKey ? ["OPENROUTER_API_KEY", "OPENROUTER_BASE_URL", ...WORKSPACE_ENV_KEYS] : WORKSPACE_ENV_KEYS;
+  return keys
+    .filter((key) => env[key] !== undefined)
     .map((key) => `${key}=${env[key]}`)
     .join("\n")
     .concat("\n");
+}
+
+/**
+ * What `scripts/audio.mjs` reads over the root `.env`: the audio models chosen by the owner of the video, and the
+ * proxy token of the job. Rewritten before every step, so a changed setting applies to the next run of the script.
+ */
+export async function writeStudioEnv(
+  workspaceDir: string,
+  slug: string,
+  media: MediaChoice | undefined,
+  openrouter?: { baseUrl: string; token: string },
+): Promise<void> {
+  const values = {
+    TTS_MODEL: media?.ttsModel,
+    TTS_VOICE: media?.ttsVoice,
+    MUSIC_MODEL: media?.musicModel,
+    OPENROUTER_BASE_URL: openrouter?.baseUrl,
+    OPENROUTER_API_KEY: openrouter?.token,
+  };
+  const lines = Object.entries(values)
+    .filter(([, value]) => value)
+    .map(([key, value]) => `${key}=${value}`);
+  await mkdir(join(workspaceDir, "videos", slug), { recursive: true });
+  await writeFile(join(workspaceDir, "videos", slug, ".studio.env"), lines.length ? `${lines.join("\n")}\n` : "");
 }
 
 /**
@@ -49,13 +81,13 @@ export function renderWorkspaceEnv(env: NodeJS.ProcessEnv): string {
  * `.claude/settings.json` is synced over it on start: a new image version
  * updates the rules, never the videos.
  */
-export async function syncWorkspaceSkeleton(skeletonDir: string, workspaceDir: string): Promise<void> {
+export async function syncWorkspaceSkeleton(skeletonDir: string, workspaceDir: string, { withKey = false } = {}): Promise<void> {
   await mkdir(join(workspaceDir, "videos"), { recursive: true });
   for (const entry of await readdir(skeletonDir)) {
     if (RUNTIME_ENTRIES.has(entry)) continue;
     await cp(join(skeletonDir, entry), join(workspaceDir, entry), { recursive: true, force: true });
   }
-  await writeFile(join(workspaceDir, ".env"), renderWorkspaceEnv(process.env), { mode: 0o600 });
+  await writeFile(join(workspaceDir, ".env"), renderWorkspaceEnv(process.env, { withKey }), { mode: 0o600 });
   if (!(await exists(join(workspaceDir, ".git")))) {
     await git(workspaceDir, "init", "-q", "-b", "main");
   }

@@ -17,6 +17,11 @@ describe("renderWorkspaceEnv", () => {
   it("keeps only the provider keys that are set", () => {
     expect(renderWorkspaceEnv({ TTS_MODEL: "m", SECRET: "x", MUSIC_MODEL: "l" })).toBe("TTS_MODEL=m\nMUSIC_MODEL=l\n");
   });
+
+  it("writes the OpenRouter key only where no agent reads the file (local development)", () => {
+    expect(renderWorkspaceEnv({ OPENROUTER_API_KEY: "sk", TTS_MODEL: "m" })).toBe("TTS_MODEL=m\n");
+    expect(renderWorkspaceEnv({ OPENROUTER_API_KEY: "sk", TTS_MODEL: "m" }, { withKey: true })).toBe("OPENROUTER_API_KEY=sk\nTTS_MODEL=m\n");
+  });
 });
 
 describe("syncWorkspaceSkeleton", () => {

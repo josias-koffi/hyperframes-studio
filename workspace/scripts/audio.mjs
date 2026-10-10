@@ -34,15 +34,23 @@ const musicPrompt = flag("music", null);
 const lang = flag("lang", "fr");
 const steps = new Set(flag("steps", "tts,normalize,music,meta").split(","));
 
-const env = {
-  ...Object.fromEntries(
-    (existsSync(".env") ? readFileSync(".env", "utf8") : "")
+// Dans le studio, le `.env` racine n'est pas lisible par l'agent : la clé vient du jeton de `.studio.env`.
+const readText = (file) => {
+  try {
+    return existsSync(file) ? readFileSync(file, "utf8") : "";
+  } catch {
+    return "";
+  }
+};
+const readEnvFile = (file) =>
+  Object.fromEntries(
+    readText(file)
       .split(/\r?\n/)
       .filter((l) => /^[A-Z_]+=/.test(l))
       .map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1).trim()]),
-  ),
-  ...process.env,
-};
+  );
+// Les modèles audio choisis dans le studio pour cette vidéo (`<vidéo>/.studio.env`) passent avant ceux du workspace.
+const env = { ...readEnvFile(".env"), ...process.env, ...readEnvFile(join(video, ".studio.env")) };
 const r3 = (n) => Math.round(n * 1000) / 1000;
 const pad2 = (n) => String(n).padStart(2, "0");
 const duration = (file) =>

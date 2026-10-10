@@ -19,3 +19,6 @@ snapshots/
 
 # Secrets (modèle versionné : .env.example)
 .env
+
+# Modèles audio choisis par le studio pour une vidéo (écrits avant chaque étape)
+.studio.env

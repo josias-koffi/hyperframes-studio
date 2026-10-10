@@ -1,23 +1,30 @@
 import {
+  AGENT_BACKENDS,
+  AI_MODEL_KINDS,
   CREATION_KINDS,
   CREATION_TYPES,
   GENERATION_STEPS,
   JOB_STATUSES,
   RENDER_FORMATS,
+  type AiPreferences,
 } from "@studio/shared";
 import {
   bigint,
   bigserial,
+  boolean,
   index,
   integer,
   jsonb,
+  numeric,
   pgEnum,
+  pgSequence,
   pgTable,
   text,
   timestamp,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -47,11 +54,17 @@ export const publicationStatus = pgEnum("publication_status", [
   "failed",
 ]);
 
+export const agentBackend = pgEnum("agent_backend", AGENT_BACKENDS);
+export const aiModelKind = pgEnum("ai_model_kind", AI_MODEL_KINDS);
+
 export const userRole = pgEnum("user_role", ["admin", "user"]);
 export const userStatus = pgEnum("user_status", ["active", "suspended"]);
 
 /** What the person agreed to when the account was created by their first magic link. */
 export type UserConsent = { acceptedAt: string; source: "passwordless"; version: string };
+
+/** Unix uids of the agents (100000 is kept for projects without an owner): see apps/claude-runner/src/sandbox.ts. */
+export const agentUidSeq = pgSequence("agent_uid_seq", { startWith: 100001, maxValue: 199999 });
 
 /** An account, created by its first magic link (passwordless: no password is ever stored). */
 export const users = pgTable("users", {
@@ -63,6 +76,11 @@ export const users = pgTable("users", {
   consent: jsonb("consent").$type<UserConsent>(),
   /** Sessions issued before this instant are refused (forced logout, suspension). Null: none revoked. */
   sessionsValidFrom: timestamp("sessions_valid_from", { withTimezone: true }),
+  /** Unix uid the account's generation agent runs under: no client reads another's videos. */
+  agentUid: integer("agent_uid")
+    .notNull()
+    .unique()
+    .default(sql`nextval('agent_uid_seq')`),
   ...timestamps,
 });
 
@@ -133,8 +151,10 @@ export const creations = pgTable(
     /** Brief fields, written to BRIEF.md frontmatter by the brief step. */
     brief: jsonb("brief").$type<Record<string, unknown>>().notNull().default({}),
     currentStep: generationStep("current_step").notNull().default("brief"),
-    /** Claude Code session reused across the steps of this création (`--resume`). */
+    /** Agent session reused across the steps of this création (Claude Code `--resume`, or OpenCode). */
     claudeSessionId: text("claude_session_id"),
+    /** Who opened that session: a session is only resumed by the backend that opened it. Null: Claude Code. */
+    sessionBackend: agentBackend("session_backend"),
     ...timestamps,
   },
   (t) => [index("creations_project_idx").on(t.projectId, t.updatedAt)],
@@ -195,13 +215,20 @@ export const jobs = pgTable(
     /** The enqueued payload (ClaudeJob or RenderJob). */
     input: jsonb("input").$type<Record<string, unknown>>().notNull(),
     claudeSessionId: text("claude_session_id"),
+    /** Backend and model the job ran on (generation jobs only). */
+    backend: agentBackend("backend"),
+    model: text("model"),
+    /** Cost reported by the backend for the turn (USD); on Claude Code it is the API price, not a bill. */
+    costUsd: numeric("cost_usd", { precision: 12, scale: 6, mode: "number" }),
+    inputTokens: integer("input_tokens"),
+    outputTokens: integer("output_tokens"),
     /** Final summary written by Claude, or the error. */
     resultText: text("result_text"),
     startedAt: timestamp("started_at", { withTimezone: true }),
     finishedAt: timestamp("finished_at", { withTimezone: true }),
     ...timestamps,
   },
-  (t) => [index("jobs_creation_idx").on(t.creationId, t.createdAt)],
+  (t) => [index("jobs_creation_idx").on(t.creationId, t.createdAt), index("jobs_created_idx").on(t.createdAt)],
 );
 
 /** Every StudioEvent of a job, so a page opened late can replay the log before going live. */
@@ -245,5 +272,44 @@ export const publications = pgTable("publications", {
   status: publicationStatus("status").notNull().default("draft"),
   postizPostId: text("postiz_post_id"),
   error: text("error"),
+  ...timestamps,
+});
+
+/** The models an admin offers: agents for the generation steps, voices (TTS) and music for the media step. */
+export const aiModels = pgTable(
+  "ai_models",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** OpenRouter id (`vendor/model`). */
+    openrouterId: text("openrouter_id").notNull(),
+    kind: aiModelKind("kind").notNull(),
+    label: text("label").notNull(),
+    description: text("description").notNull().default(""),
+    enabled: boolean("enabled").notNull().default(true),
+    /** TTS only: the voices users may pick. */
+    voices: text("voices").array().notNull().default([]),
+    /** Prices copied from OpenRouter when imported (USD per token, as strings). */
+    pricing: jsonb("pricing").$type<Record<string, string>>().notNull().default({}),
+    contextLength: integer("context_length"),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("ai_models_openrouter_kind_idx").on(t.openrouterId, t.kind)],
+);
+
+/** Platform defaults (a single row, `id = 'default'`): what a user gets for every slot they leave empty. */
+export const aiDefaults = pgTable("ai_defaults", {
+  id: text("id").primaryKey().default("default"),
+  preferences: jsonb("preferences").$type<AiPreferences>().notNull().default({ models: {}, media: {} }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** A user's own choices, each slot falling back to the platform defaults. */
+export const userAiSettings = pgTable("user_ai_settings", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  preferences: jsonb("preferences").$type<AiPreferences>().notNull().default({ models: {}, media: {} }),
+  /** `claude-code` is only accepted for an admin (their own Claude Code subscription). */
+  agentBackend: agentBackend("agent_backend").notNull().default("opencode"),
   ...timestamps,
 });

@@ -5,7 +5,8 @@
 #
 # The `workspace` volume (<volumePrefix>_workspace) is mounted by api, claude-runner and
 # render-worker: the three images run as uid 1000. `claude_sessions` keeps the Claude Code session
-# transcripts so a checkpoint can resume (`claude --resume`) after a redeploy.
+# transcripts so a checkpoint can resume (`claude --resume`) after a redeploy; `agent_homes` holds one home per
+# client agent uid (OpenCode sessions, npm cache): each client's agent runs under its own uid (sandbox.ts).
 #
 # TODO (lot 0): replace <domaine>; check the internal hostname of the `minio` app from the workers
 # (S3_ENDPOINT) — otherwise point it at the public domain.
@@ -91,7 +92,7 @@ workers:
   claude-runner:
     image: ghcr.io/josias-koffi/studio-claude-runner
     uses: [db, cache]
-    volumes: { workspace: /workspace, claude_sessions: /home/node/.claude/projects }
+    volumes: { workspace: /workspace, claude_sessions: /home/node/.claude/projects, agent_homes: /agents }
     secrets: [DB_PASSWORD, CACHE_PASSWORD, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD, CLAUDE_CODE_OAUTH_TOKEN, OPENROUTER_API_KEY]
     resources: { cpus: 2, memory: 4g }
   render-worker:
@@ -114,5 +115,6 @@ environments:
   staging:
     branch: develop
     domains: { web: studio-staging.<domaine>, api: studio-api-staging.<domaine>, files: studio-files-staging.<domaine> }
-    # Staging shares the Claude subscription quota with production: no Claude jobs by default.
-    vars: { CLAUDE_JOBS_ENABLED: "false", EMAIL_FROM: "Framesmith staging <no-reply@koklo.dev>" }
+    # Staging shares the Claude subscription quota with production: no Claude jobs by default, and never the
+    # Claude Code backend. Turning jobs on here bills OpenRouter: give staging its own capped key first.
+    vars: { CLAUDE_JOBS_ENABLED: "false", CLAUDE_CODE_ENABLED: "false", EMAIL_FROM: "Framesmith staging <no-reply@koklo.dev>" }

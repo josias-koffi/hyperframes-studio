@@ -1,0 +1,70 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": false,
+  "share": "disabled",
+  "provider": {
+    "openrouter": {
+      "options": {
+        "baseURL": "{env:OPENROUTER_BASE_URL}",
+        "apiKey": "{env:OPENROUTER_API_KEY}"
+      }
+    }
+  },
+  "permission": {
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow",
+      "*.credentials.json": "deny"
+    },
+    "edit": {
+      "*": "allow",
+      "*.env": "deny",
+      "opencode.json": "deny",
+      "CLAUDE.md": "deny",
+      ".claude/*": "deny"
+    },
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow",
+    "skill": "allow",
+    "todowrite": "allow",
+    "webfetch": "allow",
+    "websearch": "allow",
+    "task": "deny",
+    "question": "deny",
+    "doom_loop": "deny",
+    "external_directory": {
+      "*": "deny",
+      "{env:AGENT_SKILLS_DIR}/**": "allow",
+      "{env:HOME}/.claude/skills/**": "allow",
+      "{env:TMPDIR}/**": "allow"
+    },
+    "bash": {
+      "*": "deny",
+      "npm run *": "allow",
+      "npx hyperframes *": "allow",
+      "npx --yes hyperframes*": "allow",
+      "hyperframes *": "allow",
+      "sh scripts/new-video.sh *": "allow",
+      "ffmpeg *": "allow",
+      "ffprobe *": "allow",
+      "curl *": "allow",
+      "node *": "allow",
+      "python3 *": "allow",
+      "jq *": "allow",
+      "cd *": "allow",
+      "ls": "allow",
+      "ls *": "allow",
+      "pwd": "allow",
+      "cat *": "allow",
+      "mkdir *": "allow",
+      "cp *": "allow",
+      "mv *": "allow",
+      "base64 *": "allow",
+      "cat *.env*": "deny",
+      "git push*": "deny"
+    }
+  }
+}

@@ -12,7 +12,7 @@ import { useEditor } from "./editor-context";
 const EXAMPLES = ["Agrandis le titre", "Mets le fond en bleu nuit", "Ajoute une animation d'entrée au logo"];
 
 /**
- * Asks Claude for a change in plain words. The création is locked while Claude works on it, then every file is
+ * Asks the assistant for a change in plain words. The création is locked while it works on it, then every file is
  * read again and the preview reloads.
  */
 export function AssistantPanel({ context }: { context: string | null }) {
@@ -44,8 +44,8 @@ export function AssistantPanel({ context }: { context: string | null }) {
   async function settled(status: string) {
     setLock(null);
     await reloadAll();
-    if (status === "succeeded") toast.success("Modification de Claude appliquée");
-    else toast.error("Claude n'a pas pu faire la modification.");
+    if (status === "succeeded") toast.success("Modification de l'assistant appliquée");
+    else toast.error("L'assistant n'a pas pu faire la modification.");
   }
 
   const shownJob = lock?.jobId ?? lastJob;
@@ -55,9 +55,9 @@ export function AssistantPanel({ context }: { context: string | null }) {
       <div className="space-y-1">
         <p className="flex items-center gap-1.5 text-sm font-medium">
           <SparklesIcon className="size-4 text-primary" />
-          Demander à Claude
+          Demander à l&apos;assistant
         </p>
-        <p className="text-xs text-muted-foreground">Décris le changement : Claude modifie la création, tes retouches manuelles sont gardées.</p>
+        <p className="text-xs text-muted-foreground">Décris le changement : l&apos;assistant modifie la création, tes retouches manuelles sont gardées.</p>
       </div>
       {context && <p className="rounded-md bg-muted px-2 py-1.5 text-xs text-muted-foreground">Sélection : {context}</p>}
       <Textarea
@@ -85,7 +85,7 @@ export function AssistantPanel({ context }: { context: string | null }) {
       </div>
       <Button onClick={send} disabled={!text.trim() || Boolean(lock) || pending}>
         <SparklesIcon />
-        {lock ? "Claude travaille…" : "Envoyer à Claude"}
+        {lock ? "L'assistant travaille…" : "Envoyer à l'assistant"}
       </Button>
       {shownJob && <JobLog key={shownJob} jobId={shownJob} onSettled={lock?.jobId === shownJob ? settled : undefined} className="min-h-0 flex-1" />}
     </div>

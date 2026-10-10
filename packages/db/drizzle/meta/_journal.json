@@ -85,6 +85,20 @@
       "when": 1791495151019,
       "tag": "0011_reflective_gateway",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791537219871,
+      "tag": "0012_crazy_randall",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791547028896,
+      "tag": "0013_closed_warlock",
+      "breakpoints": true
     }
   ]
 }

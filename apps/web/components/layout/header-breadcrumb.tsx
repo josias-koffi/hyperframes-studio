@@ -26,6 +26,12 @@ const SEGMENTS: Record<string, string> = {
   build: "Build",
   exports: "Exports",
   studio: "Studio HyperFrames",
+  settings: "Paramètres",
+  ai: "Modèles IA",
+  admin: "Administration",
+  models: "Catalogue des modèles",
+  defaults: "Modèles par défaut",
+  usage: "Usage et coûts",
 };
 
 /** Derived from the path; an id segment shows the label its page published (project, création or iteration name). */

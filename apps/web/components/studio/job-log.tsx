@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 const integer = new Intl.NumberFormat("fr-FR");
 
-/** Turns, duration, tokens and API-equivalent cost of one Claude turn. */
+/** Turns, duration, tokens and cost of one generation turn (API-equivalent on Claude Code). */
 function ResultStats({ event }: { event: Extract<StudioEvent, { kind: "result" }> }) {
   const parts: string[] = [];
   if (event.numTurns !== undefined) parts.push(`${event.numTurns} tours`);
@@ -19,7 +19,7 @@ function ResultStats({ event }: { event: Extract<StudioEvent, { kind: "result" }
       `tokens : ${integer.format(inputTokens)} entrée · ${integer.format(outputTokens)} sortie · ${integer.format(cacheReadTokens)} cache lu · ${integer.format(cacheCreationTokens)} cache écrit`,
     );
   }
-  if (event.costUsd !== undefined) parts.push(`≈ ${event.costUsd.toFixed(2)} $ (prix API)`);
+  if (event.costUsd !== undefined) parts.push(`≈ ${event.costUsd.toFixed(3)} $`);
   return parts.length > 0 ? <p className="font-mono text-[11px] leading-relaxed text-muted-foreground">{parts.join(" · ")}</p> : null;
 }
 
@@ -125,7 +125,11 @@ function EventLine({ event }: { event: StudioEvent }) {
     case "log":
       return <p className={cn("font-mono text-xs text-muted-foreground", event.level === "error" && "text-destructive")}>{event.text}</p>;
     case "session":
-      return <p className="font-mono text-[11px] text-muted-foreground/70">session {event.sessionId}</p>;
+      return (
+        <p className="font-mono text-[11px] text-muted-foreground/70">
+          {event.model ? `${event.model} · ` : ""}session {event.sessionId}
+        </p>
+      );
     default:
       return null;
   }
@@ -193,7 +197,7 @@ export function JobLog({
       )}
       {live && events.length > 0 && (
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="rec-dot" /> Claude travaille…
+          <span className="rec-dot" /> L&apos;assistant travaille…
         </p>
       )}
     </div>

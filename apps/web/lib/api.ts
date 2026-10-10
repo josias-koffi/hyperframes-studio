@@ -1,4 +1,7 @@
 import type {
+  AgentBackend,
+  AiModelKind,
+  AiPreferences,
   CompositionVariable,
   CreationKind,
   CreationType,
@@ -72,8 +75,61 @@ export type Job = {
   step: GenerationStep | null;
   status: JobStatus;
   resultText: string | null;
+  /** Generation jobs: what ran the turn and what it cost (USD, as reported by the backend). */
+  backend?: AgentBackend | null;
+  model?: string | null;
+  costUsd?: number | null;
   createdAt: string;
   finishedAt: string | null;
+};
+
+/** A model of the catalog the admin offers (`GET /ai-models`, `GET /admin/ai-models`). */
+export type AiModel = {
+  id: string;
+  openrouterId: string;
+  kind: AiModelKind;
+  label: string;
+  description: string;
+  enabled: boolean;
+  voices: string[];
+  pricing: Record<string, string>;
+  contextLength: number | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** `GET /me/ai-settings`: the person's choices and what they fall back to. */
+export type AiSettings = {
+  preferences: AiPreferences;
+  agentBackend: AgentBackend;
+  defaults: AiPreferences;
+  claudeCodeAvailable: boolean;
+};
+
+/** One model of OpenRouter's list, in the admin import dialog. */
+export type OpenRouterModel = {
+  id: string;
+  name: string;
+  description: string;
+  contextLength: number | null;
+  pricing: Record<string, string>;
+  kinds: AiModelKind[];
+  voices: string[];
+  /** Kinds it is already offered as. */
+  inCatalog: AiModelKind[];
+};
+
+type UsageTotals = { jobs: number; costUsd: number; subscriptionUsd: number };
+type TokenTotals = { inputTokens: number; outputTokens: number };
+
+/** `GET /admin/usage`: generation costs; `subscriptionUsd` is Claude Code at API prices, not billed. */
+export type AiUsage = {
+  days: number;
+  since: string;
+  totals: UsageTotals & TokenTotals;
+  byDay: (UsageTotals & { day: string })[];
+  byUser: (UsageTotals & TokenTotals & { userId: string; email: string; name: string | null })[];
+  byModel: (TokenTotals & { backend: AgentBackend; model: string | null; jobs: number; costUsd: number })[];
 };
 
 export type Render = {
