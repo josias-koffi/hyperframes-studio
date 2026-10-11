@@ -220,12 +220,8 @@ export class CreationsService {
     if (creation.currentStep === "build" && last?.step === "build" && last.status === "succeeded") {
       throw new ConflictException("La création est déjà construite.");
     }
-    return this.jobs.enqueueClaude({
-      creationId: id,
-      slug: creation.slug,
-      step: creation.currentStep,
-      resumeSessionId: creation.claudeSessionId ?? undefined,
-    });
+    // A step starts a new session: it reads the validated files of the previous steps.
+    return this.jobs.enqueueClaude({ creationId: id, slug: creation.slug, step: creation.currentStep });
   }
 
   private async reviewedJob(id: string) {
@@ -251,12 +247,7 @@ export class CreationsService {
     const next = reviewed.step ? nextStep(reviewed.step, creation) : null;
     if (!next) return creation.kind === "template" ? this.firstIteration(creation) : this.render(id, {});
     await this.setCreation(id, { currentStep: next });
-    return this.jobs.enqueueClaude({
-      creationId: id,
-      slug: creation.slug,
-      step: next,
-      resumeSessionId: creation.claudeSessionId ?? undefined,
-    });
+    return this.jobs.enqueueClaude({ creationId: id, slug: creation.slug, step: next });
   }
 
   /** Checkpoint commented: the same session resumes on the same step with the feedback. */

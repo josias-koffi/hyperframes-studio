@@ -16,7 +16,14 @@ images de fond (`backgrounds`, noms de fichiers dans `assets/uploads/`) : `parti
 `partials/carousel.md` disent à Claude de s'en servir.
 
 Chaque prompt se termine sur une **consigne d'arrêt** : le studio, pas Claude, décide de la suite (checkpoint de
-validation ou étape suivante). Les règles HyperFrames restent dans les skills et le `CLAUDE.md` du workspace.
+validation ou étape suivante).
+
+**Une session neuve par étape.** Chaque étape démarre une session à part, qui relit sur disque les fichiers validés
+des étapes précédentes (`BRIEF.md`, `STORYBOARD.md`, `audio_meta.json`…) : les prompts le disent. Seul un retour sur
+la même étape (commentaire de relecture, demande depuis l'éditeur) reprend la session de l'étape. Le build reçoit
+en plus `partials/rules.md`, les règles HyperFrames clés écrites dans le prompt : un modèle faible ne lit pas
+toujours les skills, qui restent la référence. Après un build, le studio relance lui-même `check` ; un échec repart
+dans la session de l'agent, le second chez le modèle d'escalade.
 
 **Moteur blocs.** Une création dont le brief porte `engine: "blocks"` n'utilise aucun de ces fichiers : le brief
 (`BRIEF.json`, puis `BRIEF.md` généré), les variables d'un template (`VARIABLES.json`) et le storyboard

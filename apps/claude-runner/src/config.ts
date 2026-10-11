@@ -27,6 +27,8 @@ export type RunnerConfig = {
   model: string | null;
   /** Model of each step: `CLAUDE_MODEL_<STEP>`, else Sonnet for recipe steps, else `model`, else Opus. */
   stepModels: Record<GenerationStep, string>;
+  /** Claude Code model a build falls back to after two failed checks: `CLAUDE_MODEL_ESCALATION`, else Opus. */
+  escalationAgentModel: string;
   /** Hard limit for one Claude step. */
   timeoutMs: number;
   opencodeBin: string;
@@ -68,6 +70,7 @@ export function resolveRunnerConfig(env: NodeJS.ProcessEnv = process.env): Runne
           (RECIPE_STEPS.includes(step) ? RECIPE_STEP_MODEL : env.CLAUDE_MODEL?.trim() || DESIGN_STEP_MODEL),
       ]),
     ) as Record<GenerationStep, string>,
+    escalationAgentModel: env.CLAUDE_MODEL_ESCALATION?.trim() || DESIGN_STEP_MODEL,
     timeoutMs: Number.parseInt(env.CLAUDE_STEP_TIMEOUT_MS ?? "", 10) || 60 * 60 * 1000,
     opencodeBin: env.OPENCODE_BIN?.trim() || "opencode",
     opencodeIdleMs: Number.parseInt(env.OPENCODE_IDLE_MS ?? "", 10) || 60 * 1000,

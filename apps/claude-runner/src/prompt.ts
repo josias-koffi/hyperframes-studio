@@ -27,6 +27,12 @@ export function renderTemplate(template: string, values: Record<string, string>)
   });
 }
 
+/**
+ * Steps that write compositions get the key HyperFrames rules in the prompt (`prompts/partials/rules.md`): a step
+ * runs in a new session and a weak model does not always read the skills.
+ */
+const RULES_STEPS: readonly GenerationStep[] = ["build"];
+
 /** Steps a template's variable contract (`prompts/partials/template.md`) applies to. */
 const CONTRACT_STEPS: readonly GenerationStep[] = ["storyboard", "build"];
 
@@ -37,10 +43,10 @@ function formatPartial(context: PromptContext): string {
 }
 
 /**
- * The prompt of a step comes from `prompts/<step>.md`. With feedback, the same
- * session is resumed on the same step and `prompts/feedback.md` wraps the
- * user's comment instead. Every prompt ends with the format of the création; a
- * template's storyboard and build also get its variable contract.
+ * The prompt of a step comes from `prompts/<step>.md`, in a new session that reads the validated files of the
+ * previous steps. With feedback, the step's session is resumed and `prompts/feedback.md` wraps the user's comment
+ * instead. Every prompt ends with the format of the création; a template's storyboard and build also get its
+ * variable contract, and the build the key HyperFrames rules.
  */
 export async function buildPrompt(promptsDir: string, context: PromptContext): Promise<string> {
   const file = context.feedback ? "feedback.md" : `${context.step}.md`;
@@ -49,6 +55,7 @@ export async function buildPrompt(promptsDir: string, context: PromptContext): P
   if (context.kind === "template" && CONTRACT_STEPS.includes(context.step)) {
     template += await readFile(join(promptsDir, "partials", "template.md"), "utf8");
   }
+  if (RULES_STEPS.includes(context.step)) template += await readFile(join(promptsDir, "partials", "rules.md"), "utf8");
   return renderTemplate(template, {
     step: context.step,
     type: context.type,

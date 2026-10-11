@@ -93,4 +93,12 @@ describe("buildPrompt", () => {
     expect(await build("oneshot", "build")).not.toContain("VARIABLES.json");
     expect(await build("template", "brief")).not.toContain("VARIABLES.json");
   });
+
+  it("writes the key HyperFrames rules into the build prompts only, review comments included", async () => {
+    const rules = "jamais `data-layer`, refusé par `check`";
+    expect(await buildPrompt(PROMPTS, { ...base, step: "build" })).toContain(rules);
+    expect(await buildPrompt(PROMPTS, { ...base, step: "build", feedback: "Plus grand" })).toContain(rules);
+    expect(await buildPrompt(PROMPTS, { ...base, step: "storyboard" })).not.toContain(rules);
+    expect(await buildPrompt(PROMPTS, { ...base, step: "build" })).toContain("Ce tour ouvre une session neuve");
+  });
 });
