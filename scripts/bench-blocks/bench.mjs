@@ -3,10 +3,11 @@
 // prompts du runner, validé par le studio (3 essais, les erreurs renvoyées au modèle), puis assemblé et passé à
 // `hyperframes check`. Voir README.md.
 //
-//   node scripts/bench-blocks/bench.mjs [--model haiku] [--only b01-cafe-tiktok] [--out /tmp/bench-blocks]
+//   node scripts/bench-blocks/bench.mjs [--model haiku[,deepseek/deepseek-v4…]] [--only b01-cafe-tiktok] [--out /tmp/bench-blocks]
 //
 // --model : un alias Claude (haiku, sonnet…) passe par `claude -p`, donc par l'abonnement Claude Code ; un id
 // OpenRouter (deepseek/deepseek-v4…) passe par OpenRouter, avec OPENROUTER_API_KEY (environnement ou .env).
+// Plusieurs modèles séparés par des virgules passent l'un après l'autre, puis un tableau les compare.
 import { execFile, execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -24,10 +25,12 @@ const flag = (name, fallback) => {
   const index = argv.indexOf(`--${name}`);
   return index >= 0 && index + 1 < argv.length ? argv[index + 1] : fallback;
 };
-const model = flag("model", "haiku");
+const models = flag("model", "haiku")
+  .split(",")
+  .map((name) => name.trim())
+  .filter(Boolean);
 const only = flag("only", null);
-const out = resolve(flag("out", join(tmpdir(), "bench-blocks")));
-const viaOpenrouter = model.includes("/");
+const root = resolve(flag("out", join(tmpdir(), "bench-blocks")));
 
 for (const dist of ["packages/shared/dist/index.js", "apps/claude-runner/dist/blocks.js"])
   if (!existsSync(join(REPO, dist))) {
@@ -39,8 +42,10 @@ const shared = (await import(pathToFileURL(join(REPO, "packages/shared/dist/inde
 const runner = (await import(pathToFileURL(join(REPO, "apps/claude-runner/dist/blocks.js")).href)).default;
 const briefs = allBriefs.filter((brief) => !only || brief.id === only);
 
-const ws = join(out, "ws");
+const ws = join(root, "ws");
 const env = { ...process.env, HYPERFRAMES_NO_TELEMETRY: "1" };
+/** Results of one model: `<out>/<model>/`, the slashes of an OpenRouter id replaced. */
+const outFor = (model) => (models.length > 1 ? join(root, model.replace(/[^\w.-]+/g, "_")) : root);
 
 function openrouterKey() {
   if (process.env.OPENROUTER_API_KEY) return process.env.OPENROUTER_API_KEY;
@@ -60,7 +65,7 @@ function placeholder(file) {
 }
 
 /** `claude -p`, stateless: a refused answer goes back in the next prompt with its errors. */
-async function viaClaude(brief, manifests, format) {
+async function viaClaude(model, brief, manifests, format) {
   const system = runner.storyboardSystemPrompt(manifests, format);
   const base = runner.storyboardUserPrompt({ campaign: brief.campaign, brief: brief.brief, assets: brief.assets });
   const attempts = [];
@@ -70,7 +75,7 @@ async function viaClaude(brief, manifests, format) {
     const { stdout } = await run(
       "claude",
       ["-p", "--model", model, "--tools", "", "--strict-mcp-config", "--no-session-persistence", "--output-format", "json", "--system-prompt", system, prompt],
-      { cwd: out, maxBuffer: 64 * 1024 * 1024, timeout: 300_000 },
+      { cwd: root, maxBuffer: 64 * 1024 * 1024, timeout: 300_000 },
     );
     const answer = JSON.parse(stdout);
     cost += answer.total_cost_usd ?? 0;
@@ -84,7 +89,7 @@ async function viaClaude(brief, manifests, format) {
 }
 
 /** OpenRouter, through the runner's own loop (json_schema, json_object fallback, answers with the errors). */
-async function viaOpenrouterCall(brief, manifests, format) {
+async function viaOpenrouterCall(model, brief, manifests, format) {
   const attempts = [];
   const result = await runner.writeStoryboard(
     {
@@ -106,7 +111,7 @@ async function viaOpenrouterCall(brief, manifests, format) {
   );
   if (result.storyboard) attempts.push([]);
   else if (attempts.length === 0) attempts.push(result.errors);
-  return { storyboard: result.storyboard, attempts, cost: null };
+  return { storyboard: result.storyboard, attempts, cost: result.costUsd ?? null };
 }
 
 function missingImages(storyboard, manifests, assets) {
@@ -134,15 +139,17 @@ function fakeVoices(storyboard, dir) {
   return { voices };
 }
 
-async function bench(brief, manifests, blocks) {
+async function bench(model, brief, manifests, blocks) {
+  const out = outFor(model);
   const format = { width: brief.width, height: brief.height, durationSeconds: brief.duration ?? null, frames: brief.frames ?? null, variables: brief.variables ?? null };
   const started = Date.now();
-  const asked = await (viaOpenrouter ? viaOpenrouterCall : viaClaude)(brief, manifests, format);
+  const asked = await (model.includes("/") ? viaOpenrouterCall : viaClaude)(model, brief, manifests, format);
   const result = { id: brief.id, type: brief.type, kind: brief.kind, attempts: asked.attempts, cost: asked.cost, seconds: 0, storyboardOk: Boolean(asked.storyboard) };
   result.seconds = Math.round((Date.now() - started) / 1000);
   if (!asked.storyboard) return result;
   const { storyboard } = asked;
 
+  // The workspace is shared: the folder of a brief is the last model's.
   const dir = join(ws, "videos", brief.id);
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
@@ -176,19 +183,15 @@ async function bench(brief, manifests, blocks) {
   return result;
 }
 
-{
-  if (viaOpenrouter && !openrouterKey()) {
-    console.error("OPENROUTER_API_KEY absent (environnement ou .env).");
-    process.exit(1);
-  }
-  mkdirSync(ws, { recursive: true });
-  cpSync(join(REPO, "workspace/package.json"), join(ws, "package.json"));
-  const { manifests, blocks } = await runner.loadBlocks(join(REPO, "workspace"));
+/** Every brief on one model; the summary line of the comparison. */
+async function benchModel(model, manifests, blocks) {
+  const out = outFor(model);
+  mkdirSync(out, { recursive: true });
   console.log(`Banc du moteur blocs · modèle ${model} · ${briefs.length} brief(s) · résultats dans ${out}\n`);
   const results = [];
   for (const brief of briefs) {
     process.stdout.write(`${brief.id} … `);
-    const result = await bench(brief, manifests, blocks).catch((error) => ({ id: brief.id, error: String(error.message ?? error).slice(0, 500), attempts: [] }));
+    const result = await bench(model, brief, manifests, blocks).catch((error) => ({ id: brief.id, error: String(error.message ?? error).slice(0, 500), attempts: [] }));
     results.push(result);
     const cost = typeof result.cost === "number" ? `, ${result.cost.toFixed(4)} $` : "";
     if (result.error) console.log(`ERREUR : ${result.error}`);
@@ -199,6 +202,32 @@ async function bench(brief, manifests, blocks) {
   const passed = results.filter((result) => result.storyboardOk && result.checkOk);
   const first = passed.filter((result) => result.attempts.length === 1);
   const costs = results.map((result) => result.cost).filter((cost) => typeof cost === "number");
-  console.log(`\n${passed.length}/${results.length} réussis, ${first.length} du premier coup${costs.length ? `, ${costs.reduce((a, b) => a + b, 0).toFixed(4)} $` : ""}.`);
-  console.log(`Détail : ${join(out, "results.json")} · planches : ${join(ws, "videos", "<brief>", "snapshots")}`);
+  const cost = costs.length ? costs.reduce((a, b) => a + b, 0) : null;
+  const seconds = results.filter((result) => typeof result.seconds === "number").map((result) => result.seconds);
+  const mean = seconds.length ? Math.round(seconds.reduce((a, b) => a + b, 0) / seconds.length) : null;
+  console.log(`\n${passed.length}/${results.length} réussis, ${first.length} du premier coup${cost !== null ? `, ${cost.toFixed(4)} $` : ""}.`);
+  console.log(`Détail : ${join(out, "results.json")} · planches : ${join(ws, "videos", "<brief>", "snapshots")}\n`);
+  return { model, total: results.length, passed: passed.length, first: first.length, cost, mean };
+}
+
+{
+  if (models.some((model) => model.includes("/")) && !openrouterKey()) {
+    console.error("OPENROUTER_API_KEY absent (environnement ou .env).");
+    process.exit(1);
+  }
+  mkdirSync(ws, { recursive: true });
+  cpSync(join(REPO, "workspace/package.json"), join(ws, "package.json"));
+  const { manifests, blocks } = await runner.loadBlocks(join(REPO, "workspace"));
+  const rows = [];
+  for (const model of models) rows.push(await benchModel(model, manifests, blocks));
+  if (rows.length > 1) {
+    // The defaults are chosen on these figures: storyboard and check passed at the first answer, cost, time.
+    const table = [
+      "| Modèle | Réussis | Du premier coup | Coût | Durée moyenne |",
+      "| --- | --- | --- | --- | --- |",
+      ...rows.map((row) => `| ${row.model} | ${row.passed}/${row.total} | ${row.first} (${Math.round((100 * row.first) / row.total)} %) | ${row.cost !== null ? `${row.cost.toFixed(4)} $` : "—"} | ${row.mean ?? "—"} s |`),
+    ].join("\n");
+    console.log(table);
+    writeFileSync(join(root, "comparison.md"), `${table}\n`);
+  }
 }

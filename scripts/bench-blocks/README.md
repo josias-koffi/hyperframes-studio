@@ -12,7 +12,12 @@ pnpm build
 node scripts/bench-blocks/bench.mjs --model haiku                    # Claude Code (abonnement), via claude -p
 node scripts/bench-blocks/bench.mjs --model deepseek/deepseek-v4     # OpenRouter, OPENROUTER_API_KEY requis
 node scripts/bench-blocks/bench.mjs --only b06-template-soldes --out /tmp/bench
+node scripts/bench-blocks/bench.mjs --model haiku,deepseek/deepseek-v4,qwen/qwen3-coder   # compare les candidats
 ```
+
+Avec plusieurs modèles, chacun écrit ses résultats dans `--out/<modèle>/`, puis un tableau les compare
+(`comparison.md`) : briefs réussis, réussis du premier coup, coût et durée moyenne. Les modèles par défaut des
+étapes se choisissent sur ces chiffres. Le banc mesure un modèle seul : pas d'escalade.
 
 Un id avec `/` passe par OpenRouter et la boucle même du runner (`writeStoryboard` : `json_schema`, repli
 `json_object`) ; un alias Claude passe par `claude -p`, sans outils, la réponse refusée renvoyée dans le prompt
