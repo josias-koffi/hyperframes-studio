@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ASPECTS, aspectOf, type Aspect } from "./creations";
 import { escapeHtml } from "./editor/html-tree";
+import type { CompositionVariable } from "./variables";
 
 /**
  * The blocks engine: the model only picks blocks and fills their props in `STORYBOARD.json`, validated here; the
@@ -26,6 +27,11 @@ export const blockPropSchema = z.object({
   default: z.string().optional(),
   /** Allowed values of an `enum`. */
   options: z.array(z.string().min(1)).optional(),
+  /**
+   * A text or image prop can carry a template variable (`data-var-text`, `data-var-src` on its element); false when
+   * the block's script reads or rewrites the value (a number it counts up).
+   */
+  bindable: z.boolean().default(true),
 });
 export type BlockProp = z.infer<typeof blockPropSchema>;
 
@@ -82,6 +88,8 @@ export const storyboardSceneSchema = z.object({
   /** Spoken text of the scene, in the création's language; empty when nothing is said. */
   voiceover: z.string().max(400).default(""),
   transition: z.enum(TRANSITIONS).default("cut"),
+  /** In a template, the props that show a variable of `VARIABLES.json`: prop → variable id. */
+  variables: z.record(z.string(), z.string()).default({}),
 });
 export type StoryboardScene = z.infer<typeof storyboardSceneSchema>;
 
@@ -110,7 +118,16 @@ export const storyboardSchema = z.object({
 });
 export type Storyboard = z.infer<typeof storyboardSchema>;
 
-export type StoryboardFormat = { width: number; height: number; durationSeconds?: number | null };
+export type StoryboardFormat = {
+  width: number;
+  height: number;
+  durationSeconds?: number | null;
+  /** A template's validated contract (`VARIABLES.json`): every variable is shown by at least one prop. */
+  variables?: readonly CompositionVariable[] | null;
+};
+
+/** The variables a block can show: a text or an image path. */
+export const BINDABLE_VARIABLE_TYPES: readonly CompositionVariable["type"][] = ["string"];
 
 const COLOR = /^#[0-9a-fA-F]{6}$/;
 
@@ -163,6 +180,25 @@ export function validateStoryboard(storyboard: Storyboard, manifests: readonly B
     }
   };
 
+  const byVariable = new Map((format.variables ?? []).map((variable) => [variable.id, variable]));
+  /** A template's props bound to its variables: a text or image prop, a variable of the contract that fits it. */
+  const checkBindings = (where: string, manifest: BlockManifest, scene: StoryboardScene) => {
+    for (const [key, id] of Object.entries(scene.variables)) {
+      const prop = manifest.props[key];
+      const variable = byVariable.get(id);
+      if (!format.variables) errors.push(`${where} : scenes[].variables ne sert qu'aux templates, laisse-le vide.`);
+      else if (!variable) errors.push(`${where} : variable « ${id} » inconnue. Variables du template : ${[...byVariable.keys()].join(", ")}.`);
+      else if (!prop) errors.push(`${where} : variables lie une prop « ${key} » inconnue du bloc ${manifest.id}.`);
+      else if ((prop.type !== "text" && prop.type !== "image") || !prop.bindable)
+        errors.push(`${where} : la prop « ${key} » du bloc ${manifest.id} ne peut pas porter de variable (seuls les textes et les images le peuvent).`);
+      else if (!BINDABLE_VARIABLE_TYPES.includes(variable.type)) errors.push(`${where} : la variable « ${id} » est de type ${variable.type}, une prop ne montre qu'un texte ou une image.`);
+      else if (prop.type === "image" && !isAssetPath(String(variable.default)))
+        errors.push(`${where} : la variable « ${id} » liée à l'image « ${key} » doit valoir un chemin assets/….`);
+      else if (prop.type === "text" && prop.maxLength && variable.type === "string" && (variable.maxLength ?? variable.default.length) > prop.maxLength)
+        warnings.push(`${where} : la variable « ${id} » accepte ${variable.maxLength ?? variable.default.length} caractères, le bloc ${manifest.id} en affiche ${prop.maxLength} pour « ${key} » ; une valeur plus longue débordera.`);
+    }
+  };
+
   let custom = 0;
   for (const scene of storyboard.scenes) {
     const where = `scène ${scene.id}`;
@@ -176,6 +212,7 @@ export function validateStoryboard(storyboard: Storyboard, manifests: readonly B
         errors.push(`${where} : props.description fait ${description.length} caractères, ${CUSTOM_DESCRIPTION_MAX} au plus.`);
       const extra = Object.keys(scene.props).filter((key) => key !== "description");
       if (extra.length) errors.push(`${where} : une scène custom n'a que props.description (en trop : ${extra.join(", ")}).`);
+      if (Object.keys(scene.variables).length) errors.push(`${where} : une scène custom ne porte pas de variable, lie-les aux scènes de blocs.`);
       continue;
     }
     const manifest = byId.get(scene.block);
@@ -187,7 +224,13 @@ export function validateStoryboard(storyboard: Storyboard, manifests: readonly B
     if (scene.duration < manifest.duration.min || scene.duration > manifest.duration.max)
       errors.push(`${where} : durée ${scene.duration} s hors des bornes du bloc ${manifest.id} (${manifest.duration.min} à ${manifest.duration.max} s).`);
     checkBlock(where, manifest, scene.props);
+    checkBindings(where, manifest, scene);
   }
+  const contract = format.variables ?? [];
+  const bound = new Set(storyboard.scenes.flatMap((scene) => Object.values(scene.variables)));
+  for (const variable of contract)
+    if (!bound.has(variable.id))
+      errors.push(`La variable « ${variable.id} » (${variable.label}) n'est montrée par aucune scène : lie-la à une prop dans scenes[].variables.`);
   if (custom > MAX_CUSTOM_SCENES) errors.push(`${custom} scènes custom : ${MAX_CUSTOM_SCENES} au plus, utilise les blocs du catalogue pour les autres.`);
 
   const order = new Map(storyboard.scenes.map((scene, index) => [scene.id, index]));
@@ -245,8 +288,26 @@ export function parseStoryboard(
     const errors = parsed.error.issues.map((issue) => `${issue.path.join(".") || "racine"} : ${issue.message}`);
     return { storyboard: null, errors, warnings: [] };
   }
-  const check = validateStoryboard(parsed.data, manifests, format);
-  return { storyboard: check.errors.length ? null : parsed.data, ...check };
+  const storyboard = applyContract(parsed.data, format.variables);
+  const check = validateStoryboard(storyboard, manifests, format);
+  return { storyboard: check.errors.length ? null : storyboard, ...check };
+}
+
+/** A prop bound to a variable shows the variable's default: the contract wins over what the model wrote. */
+export function applyContract(storyboard: Storyboard, variables: readonly CompositionVariable[] | null | undefined): Storyboard {
+  if (!variables?.length) return storyboard;
+  const byId = new Map(variables.map((variable) => [variable.id, variable]));
+  return {
+    ...storyboard,
+    scenes: storyboard.scenes.map((scene) => {
+      const props = { ...scene.props };
+      for (const [key, id] of Object.entries(scene.variables)) {
+        const variable = byId.get(id);
+        if (variable?.type === "string") props[key] = variable.default;
+      }
+      return { ...scene, props };
+    }),
+  };
 }
 
 /**
@@ -284,6 +345,7 @@ export function storyboardJsonSchema(manifests: readonly BlockManifest[]): Recor
             props,
             voiceover: { type: "string" },
             transition: { type: "string", enum: [...TRANSITIONS] },
+            variables: { type: "object", additionalProperties: { type: "string" } },
           },
         },
       },
@@ -509,8 +571,9 @@ export function fillBlock(
   block: LoadedBlock,
   values: Record<string, string>,
   slot: { id: string; duration: number; width: number; height: number; safeBottom?: number; words?: readonly BlockWord[] },
+  variables: Readonly<Record<string, string>> = {},
 ): string {
-  return block.html.replace(/\{\{\s*(@?[a-zA-Z][a-zA-Z0-9]*)\s*\}\}/g, (_, key: string) => {
+  return bindVariables(block, variables).replace(/\{\{\s*(@?[a-zA-Z][a-zA-Z0-9]*)\s*\}\}/g, (_, key: string) => {
     if (key === "@id") return slot.id;
     if (key === "@duration") return String(r3(slot.duration));
     if (key === "@width") return String(slot.width);
@@ -526,6 +589,24 @@ export function fillBlock(
 }
 
 /**
+ * Marks the element of each bound prop for the HyperFrames runtime: `data-var-text` on the element whose whole text
+ * is `{{prop}}`, `data-var-src` next to `src="{{prop}}"`. The filled value stays the fallback. A prop the template
+ * cannot find that way is a block authoring error.
+ */
+function bindVariables(block: LoadedBlock, variables: Readonly<Record<string, string>>): string {
+  let html = block.html;
+  for (const [key, id] of Object.entries(variables)) {
+    const prop = block.manifest.props[key];
+    const before = html;
+    if (prop?.type === "text")
+      html = html.replace(new RegExp(`(<([a-z0-9]+)\\b[^>]*?)(\\s*/?>)\\s*\\{\\{\\s*${key}\\s*\\}\\}\\s*(</\\2>)`), `$1 data-var-text="${id}"$3{{${key}}}$4`);
+    if (prop?.type === "image") html = html.replace(new RegExp(`src="\\{\\{\\s*${key}\\s*\\}\\}"`), `src="{{${key}}}" data-var-src="${id}"`);
+    if (html === before) throw new Error(`bloc ${block.manifest.id} : la prop ${key} ne peut pas porter la variable ${id}`);
+  }
+  return html;
+}
+
+/**
  * Builds the video from a validated storyboard: one sub-composition per scene (`compositions/scenes/<id>.html`,
  * the block filled with its values, so every text stays plain text in the editor), the overlays above them
  * (`compositions/overlays/<id>.html`), the voice of each scene at its start, the music bed under all of it, and the
@@ -538,6 +619,7 @@ export function assembleVideo({
   width,
   height,
   audio,
+  variables,
   gsapSrc = "https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js",
 }: {
   storyboard: Storyboard;
@@ -545,6 +627,8 @@ export function assembleVideo({
   width: number;
   height: number;
   audio?: AudioMeta | null;
+  /** A template's contract, declared on the root `<html>` as the composition's variables. */
+  variables?: readonly CompositionVariable[] | null;
   gsapSrc?: string;
 }): AssembledVideo {
   const voices = new Map((audio?.voices ?? []).map((voice) => [voice.frame, voice]));
@@ -585,7 +669,7 @@ export function assembleVideo({
       const block = blocks.get(scene.block);
       if (!block) throw new Error(`scène ${scene.id} : bloc ${scene.block} introuvable`);
       path = `compositions/scenes/${scene.id}.html`;
-      files[path] = fillBlock(block, scene.props, { id: compId, duration: slotDuration, width, height, safeBottom: safeBottoms[scene.id] });
+      files[path] = fillBlock(block, scene.props, { id: compId, duration: slotDuration, width, height, safeBottom: safeBottoms[scene.id] }, scene.variables);
     }
     clips.push(
       `      <div id="el-${scene.id}" class="clip scene" data-composition-id="${compId}" data-composition-src="${path}" data-start="${timing.start}" data-duration="${slotDuration}" data-track-index="${index % 2}" data-width="${width}" data-height="${height}" data-label="${escapeHtml(`${index + 1}. ${scene.title}`)}"></div>`,
@@ -637,8 +721,11 @@ export function assembleVideo({
       `      <audio id="el-bgm" src="${escapeHtml(audio.bgm.path)}" data-start="0" data-duration="${total}" data-track-index="11" data-volume="${audio.bgm.volume ?? 0.18}" data-fade-out="1.5"></audio>`,
     );
 
+  const declared = variables?.length
+    ? ` data-composition-variables='${JSON.stringify(variables).replace(/&/g, "&amp;").replace(/'/g, "&#39;")}'`
+    : "";
   const indexHtml = `<!doctype html>
-<html lang="fr">
+<html lang="fr"${declared}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=${width}, height=${height}" />

@@ -16,6 +16,7 @@ import {
   type LoadedBlock,
   type Storyboard,
 } from "./storyboard";
+import { usesBlocks } from "./jobs";
 
 const hook: BlockManifest = blockManifestSchema.parse({
   id: "hook",
@@ -301,6 +302,49 @@ describe("overlays and custom scenes", () => {
     expect(catalog.indexOf("### custom")).toBeLessThan(catalog.indexOf("## Calques par-dessus"));
     expect(catalog).toContain("### captions — Sous-titres");
     expect(catalog).toContain("Demande une voix off");
+  });
+});
+
+describe("templates", () => {
+  const contract = [
+    { id: "headline", type: "string" as const, label: "Accroche", default: "Offre de rentrée", maxLength: 30 },
+    { id: "photo", type: "string" as const, label: "Photo", default: "assets/uploads/rentree.jpg" },
+  ];
+  const scenes = (variables: [Record<string, string>, Record<string, string>]) => [
+    { id: "s1", title: "Hook", block: "hook", duration: 2, props: { text: "x" }, variables: variables[0] },
+    { id: "s2", title: "Photo", block: "media", duration: 3, props: { src: "assets/uploads/autre.jpg" }, variables: variables[1] },
+  ];
+  const text = (variables: [Record<string, string>, Record<string, string>]) =>
+    JSON.stringify({ version: 1, title: "Essai", audio: { voice: false, music: null }, scenes: scenes(variables) });
+
+  it("shows every variable through a prop, which takes the variable's default", () => {
+    const { storyboard: parsed, errors, warnings } = parseStoryboard(text([{ text: "headline" }, { src: "photo" }]), manifests, { ...format, variables: contract });
+    expect(errors).toEqual([]);
+    expect(parsed!.scenes[0].props.text).toBe("Offre de rentrée");
+    expect(parsed!.scenes[1].props.src).toBe("assets/uploads/rentree.jpg");
+    // The hook holds 20 characters, the variable 30.
+    expect(warnings.join("\n")).toMatch(/accepte 30 caractères, le bloc hook en affiche 20/);
+
+    const out = assembleVideo({ storyboard: parsed!, blocks, width: 1080, height: 1920, variables: contract });
+    expect(out.files["compositions/scenes/s1.html"]).toContain('<p style="color: #FF0000" data-var-text="headline">Offre de rentrée</p>');
+    expect(out.files["compositions/scenes/s2.html"]).toContain('<img src="assets/uploads/rentree.jpg" data-var-src="photo"');
+    expect(out.indexHtml).toContain(`<html lang="fr" data-composition-variables='[{"id":"headline"`);
+  });
+
+  it("refuses a variable left out, unknown, on a prop that cannot carry it, or outside a template", () => {
+    const errors = parseStoryboard(text([{ accent: "headline" }, { src: "nope" }]), manifests, { ...format, variables: contract }).errors.join("\n");
+    expect(errors).toMatch(/la prop « accent » du bloc hook ne peut pas porter de variable/);
+    expect(errors).toMatch(/variable « nope » inconnue/);
+    expect(errors).toMatch(/La variable « photo » \(Photo\) n'est montrée par aucune scène/);
+    expect(parseStoryboard(text([{ text: "headline" }, {}]), manifests, format).errors.join("\n")).toMatch(/ne sert qu'aux templates/);
+  });
+});
+
+describe("usesBlocks", () => {
+  it("covers a video from an idea, one-shot or template, not one made from footage", () => {
+    expect(usesBlocks({ type: "video", kind: "template", brief: { engine: "blocks" } })).toBe(true);
+    expect(usesBlocks({ type: "video", kind: "oneshot", brief: { engine: "blocks", footage: "a.mp4" } })).toBe(false);
+    expect(usesBlocks({ type: "video", kind: "oneshot", brief: {} })).toBe(false);
   });
 });
 

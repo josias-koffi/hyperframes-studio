@@ -125,7 +125,9 @@ A video whose `STORYBOARD.md` frontmatter says `engine: blocks` is assembled by 
 `index.html` and `compositions/scenes/*.html` are regenerated at every build. To change such a video for good,
 change `STORYBOARD.json` (props, order, durations, `overlays`); an edit of the HTML lasts until the next build.
 A scene whose block is `custom` is the exception: its sub-composition, `compositions/custom/<scene>.html`, is
-written by an agent and kept across builds until its description changes.
+written by an agent and kept across builds until its description changes. In a template, `scenes[].variables`
+binds block props to the variables of `VARIABLES.json` (`data-var-text` / `data-var-src` in the scene, the contract
+declared on `index.html`).
 
 ## Linting — ALWAYS RUN AFTER CHANGES
 

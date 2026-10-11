@@ -6,6 +6,8 @@ import {
   assembleVideo,
   blockManifestSchema,
   blocksCatalog,
+  BINDABLE_VARIABLE_TYPES,
+  compositionVariablesSchema,
   CUSTOM_BLOCK,
   customScenePath,
   sceneCompositionId,
@@ -121,6 +123,20 @@ export function storyboardSystemPrompt(manifests: readonly BlockManifest[], form
     "# Catalogue des blocs",
     "",
     blocksCatalog(manifests, format),
+    ...(format.variables?.length ? ["", templateSection(format.variables)] : []),
+  ].join("\n");
+}
+
+function templateSection(variables: NonNullable<StoryboardFormat["variables"]>): string {
+  return [
+    "# Variables du template",
+    "",
+    "Cette vidéo est un template : elle sera déclinée en changeant ces variables. Montre chacune par au moins une prop texte ou image d'une scène de blocs, indiquée dans `scenes[].variables` (`{\"prop\": \"id\"}`) ; la prop prend la valeur par défaut de la variable. Choisis pour chacune un bloc dont la prop tient sa longueur.",
+    "",
+    ...variables.map((variable) => {
+      const max = variable.type === "string" && variable.maxLength ? `, ${variable.maxLength} caractères max` : "";
+      return `- ${variable.id} (${variable.type}${max}) : ${variable.label} — défaut ${JSON.stringify(variable.default)}`;
+    }),
   ].join("\n");
 }
 
@@ -459,7 +475,7 @@ async function buildStep(ctx: BlocksContext, manifests: BlockManifest[], blocks:
   if (!storyboard) return { ok: false, resultText: errors.join("\n") };
   const metaPath = join(dir, "audio_meta.json");
   const audio = (await exists(metaPath)) ? (JSON.parse(await readFile(metaPath, "utf8")) as AudioMeta) : null;
-  const assembled = assembleVideo({ storyboard, blocks, width: ctx.format.width, height: ctx.format.height, audio });
+  const assembled = assembleVideo({ storyboard, blocks, width: ctx.format.width, height: ctx.format.height, audio, variables: ctx.format.variables });
   // The scenes are regenerated from STORYBOARD.json: a scene removed from the storyboard must not linger.
   await rm(join(dir, "compositions", "scenes"), { recursive: true, force: true });
   await writeFile(join(dir, "index.html"), assembled.indexHtml);
@@ -486,12 +502,32 @@ async function buildStep(ctx: BlocksContext, manifests: BlockManifest[], blocks:
   return done({ ok: true, resultText: `Check passé. ${storyboard.scenes.length} scènes, ${assembled.duration} s.` });
 }
 
+/** A template's `VARIABLES.json`, which the blocks can show only as texts and images; a string explains a refusal. */
+async function readContract(ctx: BlocksContext): Promise<StoryboardFormat["variables"] | string> {
+  const path = join(videoDir(ctx), "VARIABLES.json");
+  if (!(await exists(path))) return null;
+  let parsed;
+  try {
+    parsed = compositionVariablesSchema.safeParse(JSON.parse(await readFile(path, "utf8")));
+  } catch (error) {
+    return `VARIABLES.json illisible : ${error instanceof Error ? error.message : String(error)}`;
+  }
+  if (!parsed.success) return `VARIABLES.json invalide : ${parsed.error.issues.map((issue) => issue.message).join(" ; ")}`;
+  const unbindable = parsed.data.filter((variable) => !BINDABLE_VARIABLE_TYPES.includes(variable.type));
+  if (unbindable.length)
+    return `Le moteur blocs ne montre que des variables texte ou image (type string) : ${unbindable.map((variable) => `${variable.id} (${variable.type})`).join(", ")}. Retire-les ou change leur type dans les variables du template.`;
+  return parsed.data;
+}
+
 /**
  * A step of the blocks engine. A comment on the storyboard or on the build rewrites STORYBOARD.json with the model
  * (never the HTML), and a build comment then assembles again.
  */
 export async function runBlocksStep(ctx: BlocksContext): Promise<BlocksStepResult> {
   const { manifests, blocks } = await loadBlocks(ctx.workspaceDir);
+  const contract = await readContract(ctx);
+  if (typeof contract === "string") return { ok: false, resultText: contract };
+  if (contract) ctx = { ...ctx, format: { ...ctx.format, variables: contract } };
   if (ctx.step === "storyboard") {
     const current = ctx.feedback ? (await readStoryboard(ctx, manifests)).storyboard : null;
     return storyboardStep(ctx, manifests, current);

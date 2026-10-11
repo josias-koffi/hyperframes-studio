@@ -74,7 +74,7 @@ const KINDS: { value: CreationKind; label: string; description: string; icon: Lu
 
 type Engine = "agent" | "blocks";
 
-/** How the video is made after the brief; the blocks engine only covers a one-shot video from an idea for now. */
+/** How the video is made after the brief; the blocks engine covers a video from an idea, one-shot or template. */
 const ENGINES: { value: Engine; label: string; description: string; icon: LucideIcon }[] = [
   {
     value: "agent",
@@ -344,7 +344,7 @@ export function NewCreationForm({
   const required = video ? REQUIRED_FILE[start] : undefined;
   const choices = WORKFLOWS.filter((w) => w.start === start);
   const chosen = choices.find((w) => w.value === workflow);
-  const blocksAvailable = video && start === "idea" && kind === "oneshot";
+  const blocksAvailable = video && start === "idea";
   const projectLabel = projectId === "new" ? projectName : projects.find((p) => p.id === projectId)?.name;
 
   const ready: Record<Step, boolean> = {

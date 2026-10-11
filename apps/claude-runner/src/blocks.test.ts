@@ -1,7 +1,7 @@
 import { chmod, mkdir, mkdtemp, readFile, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { assembleVideo, parseStoryboard, type StudioEvent } from "@studio/shared";
+import { assembleVideo, fillBlock, parseStoryboard, type StudioEvent } from "@studio/shared";
 import { describe, expect, it } from "vitest";
 import { availableAssets, loadBlocks, runBlocksStep, writeStoryboard, type BlocksContext } from "./blocks";
 import { blocksModelFor } from "./process-job";
@@ -97,6 +97,18 @@ describe("the shipped blocks", () => {
   });
 });
 
+describe("template variables on the shipped blocks", () => {
+  it("bind to every text and image prop that allows it", async () => {
+    const { blocks } = await loadBlocks(SKELETON);
+    for (const { manifest, html } of blocks.values()) {
+      const bindable = Object.entries(manifest.props).filter(([, prop]) => (prop.type === "text" || prop.type === "image") && prop.bindable);
+      const variables = Object.fromEntries(bindable.map(([key]) => [key, `v_${key}`]));
+      const filled = fillBlock({ manifest, html }, manifest.example ?? {}, { id: "x", duration: 3, width: 1080, height: 1920 }, variables);
+      for (const [key, prop] of bindable) expect(filled, `${manifest.id}.${key}`).toContain(prop.type === "image" ? `data-var-src="v_${key}"` : `data-var-text="v_${key}"`);
+    }
+  });
+});
+
 describe("writeStoryboard", () => {
   it("answers the model with the errors until the storyboard passes", async () => {
     const bodies: { messages: { role: string; content: string }[]; response_format: { type: string } }[] = [];
@@ -177,6 +189,15 @@ describe("runBlocksStep", () => {
     const result = await runBlocksStep(ctx("media"));
     expect(result).toMatchObject({ ok: true, resultText: "Musique en place (audio_meta.json)." });
     expect(await calls()).toEqual(["audio videos/essai --music warm lofi --steps music,meta --duration 13"]);
+  });
+
+  it("refuses a template whose contract has variables the blocks cannot show, before any call", async () => {
+    const { dir, ctx } = await fakeWorkspace(valid);
+    await writeFile(join(dir, "videos/essai/VARIABLES.json"), JSON.stringify([{ id: "price", type: "number", label: "Prix", default: 29 }]));
+    await writeFile(join(dir, "videos/essai/BRIEF.md"), "# Brief");
+    const result = await runBlocksStep(ctx("storyboard"));
+    expect(result).toMatchObject({ ok: false });
+    expect(result.resultText).toMatch(/que des variables texte ou image \(type string\) : price \(number\)/);
   });
 
   it("skips the media step of a silent video", async () => {

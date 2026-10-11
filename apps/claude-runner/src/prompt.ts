@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { CreationKind, CreationType, GenerationStep } from "@studio/shared";
+import { usesBlocks, type CreationKind, type CreationType, type GenerationStep } from "@studio/shared";
 
 export type PromptContext = {
   step: GenerationStep;
@@ -48,6 +48,10 @@ export async function buildPrompt(promptsDir: string, context: PromptContext): P
   template += await readFile(join(promptsDir, "partials", formatPartial(context)), "utf8");
   if (context.kind === "template" && CONTRACT_STEPS.includes(context.step)) {
     template += await readFile(join(promptsDir, "partials", "template.md"), "utf8");
+  }
+  // The blocks engine shows a variable only as a text or an image.
+  if (context.step === "variables" && usesBlocks(context)) {
+    template += await readFile(join(promptsDir, "partials", "blocks-variables.md"), "utf8");
   }
   return renderTemplate(template, {
     step: context.step,

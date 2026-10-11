@@ -93,4 +93,10 @@ describe("buildPrompt", () => {
     expect(await build("oneshot", "build")).not.toContain("VARIABLES.json");
     expect(await build("template", "brief")).not.toContain("VARIABLES.json");
   });
+
+  it("asks a blocks template for text and image variables only", async () => {
+    const variables = (brief: Record<string, unknown>) => buildPrompt(PROMPTS, { ...base, kind: "template", step: "variables", brief });
+    expect(await variables({ message: "m", engine: "blocks" })).toContain("**Moteur blocs.**");
+    expect(await variables({ message: "m" })).not.toContain("Moteur blocs");
+  });
 });

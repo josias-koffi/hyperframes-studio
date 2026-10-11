@@ -29,8 +29,8 @@ export function hasFootage({ type, brief }: CreationShape): boolean {
  * assembles the blocks by code. No agent turn after the brief, so a cheap model is enough.
  */
 export function usesBlocks(creation: CreationShape): boolean {
-  // Templates keep the agent engine for now: their variables contract is not mapped onto block props yet.
-  return creation.type === "video" && creation.kind === "oneshot" && creation.brief?.engine === "blocks" && !hasFootage(creation);
+  // A template's variables are shown by block props (`scenes[].variables` of the storyboard).
+  return creation.type === "video" && creation.brief?.engine === "blocks" && !hasFootage(creation);
 }
 
 /** Steps the blocks engine runs itself; the brief, and any edit asked from the editor, stay agent turns. */
