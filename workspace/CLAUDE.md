@@ -151,7 +151,7 @@ Fix all errors before presenting the result. Warnings should be reviewed before 
 5. Sub-compositions use `data-composition-src="compositions/file.html"` to reference other HTML files
 6. Only deterministic logic — no `Date.now()`, no `Math.random()`, no network fetches
 7. Keep every création editable by hand in Framesmith's editor (layers, timeline, properties panel):
-   - every visible element the user may want to change (a title, a text block, a logo, an image, a shape) is its own element, named in French with `data-layer="…"` (« Titre », « Logo », « Fond »…);
+   - every visible element the user may want to change (a title, a text block, a logo, an image, a shape) is its own element, named in French with `data-label="…"` (« Titre », « Logo », « Fond »…) — never `data-layer`, which `check` rejects as deprecated;
    - texts are plain text in their element (no text drawn on a canvas, no text converted to SVG paths unless the design needs it), images are `<img>` elements;
    - on an image or a carousel slide, the main elements are placed with `position: absolute` inside the slide;
    - GSAP calls on a clip of the root timeline stay one call per line with a numeric position (`tl.to("#el-02", {…}, 3.2);`), so they follow the clip when the user moves it.

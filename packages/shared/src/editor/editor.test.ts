@@ -10,6 +10,7 @@ import {
   byHfId,
   duplicateSlide,
   insertElement,
+  labelOperations,
   layersOf,
   layoutLanes,
   moveClip,
@@ -149,7 +150,10 @@ describe("carousel slides", () => {
       '<section id="b" class="slide" data-start="1" data-duration="1" data-layer="Fin"></section></div>';
     expect(duplicateSlide(html, 0)).toContain('<div data-layer="Rectangle"></div></section>');
     expect(duplicateSlide(html, 0)).not.toContain("Rectangle (copie)");
-    expect(duplicateSlide(html, 1)).toContain('data-layer="Fin (copie)"');
+    // A slide named before `data-layer` was deprecated: its copy is named with `data-label`.
+    expect(duplicateSlide(html, 1)).toContain('data-label="Fin (copie)"');
+    expect(duplicateSlide(html, 1)).not.toContain('data-layer="Fin (copie)"');
+    expect(slidesOf(html)[1].label).toBe("Fin");
   });
 
   it("moves, removes and adds slides", () => {
@@ -179,6 +183,19 @@ describe("layers and added elements", () => {
     ]);
   });
 
+  it("reads layer names from data-label, and from data-layer in older créations", () => {
+    const html = '<div id="root" data-composition-id="main"><h1 data-label="Titre">A</h1><p data-layer="Ancien nom">B</p></div>';
+    expect(layersOf(html).map((layer) => layer.label)).toEqual(["Titre", "Ancien nom"]);
+  });
+
+  it("renames a layer with data-label and drops data-layer", () => {
+    const html = '<div id="root" data-composition-id="main"><p id="old" data-layer="Ancien nom">B</p></div>';
+    const layer = layersOf(html)[0];
+    const renamed = applyPatches(html, [{ target: layer.target, operations: labelOperations("Nouveau") }]);
+    expect(renamed).toContain('data-label="Nouveau"');
+    expect(renamed).not.toContain("data-layer");
+  });
+
   it("adds a named, placed element to a slide or a timed one to a video", () => {
     const carousel = fixture("carousel.html");
     const slide = slidesOf(carousel)[1];
@@ -186,6 +203,8 @@ describe("layers and added elements", () => {
     const layers = layersOf(html, slide.key);
     expect(layers.find((layer) => layer.key === key)).toMatchObject({ kind: "text", label: "Texte", text: "Nouveau <titre>" });
     expect(html).toContain("left: 80px; top: 120px");
+    expect(html).toContain('data-label="Texte"');
+    expect(html).not.toContain("data-layer");
 
     const video = fixture("video-scenes.html");
     const track = nextTrack(video);

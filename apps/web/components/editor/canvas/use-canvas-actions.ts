@@ -5,6 +5,7 @@ import {
   applyPatches,
   duplicateSlide,
   insertElement,
+  labelOperations,
   moveSlide,
   parseComposition,
   removeElementSource,
@@ -66,7 +67,7 @@ export function useCanvasActions() {
   );
 
   const rename = useCallback(
-    (target: ElementTarget, label: string) => patch(target, [{ type: "attribute", property: "layer", value: label.trim() || null }], "Renommer le calque"),
+    (target: ElementTarget, label: string) => patch(target, labelOperations(label), "Renommer le calque"),
     [patch],
   );
 

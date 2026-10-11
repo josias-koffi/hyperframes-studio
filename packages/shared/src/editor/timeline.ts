@@ -109,9 +109,14 @@ const KIND_LABEL: Record<ClipKind, string> = {
   music: "Musique",
 };
 
+/** The name given to an element: `data-label`, or `data-layer` in créations made before HyperFrames deprecated it. */
+export function layerName(attrs: Record<string, string | undefined>): string | undefined {
+  return attrs["data-label"] ?? attrs["data-layer"];
+}
+
 export function labelOf(html: string, node: HtmlNode, kind: ClipKind = kindOf(html, node)): string {
   const attrs = node.attrs;
-  const named = attrs["data-layer"] ?? attrs["data-label"] ?? attrs["data-timeline-label"];
+  const named = layerName(attrs) ?? attrs["data-timeline-label"];
   if (named?.trim()) return named.trim();
   if (kind === "text") {
     const text = textOf(html, node);
@@ -294,8 +299,13 @@ export function setVolume(clip: Clip, volume: number): ElementPatch {
   return { target: clip.target, operations: [attr("data-volume", round(Math.min(1, Math.max(0, volume))))] };
 }
 
+/** Names an element with `data-label`, dropping the deprecated `data-layer` it may carry from an older création. */
+export function labelOperations(label: string): PatchOperation[] {
+  return [attr("data-label", label.trim() || null), attr("data-layer", null)];
+}
+
 export function setClipLabel(clip: Clip, label: string): ElementPatch {
-  return { target: clip.target, operations: [attr("data-layer", label.trim() || null)] };
+  return { target: clip.target, operations: labelOperations(label) };
 }
 
 /** Points to the nearest snapping time within `threshold`, else `time` unchanged. */

@@ -17,7 +17,7 @@ import {
   type HtmlNode,
   type SourceEdit,
 } from "./html-tree";
-import { humanize, keyOf, labelOf, rootOf, round, targetOf, type ElementTarget } from "./timeline";
+import { humanize, keyOf, labelOf, layerName, rootOf, round, targetOf, type ElementTarget } from "./timeline";
 
 /** Inline `style` as a map, in authored order. */
 export function parseStyle(style: string | undefined): Map<string, string> {
@@ -76,7 +76,7 @@ export function slidesOf(html: string): Slide[] {
     index,
     key: keyOf(node),
     target: targetOf(node),
-    label: node.attrs["data-layer"]?.trim() || `Diapo ${index + 1}`,
+    label: layerName(node.attrs)?.trim() || `Diapo ${index + 1}`,
     time: index + 0.5,
     signature: signatureOf(`${index}${styles}${outerHtml(html, node)}`),
   }));
@@ -162,7 +162,7 @@ export function duplicateSlide(html: string, index: number): string {
   const copy = applyEdits(markup, [
     setAttributesEdit(markup, root, {
       "data-start": String(index + 1),
-      ...(root.attrs["data-layer"] ? { "data-layer": `${root.attrs["data-layer"]} (copie)` } : {}),
+      ...(layerName(root.attrs) ? { "data-label": `${layerName(root.attrs)} (copie)`, "data-layer": null } : {}),
     }),
   ]);
   const order: Array<HtmlNode | null> = [...slides];
@@ -218,7 +218,7 @@ export function addSlide(html: string, index: number, random: () => number = Mat
   const markup =
     `<${tag} data-hf-id="${mintHfId(taken, random)}" id="${uniqueId(`diapo-${position + 1}`, taken)}" class="${escapeHtml(reference?.attrs.class ?? "clip")}" ` +
     `data-start="${position}" data-duration="1" data-track-index="${escapeHtml(reference?.attrs["data-track-index"] ?? "0")}" ` +
-    `data-layer="Diapo ${position + 1}" style="position: absolute; inset: 0; background: #ffffff;"></${tag}>`;
+    `data-label="Diapo ${position + 1}" style="position: absolute; inset: 0; background: #ffffff;"></${tag}>`;
   const order: Array<HtmlNode | null> = [...slides];
   order.splice(position, 0, null);
   const anchor = reference ? reference.end : root.closeStart;
@@ -238,7 +238,7 @@ export type Layer = {
   /** The pieces of a text (`textRuns`): more than one when parts of it are styled apart. */
   runs: string[];
   hidden: boolean;
-  /** Named by Claude or the user (`data-layer`). */
+  /** Named by Claude or the user (`data-label`). */
   named: boolean;
   /** Template variable bound to the layer's text or image (`data-var-text`, `data-var-src`): edited as a variable. */
   variable: string | null;
@@ -256,7 +256,7 @@ function layerKind(html: string, node: HtmlNode): LayerKind {
 
 /**
  * The layers of a slide (or of an image's root), front-most last as in the source: every named element
- * (`data-layer`), else the visible leaves (texts, images, empty shapes), groups only when named.
+ * (`data-label`), else the visible leaves (texts, images, empty shapes), groups only when named.
  */
 export function layersOf(html: string, containerKey?: string | null): Layer[] {
   const document = parseHtml(html);
@@ -267,7 +267,7 @@ export function layersOf(html: string, containerKey?: string | null): Layer[] {
     for (const child of node.children) {
       if (SKIPPED.has(child.tag)) continue;
       const kind = layerKind(html, child);
-      const named = Boolean(child.attrs["data-layer"]?.trim());
+      const named = Boolean(layerName(child.attrs)?.trim());
       const leaf = kind !== "group" || MEDIA.has(child.tag);
       if (named || leaf) {
         layers.push({
@@ -327,7 +327,7 @@ export function elementMarkup(element: NewElement, placement: Placement, hfId: s
   const label = (fallback: string) => escapeHtml(element.label?.trim() || fallback);
   switch (element.kind) {
     case "text":
-      return `<div data-hf-id="${hfId}" data-layer="${label("Texte")}"${timing} style="${[
+      return `<div data-hf-id="${hfId}" data-label="${label("Texte")}"${timing} style="${[
         ...box,
         element.fontFamily ? `font-family: ${element.fontFamily.replace(/"/g, "'")}` : null,
         "font-size: 72px",
@@ -338,13 +338,13 @@ export function elementMarkup(element: NewElement, placement: Placement, hfId: s
         .filter(Boolean)
         .join("; ")};">${escapeHtml(element.text)}</div>`;
     case "image":
-      return `<img data-hf-id="${hfId}" data-layer="${label("Image")}"${timing} src="${escapeHtml(element.src)}" alt="" style="${[...box, "object-fit: cover"].join("; ")};">`;
+      return `<img data-hf-id="${hfId}" data-label="${label("Image")}"${timing} src="${escapeHtml(element.src)}" alt="" style="${[...box, "object-fit: cover"].join("; ")};">`;
     case "shape":
-      return `<div data-hf-id="${hfId}" data-layer="${label(element.shape === "ellipse" ? "Cercle" : "Rectangle")}"${timing} style="${[...box, `background: ${element.color}`, element.shape === "ellipse" ? "border-radius: 50%" : "border-radius: 0"].join("; ")};"></div>`;
+      return `<div data-hf-id="${hfId}" data-label="${label(element.shape === "ellipse" ? "Cercle" : "Rectangle")}"${timing} style="${[...box, `background: ${element.color}`, element.shape === "ellipse" ? "border-radius: 50%" : "border-radius: 0"].join("; ")};"></div>`;
     case "video":
-      return `<video data-hf-id="${hfId}" data-layer="${label("Vidéo")}"${timing} src="${escapeHtml(element.src)}" muted playsinline style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;"></video>`;
+      return `<video data-hf-id="${hfId}" data-label="${label("Vidéo")}"${timing} src="${escapeHtml(element.src)}" muted playsinline style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;"></video>`;
     case "audio":
-      return `<audio data-hf-id="${hfId}" data-layer="${label(element.voice ? "Voix" : "Musique")}"${timing} src="${escapeHtml(element.src)}" data-volume="${element.voice ? 1 : 0.3}"></audio>`;
+      return `<audio data-hf-id="${hfId}" data-label="${label(element.voice ? "Voix" : "Musique")}"${timing} src="${escapeHtml(element.src)}" data-volume="${element.voice ? 1 : 0.3}"></audio>`;
   }
 }
 
