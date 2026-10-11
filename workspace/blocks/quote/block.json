@@ -1,0 +1,17 @@
+{
+  "id": "quote",
+  "name": "Citation",
+  "description": "Une citation ou un avis client en grand, avec de grands guillemets d'accent, des étoiles facultatives et l'auteur en dessous.",
+  "useWhen": "Pour la preuve sociale : un avis client, un témoignage, une phrase d'expert ou de presse. Toujours une citation réelle tirée du brief, jamais inventée.",
+  "props": {
+    "quote": { "type": "text", "label": "Texte de la citation, sans guillemets", "maxLength": 120 },
+    "author": { "type": "text", "label": "Auteur (prénom, nom ou média)", "maxLength": 40 },
+    "role": { "type": "text", "label": "Qualité de l'auteur (cliente depuis 2023, fondatrice de…)", "maxLength": 48, "required": false, "default": "" },
+    "stars": { "type": "enum", "label": "Note en étoiles, 0 pour ne pas en afficher", "options": ["0", "3", "4", "5"], "required": false, "default": "0" },
+    "accent": { "type": "color", "label": "Couleur des guillemets et des étoiles", "required": false, "default": "#FF5A1F" },
+    "background": { "type": "color", "label": "Couleur de fond", "required": false, "default": "#141414" },
+    "textColor": { "type": "color", "label": "Couleur du texte", "required": false, "default": "#F5F3EE" }
+  },
+  "duration": { "min": 3, "max": 8, "default": 5 },
+  "example": { "quote": "J'ai fait ma première pub en dix minutes, et elle a cartonné.", "author": "Léa Martin", "role": "Fondatrice de Maison Léa", "stars": "5" }
+}

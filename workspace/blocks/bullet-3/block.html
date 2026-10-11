@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: {{background}};
+          color: {{textColor}};
+          font-family: system-ui, sans-serif;
+        }
+        .b3-stack {
+          position: absolute;
+          left: 8%;
+          right: 8%;
+          top: 0;
+          bottom: {{@safeBottom}}px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 64px;
+        }
+        .b3-title {
+          font-size: 92px;
+          line-height: 1.06;
+          font-weight: 900;
+          letter-spacing: -0.03em;
+          text-wrap: balance;
+        }
+        .b3-list {
+          display: flex;
+          flex-direction: column;
+          gap: 40px;
+        }
+        .b3-item {
+          display: flex;
+          align-items: center;
+          gap: 36px;
+        }
+        .b3-item[data-empty="true"] {
+          display: none;
+        }
+        .b3-badge {
+          flex: none;
+          width: 104px;
+          height: 104px;
+          border-radius: 50%;
+          background: {{accent}};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .b3-number {
+          font-size: 52px;
+          font-weight: 900;
+        }
+        .b3-text {
+          font-size: 58px;
+          line-height: 1.15;
+          font-weight: 700;
+          letter-spacing: -0.01em;
+        }
+      </style>
+
+      <div id="root" data-composition-id="{{@id}}" data-width="{{@width}}" data-height="{{@height}}">
+        <div class="b3-stack">
+          <h2 id="{{@id}}-title" class="b3-title" data-label="Titre">{{title}}</h2>
+          <div class="b3-list">
+            <div id="{{@id}}-item1" class="b3-item">
+              <div id="{{@id}}-badge1" class="b3-badge" data-label="Pastille 1"><span class="b3-number">1</span></div>
+              <p id="{{@id}}-text1" class="b3-text" data-label="Point 1">{{item1}}</p>
+            </div>
+            <div id="{{@id}}-item2" class="b3-item">
+              <div id="{{@id}}-badge2" class="b3-badge" data-label="Pastille 2"><span class="b3-number">2</span></div>
+              <p id="{{@id}}-text2" class="b3-text" data-label="Point 2">{{item2}}</p>
+            </div>
+            <div id="{{@id}}-item3" class="b3-item">
+              <div id="{{@id}}-badge3" class="b3-badge" data-label="Pastille 3"><span class="b3-number">3</span></div>
+              <p id="{{@id}}-text3" class="b3-text" data-label="Point 3">{{item3}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const duration = {{@duration}};
+          // The number on the badge: black or white, whichever reads best on the accent.
+          const luminance = (hex) => {
+            const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
+            return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+          };
+          const ink = (1.05) / (luminance("{{accent}}") + 0.05) >= (luminance("{{accent}}") + 0.05) / 0.05 ? "#FFFFFF" : "#000000";
+          document.querySelectorAll("#{{@id}}-item1 .b3-number, #{{@id}}-item2 .b3-number, #{{@id}}-item3 .b3-number").forEach((el) => (el.style.color = ink));
+          const third = document.getElementById("{{@id}}-text3");
+          const count = third && third.textContent.trim() ? 3 : 2;
+          if (count === 2) document.getElementById("{{@id}}-item3").setAttribute("data-empty", "true");
+          const tl = gsap.timeline({ paused: true });
+          tl.fromTo("#{{@id}}-title", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0);
+          // The points come in over the first half of the scene, then each badge is struck in turn.
+          const step = Math.min(0.7, (duration * 0.5) / count);
+          for (let i = 1; i <= count; i++) {
+            const at = 0.35 + (i - 1) * step;
+            tl.fromTo("#{{@id}}-item" + i, { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, at);
+            tl.fromTo("#{{@id}}-badge" + i, { scale: 0.4 }, { scale: 1, duration: 0.5, ease: "back.out(2)" }, at + 0.1);
+          }
+          tl.fromTo("#{{@id}}-title", { x: 0 }, { x: 24, duration: duration, ease: "none", immediateRender: false }, 0);
+          tl.to({}, { duration: duration }, 0);
+          window.__timelines["{{@id}}"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

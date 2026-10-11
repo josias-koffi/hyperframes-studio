@@ -1,0 +1,15 @@
+{
+  "id": "logo-sting",
+  "name": "Signature logo",
+  "description": "Un disque de couleur d'accent qui s'ouvre au centre, le logo qui apparaît dessus, puis une courte signature en dessous.",
+  "useWhen": "Pour signer la vidéo avec la marque : en ouverture très courte, ou juste avant l'appel à l'action. Seulement avec un logo listé comme disponible.",
+  "props": {
+    "logo": { "type": "image", "label": "Logo, chemin dans assets/" },
+    "tagline": { "type": "text", "label": "Signature sous le logo", "maxLength": 40, "required": false, "default": "" },
+    "accent": { "type": "color", "label": "Couleur du disque derrière le logo", "required": false, "default": "#FF5A1F" },
+    "background": { "type": "color", "label": "Couleur de fond", "required": false, "default": "#141414" },
+    "textColor": { "type": "color", "label": "Couleur de la signature", "required": false, "default": "#F5F3EE" }
+  },
+  "duration": { "min": 1.5, "max": 4, "default": 2.5 },
+  "example": { "logo": "assets/uploads/logo.png", "tagline": "Vos vidéos, en cinq minutes" }
+}

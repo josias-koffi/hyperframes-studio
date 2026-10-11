@@ -1,0 +1,17 @@
+{
+  "id": "media-split",
+  "name": "Image et texte",
+  "description": "Le cadre partagé en deux : une image fournie d'un côté, qui avance lentement, et un titre avec une phrase de l'autre.",
+  "useWhen": "Pour présenter le produit, une fonctionnalité ou un lieu avec une explication à côté. Seulement avec une image listée comme disponible.",
+  "props": {
+    "src": { "type": "image", "label": "Chemin de l'image, par exemple assets/uploads/produit.jpg" },
+    "title": { "type": "text", "label": "Titre", "maxLength": 40 },
+    "text": { "type": "text", "label": "Phrase d'explication", "maxLength": 90, "required": false, "default": "" },
+    "layout": { "type": "enum", "label": "Image en premier (en haut ou à gauche) ou texte en premier", "options": ["image-first", "text-first"], "required": false, "default": "image-first" },
+    "accent": { "type": "color", "label": "Couleur du filet", "required": false, "default": "#FF5A1F" },
+    "background": { "type": "color", "label": "Couleur de fond du texte", "required": false, "default": "#F4F1EA" },
+    "textColor": { "type": "color", "label": "Couleur du texte", "required": false, "default": "#141414" }
+  },
+  "duration": { "min": 3, "max": 8, "default": 4.5 },
+  "example": { "src": "assets/uploads/produit.jpg", "title": "Pensée pour les petites équipes", "text": "Un outil, une personne, une vidéo publiée chaque jour." }
+}

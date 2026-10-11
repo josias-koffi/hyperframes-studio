@@ -9,5 +9,6 @@
     "caption": { "type": "text", "label": "Légende en bas de l'image", "maxLength": 60, "required": false, "default": "" },
     "accent": { "type": "color", "label": "Couleur du filet de la légende", "required": false, "default": "#FF5A1F" }
   },
-  "duration": { "min": 2, "max": 8, "default": 4 }
+  "duration": { "min": 2, "max": 8, "default": 4 },
+  "example": { "src": "assets/uploads/produit.jpg", "motion": "push-in", "caption": "Céramique et double paroi" }
 }

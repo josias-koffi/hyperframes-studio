@@ -1,0 +1,17 @@
+{
+  "id": "stat-countup",
+  "name": "Chiffre clé",
+  "description": "Un très grand chiffre qui compte depuis zéro jusqu'à sa valeur, avec un préfixe ou une unité, et une phrase qui dit ce qu'il mesure.",
+  "useWhen": "Pour un chiffre fort et vérifiable du brief : un pourcentage, un nombre de clients, un gain de temps ou d'argent. N'invente jamais de chiffre.",
+  "props": {
+    "value": { "type": "text", "label": "Le nombre seul, en chiffres (87, 1200, 4,9)", "maxLength": 9 },
+    "prefix": { "type": "text", "label": "Avant le nombre (+, x, ×, -)", "maxLength": 3, "required": false, "default": "" },
+    "suffix": { "type": "text", "label": "Après le nombre (%, k, €, h, min)", "maxLength": 4, "required": false, "default": "" },
+    "label": { "type": "text", "label": "Ce que mesure le chiffre", "maxLength": 64 },
+    "accent": { "type": "color", "label": "Couleur du chiffre", "required": false, "default": "#FF5A1F" },
+    "background": { "type": "color", "label": "Couleur de fond", "required": false, "default": "#141414" },
+    "textColor": { "type": "color", "label": "Couleur de la phrase", "required": false, "default": "#F5F3EE" }
+  },
+  "duration": { "min": 2, "max": 6, "default": 3.5 },
+  "example": { "value": "87", "suffix": "%", "label": "des clients publient leur première vidéo le jour même" }
+}

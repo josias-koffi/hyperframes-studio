@@ -1,0 +1,131 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: {{background}};
+          color: {{textColor}};
+          font-family: system-ui, sans-serif;
+        }
+        .sc-stack {
+          position: absolute;
+          left: 8%;
+          right: 8%;
+          top: 0;
+          bottom: {{@safeBottom}}px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 40px;
+        }
+        .sc-figure {
+          display: flex;
+          align-items: baseline;
+          flex-wrap: nowrap;
+          color: {{accent}};
+          font-weight: 900;
+          letter-spacing: -0.04em;
+          line-height: 1;
+          white-space: nowrap;
+        }
+        .sc-number {
+          font-size: 260px;
+          font-variant-numeric: tabular-nums;
+        }
+        .sc-affix {
+          font-size: 140px;
+        }
+        .sc-affix:empty {
+          display: none;
+        }
+        .sc-rule {
+          width: 140px;
+          height: 12px;
+          border-radius: 6px;
+          background: {{accent}};
+          transform-origin: left center;
+        }
+        .sc-label {
+          font-size: 62px;
+          line-height: 1.18;
+          font-weight: 700;
+          text-wrap: balance;
+        }
+      </style>
+
+      <div id="root" data-composition-id="{{@id}}" data-width="{{@width}}" data-height="{{@height}}">
+        <div class="sc-stack">
+          <div id="{{@id}}-figure" class="sc-figure">
+            <span id="{{@id}}-prefix" class="sc-affix" data-label="Préfixe">{{prefix}}</span>
+            <span id="{{@id}}-number" class="sc-number" data-label="Chiffre">{{value}}</span>
+            <span id="{{@id}}-suffix" class="sc-affix" data-label="Unité">{{suffix}}</span>
+          </div>
+          <div id="{{@id}}-rule" class="sc-rule" data-label="Filet"></div>
+          <p id="{{@id}}-label" class="sc-label" data-label="Légende du chiffre">{{label}}</p>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const duration = {{@duration}};
+          const el = document.getElementById("{{@id}}-number");
+          const raw = el ? el.textContent.trim() : "";
+          // "1 200", "4,9" or "87": counted from zero, written back the way it was given.
+          const decimalMark = raw.includes(",") ? "," : ".";
+          const clean = raw.replace(/[\s  ]/g, "").replace(",", ".");
+          const target = /^\d+(\.\d+)?$/.test(clean) ? Number(clean) : null;
+          const decimals = target === null || !clean.includes(".") ? 0 : clean.split(".")[1].length;
+          const grouped = /\d[\s  ]\d{3}/.test(raw);
+          const format = (n) => {
+            let text = n.toFixed(decimals);
+            let [whole, part] = text.split(".");
+            if (grouped) whole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+            return part ? whole + decimalMark + part : whole;
+          };
+          // A long number shrinks to the width of the frame, measured once at its final value.
+          const figure = document.getElementById("{{@id}}-figure");
+          if (figure && el) {
+            if (target !== null) el.textContent = format(target);
+            const room = figure.parentElement.clientWidth;
+            if (figure.scrollWidth > room) {
+              const ratio = room / figure.scrollWidth;
+              figure.querySelectorAll("span").forEach((span) => {
+                span.style.fontSize = parseFloat(getComputedStyle(span).fontSize) * ratio + "px";
+              });
+            }
+          }
+          const tl = gsap.timeline({ paused: true });
+          tl.fromTo("#{{@id}}-figure", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0);
+          if (target !== null && el) {
+            const counter = { value: 0 };
+            tl.fromTo(
+              counter,
+              { value: 0 },
+              {
+                value: target,
+                duration: Math.min(1.6, duration * 0.5),
+                ease: "power2.out",
+                onUpdate: () => {
+                  el.textContent = format(counter.value);
+                },
+              },
+              0.1,
+            );
+          }
+          tl.fromTo("#{{@id}}-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, 0.5);
+          tl.fromTo("#{{@id}}-label", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.7);
+          tl.fromTo("#{{@id}}-rule", { width: 140 }, { width: 260, duration: Math.max(0.1, duration - 1), ease: "none", immediateRender: false }, 1);
+          tl.to({}, { duration: duration }, 0);
+          window.__timelines["{{@id}}"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

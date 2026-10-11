@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: {{background}};
+          color: {{textColor}};
+          font-family: system-ui, sans-serif;
+        }
+        .qt-stack {
+          position: absolute;
+          left: 9%;
+          right: 9%;
+          top: 0;
+          bottom: {{@safeBottom}}px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 48px;
+        }
+        .qt-mark {
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: 260px;
+          line-height: 0.6;
+          height: 120px;
+          color: {{accent}};
+          transform-origin: left top;
+        }
+        .qt-stars {
+          font-size: 64px;
+          letter-spacing: 0.12em;
+          color: {{accent}};
+        }
+        .qt-stars[data-empty="true"] {
+          display: none;
+        }
+        .qt-text {
+          font-size: 76px;
+          line-height: 1.18;
+          font-weight: 700;
+          letter-spacing: -0.015em;
+          text-wrap: pretty;
+        }
+        .qt-signature {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          padding-left: 28px;
+          border-left: 8px solid {{accent}};
+        }
+        .qt-author {
+          font-size: 48px;
+          font-weight: 800;
+        }
+        .qt-role {
+          font-size: 38px;
+          font-weight: 500;
+          opacity: 0.85;
+        }
+        .qt-role:empty {
+          display: none;
+        }
+      </style>
+
+      <div id="root" data-composition-id="{{@id}}" data-width="{{@width}}" data-height="{{@height}}">
+        <div class="qt-stack">
+          <div id="{{@id}}-mark" class="qt-mark" data-label="Guillemets" aria-hidden="true">“</div>
+          <p id="{{@id}}-stars" class="qt-stars" data-label="Étoiles"></p>
+          <p id="{{@id}}-text" class="qt-text" data-label="Citation">{{quote}}</p>
+          <div id="{{@id}}-signature" class="qt-signature">
+            <p id="{{@id}}-author" class="qt-author" data-label="Auteur">{{author}}</p>
+            <p id="{{@id}}-role" class="qt-role" data-label="Qualité">{{role}}</p>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const duration = {{@duration}};
+          const count = Number("{{stars}}") || 0;
+          const stars = document.getElementById("{{@id}}-stars");
+          if (stars) {
+            stars.textContent = "★".repeat(count) + "☆".repeat(count ? 5 - count : 0);
+            stars.setAttribute("data-empty", count ? "false" : "true");
+          }
+          const tl = gsap.timeline({ paused: true });
+          tl.fromTo("#{{@id}}-mark", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.8)" }, 0);
+          if (count) tl.fromTo("#{{@id}}-stars", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 0.2);
+          tl.fromTo("#{{@id}}-text", { opacity: 0, y: 36 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.3);
+          tl.fromTo("#{{@id}}-signature", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.6, ease: "power3.out" }, 0.8);
+          // A slow drift of the quote mark keeps the scene alive while it is read.
+          tl.to("#{{@id}}-mark", { y: 18, duration: Math.max(0.1, duration - 0.5), ease: "sine.inOut" }, 0.5);
+          tl.to({}, { duration: duration }, 0);
+          window.__timelines["{{@id}}"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

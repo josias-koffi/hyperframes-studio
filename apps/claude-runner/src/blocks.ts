@@ -15,6 +15,7 @@ import {
   renderStoryboardMd,
   sceneMidpoints,
   storyboardJsonSchema,
+  type AssembledVideo,
   type AudioMeta,
   type BlockManifest,
   type GenerationStep,
@@ -363,6 +364,7 @@ export function customScenePrompt({
   duration,
   width,
   height,
+  safeBottom,
   colors,
 }: {
   slug: string;
@@ -371,6 +373,7 @@ export function customScenePrompt({
   duration: number;
   width: number;
   height: number;
+  safeBottom: number;
   colors: readonly string[];
 }): string {
   const id = sceneCompositionId(sceneId);
@@ -395,6 +398,7 @@ export function customScenePrompt({
     "- Jamais deux `fromTo` sur la même cible : pour un second mouvement, anime un élément parent.",
     "- Le texte reste lisible sur son fond (contraste 3:1 au moins pour le gros texte, 4,5:1 sinon) ; jamais de texte écrit dans sa propre couleur d'accent.",
     "- Un texte animé dans un masque `overflow: hidden` a `padding-bottom: 0.08em` et `line-height` d'au moins 1.08.",
+    ...(safeBottom ? [`- Les ${safeBottom} px du bas du cadre sont réservés aux sous-titres : aucun texte dedans (un fond ou une image peut y aller).`] : []),
     "",
     "## Vérifier",
     "",
@@ -410,7 +414,7 @@ export function customScenePrompt({
 async function buildCustomScenes(
   ctx: BlocksContext,
   storyboard: Storyboard,
-  slots: Readonly<Record<string, number>>,
+  { slots, safeBottoms }: Pick<AssembledVideo, "slots" | "safeBottoms">,
 ): Promise<BlocksStepResult> {
   const dir = videoDir(ctx);
   const colors = [...new Set(storyboard.scenes.flatMap((scene) => Object.values(scene.props).filter((value) => /^#[0-9a-fA-F]{6}$/.test(value))))];
@@ -419,7 +423,16 @@ async function buildCustomScenes(
   const written: string[] = [];
   for (const scene of storyboard.scenes.filter((candidate) => candidate.block === CUSTOM_BLOCK)) {
     const duration = slots[scene.id] ?? scene.duration;
-    const input = { slug: ctx.slug, sceneId: scene.id, description: scene.props.description ?? "", duration, width: ctx.format.width, height: ctx.format.height, colors };
+    const input = {
+      slug: ctx.slug,
+      sceneId: scene.id,
+      description: scene.props.description ?? "",
+      duration,
+      width: ctx.format.width,
+      height: ctx.format.height,
+      safeBottom: safeBottoms[scene.id] ?? 0,
+      colors,
+    };
     const sha = createHash("sha256").update(JSON.stringify(input)).digest("hex");
     const file = join(dir, customScenePath(scene.id));
     const shaFile = join(dir, ".media", "custom", `${scene.id}.sha`);
@@ -455,7 +468,7 @@ async function buildStep(ctx: BlocksContext, manifests: BlockManifest[], blocks:
     await writeFile(join(dir, path), html);
   }
   await ctx.onEvent({ kind: "log", level: "info", text: `Composition assemblée : ${storyboard.scenes.length} scènes, ${assembled.duration} s.` });
-  const custom = await buildCustomScenes(ctx, storyboard, assembled.slots);
+  const custom = await buildCustomScenes(ctx, storyboard, assembled);
   if (!custom.ok) return custom;
   const done = (result: BlocksStepResult): BlocksStepResult => ({
     ...result,

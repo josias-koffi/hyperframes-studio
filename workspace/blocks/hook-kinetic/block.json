@@ -10,5 +10,6 @@
     "background": { "type": "color", "label": "Couleur de fond", "required": false, "default": "#0E0E10" },
     "textColor": { "type": "color", "label": "Couleur du texte", "required": false, "default": "#F5F3EE" }
   },
-  "duration": { "min": 1.5, "max": 5, "default": 2.5 }
+  "duration": { "min": 1.5, "max": 5, "default": 2.5 },
+  "example": { "text": "Ton café refroidit ?", "highlight": "Plus jamais." }
 }

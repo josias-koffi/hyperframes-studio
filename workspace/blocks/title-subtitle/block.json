@@ -11,5 +11,6 @@
     "background": { "type": "color", "label": "Couleur de fond", "required": false, "default": "#F4F1EA" },
     "textColor": { "type": "color", "label": "Couleur du texte", "required": false, "default": "#141414" }
   },
-  "duration": { "min": 2, "max": 8, "default": 4 }
+  "duration": { "min": 2, "max": 8, "default": 4 },
+  "example": { "kicker": "Nouveau", "title": "La tasse qui garde le chaud", "subtitle": "Trois heures à 60 °C, sans batterie ni recharge." }
 }

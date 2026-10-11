@@ -43,27 +43,57 @@ const valid = {
 };
 
 describe("the shipped blocks", () => {
-  it("load, and every placeholder of every block fills", async () => {
+  it("each have a valid example, and every placeholder of every block fills", async () => {
     const { manifests, blocks } = await loadBlocks(SKELETON);
-    expect(manifests.map((manifest) => manifest.id)).toEqual(["cta-end", "hook-kinetic", "media-fullframe", "title-subtitle"]);
-    const scenes = [
-      { id: "s1", title: "A", block: "hook-kinetic", duration: 2.5, props: { text: "Bonjour", highlight: "à toi" } },
-      { id: "s2", title: "B", block: "title-subtitle", duration: 4, props: { kicker: "Étape 1", title: "Titre", subtitle: "Phrase" } },
-      { id: "s3", title: "C", block: "media-fullframe", duration: 4, props: { src: "assets/uploads/p.png", motion: "pan-left", caption: "Légende" } },
-      { id: "s4", title: "D", block: "cta-end", duration: 3, props: { headline: "Fin", action: "Go", link: "site.fr" } },
-    ];
-    const { storyboard, errors } = parseStoryboard(JSON.stringify({ version: 1, title: "T", audio: { voice: false, music: null }, scenes }), manifests, {
-      width: 1080,
-      height: 1920,
-    });
+    expect(manifests.map((manifest) => manifest.id)).toEqual([
+      "before-after",
+      "bullet-3",
+      "captions-karaoke",
+      "cta-end",
+      "hook-kinetic",
+      "logo-sting",
+      "lower-third",
+      "media-fullframe",
+      "media-split",
+      "quote",
+      "stat-countup",
+      "title-subtitle",
+    ]);
+    // Every scene block once with its example, the overlays over the scenes they accept.
+    const scenes = manifests
+      .filter((manifest) => manifest.kind === "scene")
+      .map((manifest, index) => ({
+        id: `s${index + 1}`,
+        title: manifest.name,
+        block: manifest.id,
+        duration: manifest.duration.default,
+        props: manifest.example ?? {},
+        voiceover: "Une phrase.",
+      }));
+    const overlays = manifests
+      .filter((manifest) => manifest.kind === "overlay")
+      .map((manifest, index) => {
+        const over = scenes.filter((scene) => !manifest.onlyOver || manifest.onlyOver.includes(scene.block));
+        return { id: `o${index + 1}`, block: manifest.id, from: over[0].id, to: over.at(-1)!.id, props: manifest.example ?? {} };
+      });
+    for (const manifest of manifests) expect(manifest.example, `${manifest.id} sans exemple`).toBeDefined();
+    const { storyboard, errors } = parseStoryboard(
+      JSON.stringify({ version: 1, title: "T", audio: { voice: true, music: null }, scenes, overlays }),
+      manifests,
+      { width: 1080, height: 1920 },
+    );
     expect(errors).toEqual([]);
     const out = assembleVideo({ storyboard: storyboard!, blocks, width: 1080, height: 1920 });
-    for (const html of Object.values(out.files)) {
-      expect(html).not.toMatch(/\{\{/);
-      expect(html).toContain("<template>");
+    expect(Object.keys(out.files)).toHaveLength(manifests.length);
+    for (const [path, html] of Object.entries(out.files)) {
+      expect(html, path).not.toMatch(/\{\{/);
+      expect(html, path).toContain("<template>");
+      expect(html, path).not.toContain("data-layer");
     }
-    expect(out.files["compositions/scenes/s3.html"]).toContain('src="assets/uploads/p.png"');
-    expect(out.files["compositions/scenes/s3.html"]).toContain('const motion = "pan-left";');
+    // The captions keep the bottom of every scene free; the name band, over one photo, keeps nothing.
+    expect(out.safeBottoms).toEqual(Object.fromEntries(scenes.map((scene) => [scene.id, 576])));
+    const media = scenes.find((scene) => scene.block === "media-fullframe")!;
+    expect(out.files[`compositions/scenes/${media.id}.html`]).toContain("calc(576px + 32px)");
   });
 });
 

@@ -1,0 +1,17 @@
+{
+  "id": "before-after",
+  "name": "Avant / après",
+  "description": "Deux panneaux : la situation d'avant, en gris et barrée, puis celle d'après qui arrive par-dessus en couleur d'accent.",
+  "useWhen": "Pour montrer le problème puis la solution, l'ancienne façon puis la nouvelle, un résultat avant et après le produit.",
+  "props": {
+    "beforeLabel": { "type": "text", "label": "Étiquette du premier panneau", "maxLength": 16, "required": false, "default": "Avant" },
+    "before": { "type": "text", "label": "La situation d'avant", "maxLength": 60 },
+    "afterLabel": { "type": "text", "label": "Étiquette du second panneau", "maxLength": 16, "required": false, "default": "Après" },
+    "after": { "type": "text", "label": "La situation d'après", "maxLength": 60 },
+    "accent": { "type": "color", "label": "Couleur du panneau d'après", "required": false, "default": "#FF5A1F" },
+    "background": { "type": "color", "label": "Couleur de fond", "required": false, "default": "#F4F1EA" },
+    "textColor": { "type": "color", "label": "Couleur du texte d'avant", "required": false, "default": "#141414" }
+  },
+  "duration": { "min": 3, "max": 8, "default": 5 },
+  "example": { "before": "Trois jours de montage pour une vidéo", "after": "Une vidéo prête en cinq minutes" }
+}

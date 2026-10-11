@@ -8,6 +8,7 @@ import {
   parseStoryboard,
   renderScriptMd,
   renderStoryboardMd,
+  safeBottomPixels,
   sceneMidpoints,
   storyboardJsonSchema,
   studioAudio,
@@ -269,6 +270,30 @@ describe("overlays and custom scenes", () => {
     const md = renderStoryboardMd(parsed, all);
     expect(md).toContain("| 2 | Schéma | Scène sur mesure | 4 s |");
     expect(md).toContain("| o1 | Sous-titres | s1 → s2 | — |");
+  });
+
+  it("keeps the bottom of the scenes under a bottom band free, and lays a limited overlay only where it may go", () => {
+    const band = blockManifestSchema.parse({ ...captions, safeArea: "bottom" });
+    const name = blockManifestSchema.parse({ ...captions, id: "name", kind: "overlay", requires: [], onlyOver: ["media"] });
+    const withBand = new Map(withOverlays).set("captions", { manifest: band, html: '<template><div id="root" data-composition-id="{{@id}}" data-safe="{{@safeBottom}}"></div></template>' });
+    const three = [...scenes, { id: "s3", title: "Fin", block: "hook", duration: 2, props: { text: "Fin" }, voiceover: "Merci." }];
+    const parsed = parseStoryboard(
+      JSON.stringify({ version: 1, title: "Essai", audio: { voice: true, music: null }, scenes: three, overlays: [{ id: "o1", block: "captions", from: "s2", to: "s3", props: {} }] }),
+      [hook, media, band],
+      format,
+    ).storyboard as Storyboard;
+    const out = assembleVideo({ storyboard: parsed, blocks: withBand, width: 1080, height: 1920 });
+    expect(out.safeBottoms).toEqual({ s1: 0, s2: 576, s3: 576 });
+    expect(out.files["compositions/overlays/o1.html"]).toContain('data-safe="0"');
+    expect(safeBottomPixels(1920, 1080)).toBe(216);
+
+    const errors = parseStoryboard(
+      JSON.stringify({ version: 1, title: "Essai", audio: { voice: true, music: null }, scenes: three, overlays: [{ id: "o1", block: "name", from: "s1", to: "s1", props: {} }] }),
+      [hook, media, name],
+      format,
+    ).errors.join("\n");
+    expect(errors).toMatch(/calque o1 : name ne se pose que sur media \(s1 est un hook\)/);
+    expect(blocksCatalog([hook, media, name], format)).toContain("Ne se pose que sur les scènes media.");
   });
 
   it("catalogues the custom scene and the overlays apart from the scene blocks", () => {

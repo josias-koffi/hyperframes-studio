@@ -1,0 +1,17 @@
+{
+  "id": "lower-third",
+  "name": "Bandeau nom",
+  "description": "Un bandeau en haut à gauche qui glisse depuis le bord : un nom en gras et sa fonction en dessous, puis il ressort à la fin.",
+  "useWhen": "Pour présenter la personne qui parle ou nommer un lieu ou un produit, par-dessus une scène media-fullframe (de cette scène à elle-même).",
+  "kind": "overlay",
+  "onlyOver": ["media-fullframe"],
+  "props": {
+    "name": { "type": "text", "label": "Nom", "maxLength": 32 },
+    "role": { "type": "text", "label": "Fonction ou précision", "maxLength": 40, "required": false, "default": "" },
+    "accent": { "type": "color", "label": "Couleur du liseré", "required": false, "default": "#FF5A1F" },
+    "boxColor": { "type": "color", "label": "Couleur du bandeau", "required": false, "default": "#141414" },
+    "textColor": { "type": "color", "label": "Couleur du texte", "required": false, "default": "#FFFFFF" }
+  },
+  "duration": { "min": 2, "max": 120, "default": 4 },
+  "example": { "name": "Léa Martin", "role": "Fondatrice de Maison Léa" }
+}

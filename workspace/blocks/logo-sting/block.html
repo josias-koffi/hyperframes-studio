@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: {{background}};
+          color: {{textColor}};
+          font-family: system-ui, sans-serif;
+        }
+        .ls-stack {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 0;
+          bottom: {{@safeBottom}}px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 64px;
+        }
+        .ls-disc {
+          position: relative;
+          width: 440px;
+          height: 440px;
+          border-radius: 50%;
+          background: {{accent}};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .ls-logo {
+          width: 62%;
+          height: 62%;
+          object-fit: contain;
+        }
+        .ls-tagline {
+          padding: 0 10%;
+          font-size: 56px;
+          line-height: 1.2;
+          font-weight: 700;
+          letter-spacing: -0.01em;
+          text-align: center;
+          text-wrap: balance;
+        }
+        .ls-tagline:empty {
+          display: none;
+        }
+      </style>
+
+      <div id="root" data-composition-id="{{@id}}" data-width="{{@width}}" data-height="{{@height}}">
+        <div class="ls-stack">
+          <div id="{{@id}}-disc" class="ls-disc" data-label="Disque">
+            <img id="{{@id}}-logo" class="ls-logo" src="{{logo}}" alt="" data-label="Logo" />
+          </div>
+          <p id="{{@id}}-tagline" class="ls-tagline" data-label="Signature">{{tagline}}</p>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const duration = {{@duration}};
+          const tl = gsap.timeline({ paused: true });
+          tl.fromTo("#{{@id}}-disc", { scale: 0 }, { scale: 1, duration: 0.55, ease: "back.out(1.7)" }, 0);
+          tl.fromTo("#{{@id}}-logo", { opacity: 0, scale: 0.6, rotation: -8 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, 0.25);
+          tl.fromTo("#{{@id}}-tagline", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.55);
+          // The disc breathes while the logo holds.
+          tl.to("#{{@id}}-disc", { scale: 1.05, duration: Math.max(0.1, duration - 0.6), ease: "sine.inOut" }, 0.6);
+          tl.to({}, { duration: duration }, 0);
+          window.__timelines["{{@id}}"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          font-family: system-ui, sans-serif;
+          pointer-events: none;
+        }
+        .lt-box {
+          position: absolute;
+          left: 0;
+          /* At the top: the bottom of the frame has the photo's caption and the subtitles. */
+          top: 12%;
+          max-width: 84%;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          padding: 30px 48px 30px 8%;
+          background: {{boxColor}};
+          border-right: 14px solid {{accent}};
+          border-radius: 0 20px 20px 0;
+          color: {{textColor}};
+        }
+        @media (min-aspect-ratio: 1/1) {
+          .lt-box {
+            top: 8%;
+          }
+        }
+        .lt-name {
+          font-size: 56px;
+          line-height: 1.12;
+          font-weight: 900;
+          letter-spacing: -0.02em;
+        }
+        .lt-role {
+          font-size: 38px;
+          line-height: 1.2;
+          font-weight: 500;
+        }
+        .lt-role:empty {
+          display: none;
+        }
+      </style>
+
+      <div id="root" data-composition-id="{{@id}}" data-width="{{@width}}" data-height="{{@height}}">
+        <div id="{{@id}}-box" class="lt-box" data-label="Bandeau" data-layout-allow-occlusion>
+          <p id="{{@id}}-name" class="lt-name" data-label="Nom" data-layout-allow-overlap>{{name}}</p>
+          <p id="{{@id}}-role" class="lt-role" data-label="Fonction" data-layout-allow-overlap>{{role}}</p>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const duration = {{@duration}};
+          const out = Math.max(0.9, duration - 0.5);
+          const tl = gsap.timeline({ paused: true });
+          tl.fromTo("#{{@id}}-box", { xPercent: -105 }, { xPercent: 0, duration: 0.55, ease: "power3.out" }, 0.15);
+          tl.fromTo("#{{@id}}-name", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 0.45);
+          tl.fromTo("#{{@id}}-role", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 0.6);
+          tl.to("#{{@id}}-box", { xPercent: -105, duration: 0.45, ease: "power3.in" }, out);
+          tl.to({}, { duration: duration }, 0);
+          window.__timelines["{{@id}}"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

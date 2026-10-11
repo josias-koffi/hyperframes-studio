@@ -12,5 +12,6 @@
     "textColor": { "type": "color", "label": "Couleur du texte sur l'accent", "required": false, "default": "#FFFFFF" },
     "buttonColor": { "type": "color", "label": "Couleur du bouton", "required": false, "default": "#141414" }
   },
-  "duration": { "min": 2, "max": 6, "default": 3 }
+  "duration": { "min": 2, "max": 6, "default": 3 },
+  "example": { "headline": "Essaie-la 30 jours", "action": "Commander", "link": "tasse.fr", "logo": "assets/uploads/logo.png" }
 }

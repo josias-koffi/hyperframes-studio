@@ -45,6 +45,15 @@ export const blockManifestSchema = z.object({
   kind: z.enum(["scene", "overlay"]).default("scene"),
   /** What the storyboard must have for the block to work: `voice` for captions that follow the spoken words. */
   requires: z.array(z.enum(["voice"])).default([]),
+  /**
+   * An overlay that takes the bottom band of the frame (the captions): the blocks under it get `{{@safeBottom}}`,
+   * the pixels to keep free of text at the bottom.
+   */
+  safeArea: z.enum(["bottom"]).optional(),
+  /** The scene blocks an overlay may cover (a name band goes over a photo, not over a list); any when absent. */
+  onlyOver: z.array(slugIdSchema).optional(),
+  /** Props of a good use of the block: shown to the model, and filled in the tests of every shipped block. */
+  example: z.record(z.string(), z.string()).optional(),
 });
 export type BlockManifest = z.infer<typeof blockManifestSchema>;
 
@@ -197,6 +206,13 @@ export function validateStoryboard(storyboard: Storyboard, manifests: readonly B
     const to = order.get(overlay.to);
     if (from === undefined || to === undefined) errors.push(`${where} : from et to doivent être des ids de scène (${[...order.keys()].join(", ")}).`);
     else if (from > to) errors.push(`${where} : la scène from (${overlay.from}) vient après la scène to (${overlay.to}).`);
+    else if (manifest.onlyOver) {
+      const under = storyboard.scenes.slice(from, to + 1).filter((scene) => !manifest.onlyOver!.includes(scene.block));
+      if (under.length)
+        errors.push(
+          `${where} : ${manifest.id} ne se pose que sur ${manifest.onlyOver.join(", ")} (${under.map((scene) => `${scene.id} est un ${scene.block}`).join(", ")}).`,
+        );
+    }
     checkBlock(where, manifest, overlay.props);
   }
 
@@ -334,8 +350,10 @@ function catalogEntry(manifest: BlockManifest): string {
       ? "Durée : celle des scènes qu'il couvre"
       : `Durée : ${manifest.duration.min} à ${manifest.duration.max} s (${manifest.duration.default} s par défaut)`,
     ...(manifest.requires.includes("voice") ? ["Demande une voix off (audio.voice à true)."] : []),
+    ...(manifest.onlyOver ? [`Ne se pose que sur les scènes ${manifest.onlyOver.join(", ")}.`] : []),
     "Props :",
     ...props,
+    ...(manifest.example ? [`Exemple de props : ${JSON.stringify(manifest.example)}`] : []),
   ].join("\n");
 }
 
@@ -465,6 +483,8 @@ export type AssembledVideo = {
   timings: { id: string; start: number; duration: number }[];
   /** Length of each scene's sub-composition: its own, plus the transition into the next scene. */
   slots: Record<string, number>;
+  /** Pixels each scene keeps free of text at the bottom, under the captions. */
+  safeBottoms: Record<string, number>;
   duration: number;
 };
 
@@ -472,23 +492,30 @@ export type AssembledVideo = {
 export const customScenePath = (sceneId: string) => `compositions/custom/${sceneId}.html`;
 export const sceneCompositionId = (sceneId: string) => `scene-${sceneId}`;
 
+/** Height of the bottom band an overlay with `safeArea: "bottom"` takes: more in portrait, above the apps' buttons. */
+export function safeBottomPixels(width: number, height: number): number {
+  return Math.round(height * (height > width ? 0.3 : 0.2));
+}
+
 const r3 = (value: number) => Math.round(value * 1000) / 1000;
 
 /**
  * Fills a block template: `{{prop}}` gets the scene's escaped value (or the prop's default), `{{@id}}` the
- * composition id, `{{@duration}}`, `{{@width}}` and `{{@height}}` the slot, `{{@words}}` the spoken words it covers
- * as a JSON array (`BlockWord`). An unknown placeholder is a block authoring error.
+ * composition id, `{{@duration}}`, `{{@width}}` and `{{@height}}` the slot, `{{@safeBottom}}` the pixels to keep
+ * free of text at the bottom (0 without captions), `{{@words}}` the spoken words it covers as a JSON array
+ * (`BlockWord`). An unknown placeholder is a block authoring error.
  */
 export function fillBlock(
   block: LoadedBlock,
   values: Record<string, string>,
-  slot: { id: string; duration: number; width: number; height: number; words?: readonly BlockWord[] },
+  slot: { id: string; duration: number; width: number; height: number; safeBottom?: number; words?: readonly BlockWord[] },
 ): string {
   return block.html.replace(/\{\{\s*(@?[a-zA-Z][a-zA-Z0-9]*)\s*\}\}/g, (_, key: string) => {
     if (key === "@id") return slot.id;
     if (key === "@duration") return String(r3(slot.duration));
     if (key === "@width") return String(slot.width);
     if (key === "@height") return String(slot.height);
+    if (key === "@safeBottom") return String(slot.safeBottom ?? 0);
     // Inside a <script>: `<` escaped so a word can never close it.
     if (key === "@words") return JSON.stringify(slot.words ?? []).replace(/</g, "\\u003c");
     const prop = block.manifest.props[key];
@@ -523,6 +550,7 @@ export function assembleVideo({
   const voices = new Map((audio?.voices ?? []).map((voice) => [voice.frame, voice]));
   const files: Record<string, string> = {};
   const slots: Record<string, number> = {};
+  const safeBottoms: Record<string, number> = {};
   const timings: AssembledVideo["timings"] = [];
   let cursor = 0;
   storyboard.scenes.forEach((scene, index) => {
@@ -533,6 +561,14 @@ export function assembleVideo({
   });
   const total = r3(cursor);
 
+  const order = new Map(storyboard.scenes.map((scene, index) => [scene.id, index]));
+  const span = (overlay: StoryboardOverlay) => [order.get(overlay.from) ?? 0, order.get(overlay.to) ?? -1] as const;
+  // The scenes (and other overlays) under a bottom band keep their text above it.
+  const bands = storyboard.overlays.filter((overlay) => blocks.get(overlay.block)?.manifest.safeArea === "bottom");
+  const reserve = safeBottomPixels(width, height);
+  const safeFor = (from: number, to: number, self?: StoryboardOverlay) =>
+    bands.some((band) => band !== self && span(band)[0] <= to && span(band)[1] >= from) ? reserve : 0;
+
   const clips: string[] = [];
   const tweens: string[] = [];
   const half = TRANSITION_SECONDS / 2;
@@ -542,13 +578,14 @@ export function assembleVideo({
     const overlap = next && next.transition !== "cut" ? TRANSITION_SECONDS : 0;
     const slotDuration = r3(timing.duration + overlap);
     slots[scene.id] = slotDuration;
+    safeBottoms[scene.id] = safeFor(index, index);
     const compId = sceneCompositionId(scene.id);
     let path = customScenePath(scene.id);
     if (scene.block !== CUSTOM_BLOCK) {
       const block = blocks.get(scene.block);
       if (!block) throw new Error(`scène ${scene.id} : bloc ${scene.block} introuvable`);
       path = `compositions/scenes/${scene.id}.html`;
-      files[path] = fillBlock(block, scene.props, { id: compId, duration: slotDuration, width, height });
+      files[path] = fillBlock(block, scene.props, { id: compId, duration: slotDuration, width, height, safeBottom: safeBottoms[scene.id] });
     }
     clips.push(
       `      <div id="el-${scene.id}" class="clip scene" data-composition-id="${compId}" data-composition-src="${path}" data-start="${timing.start}" data-duration="${slotDuration}" data-track-index="${index % 2}" data-width="${width}" data-height="${height}" data-label="${escapeHtml(`${index + 1}. ${scene.title}`)}"></div>`,
@@ -573,7 +610,6 @@ export function assembleVideo({
     }
   });
 
-  const order = new Map(storyboard.scenes.map((scene, index) => [scene.id, index]));
   storyboard.overlays.forEach((overlay, index) => {
     const block = blocks.get(overlay.block);
     if (!block) throw new Error(`calque ${overlay.id} : bloc ${overlay.block} introuvable`);
@@ -590,7 +626,7 @@ export function assembleVideo({
     }
     const compId = `overlay-${overlay.id}`;
     const path = `compositions/overlays/${overlay.id}.html`;
-    files[path] = fillBlock(block, overlay.props, { id: compId, duration, width, height, words });
+    files[path] = fillBlock(block, overlay.props, { id: compId, duration, width, height, safeBottom: safeFor(from, to, overlay), words });
     clips.push(
       `      <div id="el-${overlay.id}" class="clip overlay" data-composition-id="${compId}" data-composition-src="${path}" data-start="${start}" data-duration="${duration}" data-track-index="${20 + index}" data-width="${width}" data-height="${height}" data-label="${escapeHtml(block.manifest.name)}"></div>`,
     );
@@ -628,7 +664,7 @@ ${tweens.map((tween) => `      ${tween}`).join("\n")}
   </body>
 </html>
 `;
-  return { indexHtml, files, timings, slots, duration: total };
+  return { indexHtml, files, timings, slots, safeBottoms, duration: total };
 }
 
 /** Midpoint of each scene, for the contact sheet of the review. */

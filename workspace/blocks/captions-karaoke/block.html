@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          font-family: system-ui, sans-serif;
+          pointer-events: none;
+        }
+        .ck-band {
+          position: absolute;
+          left: 6%;
+          right: 6%;
+          display: flex;
+          justify-content: center;
+        }
+        /* Above the apps' buttons in portrait; close to the edge otherwise. */
+        .ck-band {
+          bottom: 20%;
+        }
+        @media (min-aspect-ratio: 1/1) {
+          .ck-band {
+            bottom: 5%;
+          }
+        }
+        /* Every line in the same cell, centred: only one shows at a time. */
+        .ck-stage {
+          display: grid;
+          place-items: center;
+          width: 100%;
+          min-height: 150px;
+        }
+        .ck-line {
+          grid-area: 1 / 1;
+          max-width: 100%;
+          padding: 14px 34px 20px;
+          border-radius: 24px;
+          background: rgba(0, 0, 0, 0.78);
+          color: {{textColor}};
+          font-size: 68px;
+          line-height: 1.12;
+          font-weight: 900;
+          letter-spacing: -0.01em;
+          text-align: center;
+          white-space: nowrap;
+          opacity: 0;
+        }
+        .ck-word {
+          display: inline-block;
+        }
+        @media (min-aspect-ratio: 1/1) {
+          .ck-line {
+            font-size: 52px;
+          }
+        }
+      </style>
+
+      <div id="root" data-composition-id="{{@id}}" data-width="{{@width}}" data-height="{{@height}}">
+        <div id="{{@id}}-band" class="ck-band">
+          <div id="{{@id}}-stage" class="ck-stage" data-label="Sous-titres"></div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const words = {{@words}};
+          const duration = {{@duration}};
+          const stage = document.getElementById("{{@id}}-stage");
+          const tl = gsap.timeline({ paused: true });
+          // Groups of a few words: a new group after 4 words, 22 characters, a pause or the end of a sentence.
+          const groups = [];
+          let group = [];
+          words.forEach((word, index) => {
+            const previous = words[index - 1];
+            const length = group.reduce((sum, w) => sum + w.text.length + 1, 0) + word.text.length;
+            const pause = previous && word.start - previous.end > 0.45;
+            const sentence = previous && /[.!?…]$/.test(previous.text);
+            if (group.length && (group.length >= 4 || length > 22 || pause || sentence)) {
+              groups.push(group);
+              group = [];
+            }
+            group.push(word);
+          });
+          if (group.length) groups.push(group);
+
+          groups.forEach((items, g) => {
+            const line = document.createElement("p");
+            line.id = "{{@id}}-line" + g;
+            line.className = "ck-line";
+            line.setAttribute("data-layout-allow-overlap", "");
+            line.setAttribute("data-layout-allow-occlusion", "");
+            items.forEach((word, w) => {
+              const span = document.createElement("span");
+              span.id = "{{@id}}-line" + g + "-word" + w;
+              span.className = "ck-word";
+              span.textContent = word.text;
+              span.setAttribute("data-layout-allow-overlap", "");
+              line.appendChild(span);
+              if (w < items.length - 1) line.appendChild(document.createTextNode(" "));
+            });
+            stage.appendChild(line);
+            const start = items[0].start;
+            const next = groups[g + 1];
+            const end = Math.min(next ? next[0].start : duration, items[items.length - 1].end + 0.6, duration);
+            tl.fromTo(line, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.12, ease: "power2.out" }, start);
+            tl.to(line, { opacity: 0, duration: 0.08, ease: "none" }, Math.max(start + 0.12, end - 0.08));
+            items.forEach((word, w) => {
+              const span = document.getElementById(line.id + "-word" + w);
+              tl.to(span, { color: "{{highlight}}", duration: 0.06, ease: "none" }, word.start);
+              tl.to(span, { color: "{{textColor}}", duration: 0.06, ease: "none" }, Math.max(word.start + 0.06, word.end));
+            });
+          });
+          tl.to({}, { duration: duration }, 0);
+          window.__timelines["{{@id}}"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

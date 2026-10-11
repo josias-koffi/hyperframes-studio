@@ -1,0 +1,33 @@
+{
+  "id": "captions-karaoke",
+  "name": "Sous-titres karaoké",
+  "description": "Les mots de la voix off en bas du cadre, par groupes de deux à quatre, le mot prononcé surligné en couleur, sur un bandeau sombre lisible sur n'importe quelle scène. Les scènes qu'il couvre gardent leur texte au-dessus.",
+  "useWhen": "Sur toute la vidéo (from la première scène, to la dernière) dès qu'il y a une voix off, surtout pour TikTok et Reels où l'on regarde sans le son.",
+  "kind": "overlay",
+  "requires": [
+    "voice"
+  ],
+  "safeArea": "bottom",
+  "props": {
+    "highlight": {
+      "type": "color",
+      "label": "Couleur du mot prononcé",
+      "required": false,
+      "default": "#FFD60A"
+    },
+    "textColor": {
+      "type": "color",
+      "label": "Couleur des autres mots",
+      "required": false,
+      "default": "#FFFFFF"
+    }
+  },
+  "duration": {
+    "min": 1,
+    "max": 600,
+    "default": 15
+  },
+  "example": {
+    "highlight": "#FFD60A"
+  }
+}
