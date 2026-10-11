@@ -25,7 +25,11 @@ import {
   renderStoryboardMd,
   sceneMidpoints,
   storyboardJsonSchema,
+  applyVisualCorrections,
+  visualReviewJsonSchema,
+  visualReviewSchema,
   type AssembledVideo,
+  type ReviewedIssue,
   type AudioMeta,
   type BlockManifest,
   type BriefFormat,
@@ -69,6 +73,8 @@ export type BlocksContext = {
   model: string | null;
   /** OpenRouter id of the stronger model a call falls back to after two refused answers or two failed checks. */
   escalationModel?: string | null;
+  /** OpenRouter id of a model with vision that reads the contact sheet after the build; null: no visual check. */
+  visualModel?: string | null;
   /** The job's proxy token: the call is billed to the job like the voice and the music. */
   openrouter: { baseUrl: string; token: string } | null;
   /** Environment of the workspace scripts (`audio.mjs`, the HyperFrames CLI). */
@@ -545,6 +551,104 @@ async function assembleAndCheck(ctx: BlocksContext, manifests: BlockManifest[], 
   return { ...custom, assembled, storyboard, checkOutput: check.code === 0 ? undefined : tail(check.output) };
 }
 
+/** Snapshots at the middle of each scene, and the contact sheet the review shows; false when they failed. */
+async function snapshot(ctx: BlocksContext, assembled: AssembledVideo): Promise<boolean> {
+  const cli = await pinnedHyperframes(ctx.workspaceDir);
+  const at = sceneMidpoints(assembled.timings).join(",");
+  const run = await runCommand(ctx, "npx", ["--yes", cli, "snapshot", `videos/${ctx.slug}`, "--at", at], ctx.timeoutMs);
+  if (run.code !== 0) await ctx.onEvent({ kind: "log", level: "error", text: `Snapshots impossibles (code ${run.code}) : la planche de relecture manque.` });
+  return run.code === 0;
+}
+
+export function visualCheckSystemPrompt(): string {
+  return [
+    "Tu es directeur artistique dans un studio de contenus pour les réseaux sociaux. Tu relis la planche de contrôle d'une création assemblée à partir de blocs : une vignette par scène, dans l'ordre, prise au milieu de la scène.",
+    "Tu réponds uniquement par un objet JSON conforme au schéma, sans texte autour.",
+    "",
+    "Cherche seulement des défauts visibles, pas des questions de goût :",
+    "- texte coupé, qui sort du cadre ou de son bloc ;",
+    "- texte illisible : contraste trop faible avec son fond, texte trop petit ;",
+    "- éléments qui se chevauchent alors qu'ils ne devraient pas ;",
+    "- image déformée, vide ou sans rapport avec la scène ;",
+    "- faute d'orthographe visible.",
+    "",
+    "Pour chaque défaut : `scene` (l'id de la scène), `problem` (une phrase), `severity` (high : la création n'est pas publiable ; medium : se voit ; low : détail) et `correction`.",
+    "`correction` vaut { \"props\": { … } } avec de nouvelles valeurs pour des props existantes du bloc de la scène (un texte plus court, une autre couleur #RRGGBB qui contraste), ou null si changer des props ne suffit pas. Ne touche jamais une prop marquée « variable ».",
+    "Pas de défaut : `issues` est une liste vide.",
+  ].join("\n");
+}
+
+function visualCheckUserText(storyboard: Storyboard, manifests: readonly BlockManifest[]): string {
+  const byId = new Map(manifests.map((manifest) => [manifest.id, manifest]));
+  const scenes = storyboard.scenes.map((scene, index) => {
+    const manifest = byId.get(scene.block);
+    const props = Object.entries(manifest?.props ?? {}).map(([key, prop]) => {
+      const max = prop.type === "text" && prop.maxLength ? `, ${prop.maxLength} car. max` : "";
+      const bound = scene.variables[key] ? ", variable" : "";
+      return `  - ${key} (${prop.type}${max}${bound}) = ${JSON.stringify(scene.props[key] ?? prop.default ?? "")}`;
+    });
+    return [`Vignette ${index + 1} : scène ${scene.id} « ${scene.title} », bloc ${scene.block}`, ...props].join("\n");
+  });
+  return ["## Scènes", "", ...scenes, "", "La planche suit."].join("\n");
+}
+
+/**
+ * The contact sheet and the storyboard to a model with vision: the corrections it gives as props are applied (the
+ * caller assembles again), the rest goes to `VISUAL_REVIEW.json` and into the step's summary for the review.
+ */
+async function visualCheck(
+  ctx: BlocksContext,
+  manifests: readonly BlockManifest[],
+  storyboard: Storyboard,
+): Promise<{ corrected: Storyboard | null; text: string | null; usage?: TokenUsage }> {
+  const sheet = join(videoDir(ctx), "snapshots", "contact-sheet.jpg");
+  if (!ctx.visualModel || !ctx.openrouter || !(await exists(sheet))) return { corrected: null, text: null };
+  await ctx.onEvent({ kind: "log", level: "info", text: `Contrôle visuel de la planche par ${ctx.visualModel}.` });
+  const image = `data:image/jpeg;base64,${(await readFile(sheet)).toString("base64")}`;
+  const outcome = await structuredCall(ctx, {
+    label: "Contrôle visuel",
+    name: "visual_review",
+    schema: visualReviewJsonSchema(),
+    model: ctx.visualModel,
+    // The escalation model may not read images.
+    escalationModel: null,
+    messages: [
+      { role: "system", content: visualCheckSystemPrompt() },
+      {
+        role: "user",
+        content: [
+          { type: "text", text: visualCheckUserText(storyboard, manifests) },
+          { type: "image_url", image_url: { url: image } },
+        ],
+      },
+    ],
+    check: async (content) => {
+      const parsed = parseJsonAnswer(content, visualReviewSchema);
+      const unknown = (parsed.value?.issues ?? []).filter((issue) => !storyboard.scenes.some((scene) => scene.id === issue.scene)).map((issue) => issue.scene);
+      return unknown.length ? { value: null, errors: [`scènes inconnues : ${unknown.join(", ")}`] } : parsed;
+    },
+  });
+  if (!outcome.value) {
+    await ctx.onEvent({ kind: "log", level: "error", text: `Contrôle visuel impossible : ${outcome.errors.join(" ; ")}` });
+    return { corrected: null, text: null, usage: outcome.usage };
+  }
+  const { storyboard: corrected, issues } = applyVisualCorrections(storyboard, outcome.value.issues, manifests, ctx.format);
+  await writeFile(join(videoDir(ctx), "VISUAL_REVIEW.json"), `${JSON.stringify({ model: ctx.visualModel, issues }, null, 2)}\n`);
+  return { corrected, text: visualSummary(issues), usage: outcome.usage };
+}
+
+const SEVERITY: Record<ReviewedIssue["severity"], string> = { high: "bloquant", medium: "visible", low: "détail" };
+
+function visualSummary(issues: readonly ReviewedIssue[]): string {
+  if (issues.length === 0) return "Contrôle visuel : rien à signaler.";
+  const applied = issues.filter((issue) => issue.status === "applied");
+  const open = issues.filter((issue) => issue.status === "open");
+  return [
+    ...(applied.length ? [`Contrôle visuel, corrigé : ${applied.map((issue) => `${issue.scene} (${issue.problem})`).join(" ; ")}`] : []),
+    ...(open.length ? ["Contrôle visuel, à regarder :", ...open.map((issue) => `- ${issue.scene}, ${SEVERITY[issue.severity]} : ${issue.problem}`)] : []),
+  ].join("\n");
+}
+
 /** Check failures after which the storyboard is repaired: by the step's model, then by the escalation model. */
 export const CHECK_REPAIRS = 2;
 
@@ -569,6 +673,9 @@ async function buildStep(ctx: BlocksContext, manifests: BlockManifest[], blocks:
   let costUsd: number | undefined;
   let escalation: Escalation | undefined;
   const notes: string[] = [];
+  // The visual check runs once, on the first build that passes; `previous` is the storyboard before its corrections.
+  let reviewed = false;
+  let previous: Storyboard | null = null;
   const finish = (result: BlocksStepResult): BlocksStepResult => ({
     ...result,
     resultText: [...notes, result.resultText].filter(Boolean).join("\n"),
@@ -584,11 +691,25 @@ async function buildStep(ctx: BlocksContext, manifests: BlockManifest[], blocks:
     if (!round.ok) return finish({ ok: false, resultText: null });
     const { assembled, storyboard } = round as Required<Pick<BuildRound, "assembled" | "storyboard">>;
     if (round.checkOutput === undefined) {
-      const cli = await pinnedHyperframes(ctx.workspaceDir);
-      const at = sceneMidpoints(assembled.timings).join(",");
-      const snapshot = await runCommand(ctx, "npx", ["--yes", cli, "snapshot", `videos/${ctx.slug}`, "--at", at], ctx.timeoutMs);
-      if (snapshot.code !== 0) await ctx.onEvent({ kind: "log", level: "error", text: `Snapshots impossibles (code ${snapshot.code}) : la planche de relecture manque.` });
-      return finish({ ok: true, resultText: `Check passé. ${storyboard.scenes.length} scènes, ${assembled.duration} s.` });
+      const snapped = await snapshot(ctx, assembled);
+      const passed = `Check passé. ${storyboard.scenes.length} scènes, ${assembled.duration} s.`;
+      if (!snapped || reviewed) return finish({ ok: true, resultText: passed });
+      reviewed = true;
+      const review = await visualCheck(ctx, manifests, storyboard);
+      usage = addUsage(usage, review.usage);
+      if (review.text) notes.push(review.text);
+      if (!review.corrected) return finish({ ok: true, resultText: passed });
+      // The corrections are assembled and checked like any storyboard; a check they break puts the previous one back.
+      previous = storyboard;
+      await saveStoryboard(ctx, review.corrected, manifests, []);
+      continue;
+    }
+    if (previous) {
+      await ctx.onEvent({ kind: "log", level: "error", text: "Les corrections du contrôle visuel font échouer le check : le storyboard précédent est remis." });
+      notes.push("Corrections du contrôle visuel annulées : elles faisaient échouer le check.");
+      await saveStoryboard(ctx, previous, manifests, []);
+      previous = null;
+      continue;
     }
 
     failures++;

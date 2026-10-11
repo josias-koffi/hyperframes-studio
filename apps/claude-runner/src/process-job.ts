@@ -134,6 +134,7 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
         feedback: job.feedback,
         model: blocksModelFor(job, config),
         escalationModel: slots.escalation,
+        visualModel: slots.visual,
         openrouter: media ? { baseUrl: media.baseUrl, token: media.token } : null,
         env: agentEnv({ home: homedir(), tmp: config.agentTmpDir }, {}),
         timeoutMs: config.timeoutMs,

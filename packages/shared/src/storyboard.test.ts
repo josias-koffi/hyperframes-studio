@@ -20,6 +20,7 @@ import {
 } from "./storyboard";
 import { usesBlocks } from "./jobs";
 import { layersOf, slidesOf } from "./editor";
+import { applyVisualCorrections } from "./visual-review";
 
 const hook: BlockManifest = blockManifestSchema.parse({
   id: "hook",
@@ -439,5 +440,43 @@ describe("isAssetPath", () => {
     expect(isAssetPath("assets/../index.html")).toBe(false);
     expect(isAssetPath("/etc/passwd")).toBe(false);
     expect(isAssetPath('assets/a".png')).toBe(false);
+  });
+});
+
+describe("applyVisualCorrections", () => {
+  const contract = { ...format, variables: [{ id: "headline", type: "string" as const, label: "Accroche", default: "Fin" }] };
+  const parsed = parseStoryboard(
+    storyboard([
+      { id: "s1", title: "A", block: "hook", duration: 2, props: { text: "Bonjour à tous" }, variables: {} },
+      { id: "s2", title: "B", block: "hook", duration: 2, props: { text: "Fin" }, variables: { text: "headline" } },
+    ]),
+    manifests,
+    contract,
+  ).storyboard!;
+  const issue = (scene: string, props: Record<string, string> | null) => ({ scene, problem: "Texte coupé", severity: "high" as const, correction: props && { props } });
+
+  it("applies a fix of existing props and keeps the rest open, with the reason", () => {
+    const { storyboard: corrected, issues } = applyVisualCorrections(
+      parsed,
+      [
+        issue("s1", { text: "Bonjour", accent: "#000000" }),
+        issue("s1", { size: "12" }),
+        issue("s2", { text: "Autre" }),
+        issue("s1", { text: "x".repeat(30) }),
+        issue("s2", null),
+      ],
+      manifests,
+      contract,
+    );
+    expect(corrected?.scenes[0].props).toEqual({ text: "Bonjour", accent: "#000000" });
+    expect(corrected?.scenes[1].props.text).toBe("Fin");
+    expect(issues.map((item) => item.status)).toEqual(["applied", "open", "open", "open", "open"]);
+    expect(issues[1].reason).toMatch(/props inconnues du bloc hook : size/);
+    expect(issues[2].reason).toMatch(/liées à une variable du template : text/);
+    expect(issues[3].reason).toMatch(/correction refusée/);
+  });
+
+  it("returns no storyboard when nothing changed", () => {
+    expect(applyVisualCorrections(parsed, [issue("s1", null)], manifests, contract).storyboard).toBeNull();
   });
 });

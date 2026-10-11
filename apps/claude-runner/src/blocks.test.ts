@@ -364,6 +364,64 @@ describe("structured steps and escalation", () => {
   });
 });
 
+describe("visual check", () => {
+  it("applies the prop fixes of the vision model, builds again once, and lists the rest for the review", async () => {
+    const { dir, ctx, calls } = await fakeWorkspace(valid);
+    await mkdir(join(dir, "videos/essai/snapshots"), { recursive: true });
+    await writeFile(join(dir, "videos/essai/snapshots/contact-sheet.jpg"), "jpeg");
+    const bodies: { model: string; messages: { content: unknown }[] }[] = [];
+    const review = {
+      issues: [
+        { scene: "s1", problem: "Accroche coupée à droite", severity: "high", correction: { props: { text: "Tu perds ton temps ?" } } },
+        { scene: "s3", problem: "Le bouton touche le bord", severity: "low", correction: null },
+      ],
+    };
+    const fetchImpl = (async (_url: string, init: RequestInit) => {
+      bodies.push(JSON.parse(String(init.body)));
+      return answer(review);
+    }) as unknown as typeof fetch;
+    const result = await runBlocksStep(ctx("build", { fetchImpl, visualModel: "google/gemini-flash" }));
+    expect(result).toMatchObject({ ok: true });
+    expect(bodies).toHaveLength(1);
+    expect(bodies[0].model).toBe("google/gemini-flash");
+    expect(JSON.stringify(bodies[0].messages[1].content)).toContain("data:image/jpeg;base64,");
+    expect(JSON.stringify(bodies[0].messages[1].content)).toContain("Vignette 1 : scène s1");
+    expect(JSON.parse(await readFile(join(dir, "videos/essai/STORYBOARD.json"), "utf8")).scenes[0].props.text).toBe("Tu perds ton temps ?");
+    expect(result.resultText).toContain("Contrôle visuel, corrigé : s1 (Accroche coupée à droite)");
+    expect(result.resultText).toContain("- s3, détail : Le bouton touche le bord");
+    const saved = JSON.parse(await readFile(join(dir, "videos/essai/VISUAL_REVIEW.json"), "utf8"));
+    expect(saved.issues.map((issue: { status: string }) => issue.status)).toEqual(["applied", "open"]);
+    // Built, checked and snapshotted twice: before and after the corrections.
+    expect(await calls()).toEqual([
+      "npm run check -- videos/essai",
+      "npx --yes hyperframes@0.0.1 snapshot videos/essai --at 1.5,6,11",
+      "npm run check -- videos/essai",
+      "npx --yes hyperframes@0.0.1 snapshot videos/essai --at 1.5,6,11",
+    ]);
+  });
+
+  it("puts the storyboard back when the corrections break the check", async () => {
+    const { dir, ctx } = await fakeWorkspace(valid);
+    await mkdir(join(dir, "videos/essai/snapshots"), { recursive: true });
+    await writeFile(join(dir, "videos/essai/snapshots/contact-sheet.jpg"), "jpeg");
+    const fetchImpl = (async () => {
+      // The check fails once, right after the corrections.
+      await writeFile(join(dir, "fails"), "1");
+      return answer({ issues: [{ scene: "s1", problem: "Coupé", severity: "high", correction: { props: { text: "Plus court" } } }] });
+    }) as unknown as typeof fetch;
+    const result = await runBlocksStep(ctx("build", { fetchImpl, visualModel: "google/gemini-flash" }));
+    expect(result).toMatchObject({ ok: true });
+    expect(result.resultText).toContain("Corrections du contrôle visuel annulées");
+    expect(JSON.parse(await readFile(join(dir, "videos/essai/STORYBOARD.json"), "utf8")).scenes[0].props.text).toBe("Tu perds du temps ?");
+  });
+
+  it("does nothing without a vision model", async () => {
+    const { ctx } = await fakeWorkspace(valid);
+    const result = await runBlocksStep(ctx("build"));
+    expect(result.resultText).not.toContain("Contrôle visuel");
+  });
+});
+
 describe("availableAssets", () => {
   it("lists the images under assets/, not the studio's audio", async () => {
     const dir = await mkdtemp(join(tmpdir(), "blocks-assets-"));
