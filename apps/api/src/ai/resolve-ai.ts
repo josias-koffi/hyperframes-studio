@@ -1,4 +1,4 @@
-import { MODEL_SLOTS, type AgentBackend, type AiModelKind, type AiPreferences, type ModelSlot, type ResolvedAi } from "@studio/shared";
+import { MODEL_SLOTS, OPTIONAL_SLOTS, VISION_SLOTS, type AgentBackend, type AiModelKind, type AiPreferences, type ModelSlot, type ResolvedAi } from "@studio/shared";
 
 export type ResolveAiInput = {
   /** The user's own choices; null when they never saved any. */
@@ -6,6 +6,8 @@ export type ResolveAiInput = {
   defaults: AiPreferences;
   /** OpenRouter ids of the enabled catalog models, per kind. */
   enabled: Record<AiModelKind, ReadonlySet<string>>;
+  /** The enabled agent models that read images: only they may fill a vision slot (`VISION_SLOTS`). */
+  vision: ReadonlySet<string>;
 };
 
 /** The first candidate still enabled in the catalog: a model the admin turned off falls back to the next level. */
@@ -23,7 +25,7 @@ export class MissingModelError extends Error {
  * The settings a generation runs with: the user's choice, else the platform default, for every slot. On Claude
  * Code the models stay the runner's own (Claude aliases per step): OpenRouter ids mean nothing there.
  */
-export function resolveAi({ user, defaults, enabled }: ResolveAiInput): ResolvedAi {
+export function resolveAi({ user, defaults, enabled, vision }: ResolveAiInput): ResolvedAi {
   // Claude Code runs on the person's own subscription, through the `claude` command logged in on their machine.
   const backend: AgentBackend = user?.agentBackend === "claude-code" ? "claude-code" : "opencode";
   const own = user?.preferences;
@@ -42,9 +44,10 @@ export function resolveAi({ user, defaults, enabled }: ResolveAiInput): Resolved
   const missing: ModelSlot[] = [];
   for (const slot of MODEL_SLOTS) {
     // The build's default is the platform's general default: a slot the admin left empty uses it.
-    const model = pick("agent", enabled, own?.models[slot], defaults.models[slot], defaults.models.build);
+    const candidates = [own?.models[slot], defaults.models[slot], defaults.models.build];
+    const model = pick("agent", enabled, ...(VISION_SLOTS.includes(slot) ? candidates.filter((id) => id && vision.has(id)) : candidates));
     if (model) models[slot] = model;
-    else missing.push(slot);
+    else if (!OPTIONAL_SLOTS.includes(slot)) missing.push(slot);
   }
   if (missing.length > 0) throw new MissingModelError(missing);
   return { backend, models, media: cleanMedia };

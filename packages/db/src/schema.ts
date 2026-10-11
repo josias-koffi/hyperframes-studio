@@ -7,6 +7,7 @@ import {
   JOB_STATUSES,
   RENDER_FORMATS,
   type AiPreferences,
+  type ModelCapability,
 } from "@studio/shared";
 import {
   bigint,
@@ -196,6 +197,9 @@ export const jobs = pgTable(
     costUsd: numeric("cost_usd", { precision: 12, scale: 6, mode: "number" }),
     inputTokens: integer("input_tokens"),
     outputTokens: integer("output_tokens"),
+    /** Set when the step fell back to the `escalation` slot after two failures: that model, and its share of `costUsd`. */
+    escalationModel: text("escalation_model"),
+    escalationCostUsd: numeric("escalation_cost_usd", { precision: 12, scale: 6, mode: "number" }),
     /** Final summary written by Claude, or the error. */
     resultText: text("result_text"),
     startedAt: timestamp("started_at", { withTimezone: true }),
@@ -265,6 +269,8 @@ export const aiModels = pgTable(
     /** Prices copied from OpenRouter when imported (USD per token, as strings). */
     pricing: jsonb("pricing").$type<Record<string, string>>().notNull().default({}),
     contextLength: integer("context_length"),
+    /** What the model can do (vision, tools, structured answers), read from OpenRouter or set by the admin. */
+    capabilities: text("capabilities").array().$type<ModelCapability[]>().notNull().default([]),
     ...timestamps,
   },
   (t) => [uniqueIndex("ai_models_openrouter_kind_idx").on(t.openrouterId, t.kind)],

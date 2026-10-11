@@ -2,9 +2,22 @@ import { z } from "zod";
 import { mediaChoiceSchema } from "./agents";
 import { GENERATION_STEPS, type GenerationStep } from "./jobs";
 
-/** A model is chosen per generation step, plus `edit` for the changes asked from the editor. */
-export const MODEL_SLOTS = [...GENERATION_STEPS, "edit"] as const;
+/**
+ * A model is chosen per generation step, plus `edit` for the changes asked from the editor, `visual` for the visual
+ * check of a build (reads the contact sheet) and `escalation`, the stronger model a step falls back to after two
+ * failures.
+ */
+export const MODEL_SLOTS = [...GENERATION_STEPS, "edit", "visual", "escalation"] as const;
 export type ModelSlot = (typeof MODEL_SLOTS)[number];
+
+/** Slots whose model reads images: a model without vision cannot be chosen for them. */
+export const VISION_SLOTS: readonly ModelSlot[] = ["footage", "visual"];
+
+/**
+ * Slots a generation can run without: a vision slot (no vision model, no footage analysis and no visual check) and
+ * the escalation (a failure stays a failure).
+ */
+export const OPTIONAL_SLOTS: readonly ModelSlot[] = ["footage", "visual", "escalation"];
 
 /** A model per slot (missing slots fall back to the next level) and the audio models. */
 export const aiPreferencesSchema = z.object({

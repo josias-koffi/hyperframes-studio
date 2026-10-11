@@ -10,7 +10,7 @@ const defaults = {
   models: { build: "anthropic/claude-opus", brief: "qwen/qwen3-coder" },
   media: { ttsModel: "mistralai/voxtral-mini-tts", ttsVoice: "fr_marie_neutral", musicModel: "google/lyria-3-clip-preview" },
 };
-const base: ResolveAiInput = { user: null, defaults, enabled };
+const base: ResolveAiInput = { user: null, defaults, enabled, vision: new Set(["openai/gpt-5"]) };
 
 describe("resolveAi", () => {
   it("uses the platform defaults, the build's for every slot left empty", () => {
@@ -42,5 +42,14 @@ describe("resolveAi", () => {
 
   it("refuses to start when no model can be found for a slot", () => {
     expect(() => resolveAi({ ...base, defaults: { models: {}, media: {} } })).toThrow(MissingModelError);
+  });
+
+  it("fills a vision slot only with a model that reads images, and leaves it empty otherwise", () => {
+    expect(resolveAi(base).models).not.toHaveProperty("footage");
+    expect(resolveAi(base).models).not.toHaveProperty("visual");
+    expect(resolveAi(base).models.escalation).toBe("anthropic/claude-opus");
+    const user = { agentBackend: "opencode" as const, preferences: { models: { visual: "openai/gpt-5", footage: "qwen/qwen3-coder" }, media: {} } };
+    expect(resolveAi({ ...base, user }).models).toMatchObject({ visual: "openai/gpt-5" });
+    expect(resolveAi({ ...base, user }).models).not.toHaveProperty("footage");
   });
 });

@@ -1,11 +1,11 @@
 "use client";
 
 import { AI_MODEL_KINDS, type AiModelKind } from "@studio/shared/browser";
-import { BoxesIcon, CloudDownloadIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, SearchIcon, Trash2Icon } from "lucide-react";
+import { BoxesIcon, CloudDownloadIcon, RefreshCwIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, SearchIcon, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { MODEL_KIND_META, tokenPrice } from "@/components/ai/labels";
+import { CAPABILITY_META, MODEL_KIND_META, tokenPrice } from "@/components/ai/labels";
 import { createDataTableColumnHelper, DataTable } from "@/components/data-table/data-table";
 import {
   AlertDialog,
@@ -69,6 +69,18 @@ export function ModelsCatalog({ models }: { models: AiModel[] }) {
     });
   }
 
+  function refreshFromOpenRouter() {
+    startTransition(async () => {
+      try {
+        const { updated } = await clientApi<{ updated: number }>("/admin/ai-models/refresh", { method: "POST" });
+        toast.success(`${updated} modèle${updated > 1 ? "s" : ""} relu${updated > 1 ? "s" : ""} depuis OpenRouter`);
+        refresh();
+      } catch (error) {
+        toast.error((error as Error).message);
+      }
+    });
+  }
+
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return models.filter(
@@ -100,6 +112,21 @@ export function ModelsCatalog({ models }: { models: AiModel[] }) {
         if (model.kind === "tts") return <span className="text-sm text-muted-foreground">{model.voices.length ? `${model.voices.length} voix` : "Voix libre"}</span>;
         return <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">{tokenPrice(model) ?? "—"}</span>;
       },
+    }),
+    columnHelper.display({
+      id: "capabilities",
+      header: "Capacités",
+      cell: ({ row }) =>
+        row.original.kind === "agent" ? (
+          <span className="flex flex-wrap gap-1">
+            {row.original.capabilities.length === 0 && <span className="text-sm text-muted-foreground">—</span>}
+            {row.original.capabilities.map((capability) => (
+              <Badge key={capability} variant="outline" title={CAPABILITY_META[capability].hint}>
+                {CAPABILITY_META[capability].label}
+              </Badge>
+            ))}
+          </span>
+        ) : null,
     }),
     columnHelper.display({
       id: "enabled",
@@ -141,6 +168,12 @@ export function ModelsCatalog({ models }: { models: AiModel[] }) {
 
   const actions = (
     <>
+      {models.length > 0 && (
+        <Button variant="outline" onClick={refreshFromOpenRouter} disabled={pending} title="Relit les capacités et les prix de chaque modèle du catalogue.">
+          <RefreshCwIcon />
+          Relire OpenRouter
+        </Button>
+      )}
       <Button variant="outline" onClick={() => setEditing({ key: Date.now() })}>
         <PlusIcon />
         Ajouter à la main

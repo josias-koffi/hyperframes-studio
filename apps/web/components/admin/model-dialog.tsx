@@ -1,10 +1,11 @@
 "use client";
 
-import { AI_MODEL_KINDS, type AiModelKind } from "@studio/shared/browser";
+import { AI_MODEL_KINDS, MODEL_CAPABILITIES, type AiModelKind, type ModelCapability } from "@studio/shared/browser";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { MODEL_KIND_META } from "@/components/ai/labels";
+import { CAPABILITY_META, MODEL_KIND_META } from "@/components/ai/labels";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -20,9 +21,10 @@ export type ModelDraft = {
   voices: string[];
   pricing?: Record<string, string>;
   contextLength?: number | null;
+  capabilities: ModelCapability[];
 };
 
-const EMPTY: ModelDraft = { openrouterId: "", kind: "tts", label: "", description: "", voices: [] };
+const EMPTY: ModelDraft = { openrouterId: "", kind: "tts", label: "", description: "", voices: [], capabilities: [] };
 
 /**
  * Adds a model to the catalog (prefilled from the OpenRouter import, or by hand for a TTS model, which OpenRouter's
@@ -60,7 +62,7 @@ export function ModelDialog({
         if (model) {
           await clientApi(`/admin/ai-models/${model.id}`, {
             method: "PATCH",
-            body: JSON.stringify({ label: form.label, description: form.description, voices: voiceList }),
+            body: JSON.stringify({ label: form.label, description: form.description, voices: voiceList, capabilities: form.capabilities }),
           });
         } else {
           await clientApi("/admin/ai-models", { method: "POST", body: JSON.stringify({ ...form, voices: voiceList }) });
@@ -128,6 +130,28 @@ export function ModelDialog({
                 onChange={(event) => setForm({ ...form, description: event.target.value })}
               />
             </Field>
+            {form.kind === "agent" && (
+              <Field>
+                <FieldLabel>Capacités</FieldLabel>
+                <div className="flex flex-wrap gap-4">
+                  {MODEL_CAPABILITIES.map((capability) => (
+                    <label key={capability} className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={form.capabilities.includes(capability)}
+                        onCheckedChange={(checked) =>
+                          setForm({
+                            ...form,
+                            capabilities: checked ? [...form.capabilities, capability] : form.capabilities.filter((item) => item !== capability),
+                          })
+                        }
+                      />
+                      {CAPABILITY_META[capability].label}
+                    </label>
+                  ))}
+                </div>
+                <FieldDescription>Lues sur OpenRouter à l&apos;import. Seul un modèle avec vision peut analyser les rushs ou faire le contrôle visuel.</FieldDescription>
+              </Field>
+            )}
             {form.kind === "tts" && (
               <Field>
                 <FieldLabel htmlFor="model-voices">Voix</FieldLabel>

@@ -54,6 +54,11 @@ export class AiAdminController {
     return this.ai.create(body);
   }
 
+  @Post("ai-models/refresh")
+  refresh() {
+    return this.ai.refreshFromOpenRouter();
+  }
+
   @Patch("ai-models/:id")
   update(@Param("id", ParseUUIDPipe) id: string, @Body(new ZodPipe(updateAiModelSchema)) body: UpdateAiModel) {
     return this.ai.update(id, body);

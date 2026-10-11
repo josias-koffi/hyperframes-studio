@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { aiDefaults, aiModels, creations, jobs, projects, userAiSettings, users, type Database } from "@studio/db";
-import { AI_MODEL_KINDS, MODEL_SLOTS, type AiModelKind, type AiPreferences, type ResolvedAi } from "@studio/shared";
+import { AI_MODEL_KINDS, MODEL_SLOTS, VISION_SLOTS, type AiModelKind, type AiPreferences, type ResolvedAi } from "@studio/shared";
 import { and, asc, desc, eq, gte, isNotNull, sql } from "drizzle-orm";
 import { currentUser } from "../auth/request-context";
 import { DATABASE } from "../database/database.module";
@@ -45,6 +45,31 @@ export class AiService {
   async remove(id: string) {
     const [row] = await this.db.delete(aiModels).where(eq(aiModels.id, id)).returning({ id: aiModels.id });
     if (!row) throw new NotFoundException("Modèle introuvable");
+  }
+
+  /**
+   * Reads again from OpenRouter what the catalog models can do and cost: models added before capabilities were
+   * stored, or whose provider changed them. A model OpenRouter no longer lists (a TTS added by hand) is left as is.
+   */
+  async refreshFromOpenRouter() {
+    let models;
+    try {
+      models = await fetchOpenRouterModels();
+    } catch (error) {
+      throw new BadRequestException(`Liste OpenRouter indisponible : ${error instanceof Error ? error.message : String(error)}`);
+    }
+    const byId = new Map(models.map((model) => [model.id, model]));
+    let updated = 0;
+    for (const row of await this.db.select().from(aiModels)) {
+      const model = byId.get(row.openrouterId);
+      if (!model) continue;
+      await this.db
+        .update(aiModels)
+        .set({ capabilities: model.capabilities, pricing: model.pricing, contextLength: model.contextLength, updatedAt: new Date() })
+        .where(eq(aiModels.id, row.id));
+      updated++;
+    }
+    return { updated };
   }
 
   /** OpenRouter's list for the import dialog, each model marked with the kinds it is already offered as. */
@@ -111,11 +136,13 @@ export class AiService {
     const enabled = Object.fromEntries(
       AI_MODEL_KINDS.map((kind) => [kind, new Set(enabledRows.filter((row) => row.kind === kind).map((row) => row.openrouterId))]),
     ) as Record<AiModelKind, Set<string>>;
+    const vision = new Set(enabledRows.filter((row) => row.kind === "agent" && row.capabilities.includes("vision")).map((row) => row.openrouterId));
     try {
       return resolveAi({
         user: own ? { preferences: own.preferences, agentBackend: own.agentBackend } : null,
         defaults,
         enabled,
+        vision,
       });
     } catch (error) {
       if (error instanceof MissingModelError) throw new ConflictException(error.message);
@@ -129,7 +156,11 @@ export class AiService {
     const find = (kind: AiModelKind, id: string) => enabled.find((row) => row.kind === kind && row.openrouterId === id);
     for (const slot of MODEL_SLOTS) {
       const id = preferences.models[slot];
-      if (id && !find("agent", id)) throw new BadRequestException(`Modèle « ${id} » non proposé pour l'étape ${slot}.`);
+      if (!id) continue;
+      const model = find("agent", id);
+      if (!model) throw new BadRequestException(`Modèle « ${id} » non proposé pour l'étape ${slot}.`);
+      if (VISION_SLOTS.includes(slot) && !model.capabilities.includes("vision"))
+        throw new BadRequestException(`${model.label} ne lit pas les images : il ne peut pas servir à l'étape ${slot}.`);
     }
     const { ttsModel, ttsVoice, musicModel } = preferences.media;
     const tts = ttsModel ? find("tts", ttsModel) : undefined;
@@ -179,6 +210,19 @@ export class AiService {
       .groupBy(jobs.backend, jobs.model)
       .orderBy(desc(sql`coalesce(sum(${jobs.costUsd}), 0)`));
 
-    return { days, since: since.toISOString(), totals, byDay, byUser, byModel };
+    // A step that fell back to the escalation slot: how often, on which model and at what share of its cost.
+    const escalations = await this.db
+      .select({
+        model: jobs.escalationModel,
+        steps: sql<string[]>`array_agg(distinct ${jobs.step})`,
+        jobs: count,
+        costUsd: sql<number>`coalesce(sum(${jobs.escalationCostUsd}), 0)::float8`,
+      })
+      .from(jobs)
+      .where(and(scope, isNotNull(jobs.escalationModel)))
+      .groupBy(jobs.escalationModel)
+      .orderBy(desc(count));
+
+    return { days, since: since.toISOString(), totals, byDay, byUser, byModel, escalations };
   }
 }

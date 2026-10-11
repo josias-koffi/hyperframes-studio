@@ -3,7 +3,7 @@
 import type { AiModelKind } from "@studio/shared/browser";
 import { CheckIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { MODEL_KIND_META, tokenPrice } from "@/components/ai/labels";
+import { CAPABILITY_META, MODEL_KIND_META, tokenPrice } from "@/components/ai/labels";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -83,6 +83,13 @@ export function ImportDialog({ open, onOpenChange, onPick }: { open: boolean; on
                       <div className="flex flex-wrap gap-1.5">
                         {tokenPrice(model) && <Badge variant="secondary">{tokenPrice(model)}</Badge>}
                         {model.contextLength && <Badge variant="outline">{Math.round(model.contextLength / 1000)}k contexte</Badge>}
+                        {model.capabilities
+                          .filter((capability) => capability !== "tools")
+                          .map((capability) => (
+                            <Badge key={capability} variant="outline" title={CAPABILITY_META[capability].hint}>
+                              {CAPABILITY_META[capability].label}
+                            </Badge>
+                          ))}
                       </div>
                     </div>
                     <Button
@@ -98,6 +105,7 @@ export function ImportDialog({ open, onOpenChange, onPick }: { open: boolean; on
                           voices: model.voices,
                           pricing: model.pricing,
                           contextLength: model.contextLength,
+                          capabilities: model.capabilities,
                         })
                       }
                     >

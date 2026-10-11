@@ -1,4 +1,4 @@
-import type { AiModelKind, ModelSlot } from "@studio/shared/browser";
+import type { AiModelKind, ModelCapability, ModelSlot } from "@studio/shared/browser";
 import type { AiModel } from "@/lib/api";
 
 /** Every slot a model is chosen for, in pipeline order, with what the model does there. */
@@ -10,6 +10,14 @@ export const MODEL_SLOT_META: Record<ModelSlot, { label: string; hint: string }>
   media: { label: "Voix et musique", hint: "Lance la voix off et la musique." },
   build: { label: "Build", hint: "Construit les compositions. Le plus exigeant." },
   edit: { label: "Édition", hint: "Les changements demandés depuis l'éditeur." },
+  visual: { label: "Contrôle visuel", hint: "Relit la planche du build et corrige les textes ou les couleurs. Lit les images." },
+  escalation: { label: "Escalade", hint: "Reprend une étape après deux échecs. Un modèle plus fort que les autres." },
+};
+
+export const CAPABILITY_META: Record<ModelCapability, { label: string; hint: string }> = {
+  vision: { label: "Vision", hint: "Lit les images : analyse des rushs, contrôle visuel." },
+  tools: { label: "Outils", hint: "Appelle des outils : peut travailler en agent." },
+  structured: { label: "JSON", hint: "Répond dans un schéma JSON imposé." },
 };
 
 export const MODEL_KIND_META: Record<AiModelKind, { label: string; plural: string }> = {

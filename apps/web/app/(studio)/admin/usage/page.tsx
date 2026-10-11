@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { formatUsd } from "@/components/ai/labels";
+import { formatUsd, MODEL_SLOT_META } from "@/components/ai/labels";
 import { CostChart } from "@/components/admin/cost-chart";
 import { FilterTabs } from "@/components/layout/filter-tabs";
 import { SectionCard } from "@/components/layout/section-card";
@@ -125,6 +125,41 @@ export default async function AdminUsagePage({ searchParams }: PageProps<"/admin
           </Table>
         </SectionCard>
       </div>
+
+      <SectionCard
+        title="Escalades"
+        description="Les étapes reprises par le modèle d'escalade après deux réponses invalides ou deux check en échec, et ce que ces reprises ont coûté."
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Modèle d&apos;escalade</TableHead>
+              <TableHead>Étapes</TableHead>
+              <TableHead className="text-right">Escalades</TableHead>
+              <TableHead className="text-right">Coût</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {usage.escalations.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                  Aucune escalade sur la période.
+                </TableCell>
+              </TableRow>
+            )}
+            {usage.escalations.map((row) => (
+              <TableRow key={row.model ?? "—"}>
+                <TableCell className="font-mono text-xs">{row.model ?? "—"}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">
+                  {row.steps.map((step) => MODEL_SLOT_META[step as keyof typeof MODEL_SLOT_META]?.label ?? step).join(", ")}
+                </TableCell>
+                <TableCell className="text-right tabular-nums">{row.jobs}</TableCell>
+                <TableCell className="text-right font-medium tabular-nums">{formatUsd(row.costUsd)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </SectionCard>
     </div>
   );
 }

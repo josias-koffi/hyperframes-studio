@@ -1,4 +1,4 @@
-import type { AiModelKind } from "@studio/shared";
+import type { AiModelKind, ModelCapability } from "@studio/shared";
 
 /** One model of OpenRouter's public list (`GET /api/v1/models`), as the admin import shows it. */
 export type OpenRouterModel = {
@@ -10,6 +10,7 @@ export type OpenRouterModel = {
   pricing: Record<string, string>;
   /** What the model can be in the catalog: an agent needs tool calls, music outputs audio. */
   kinds: AiModelKind[];
+  capabilities: ModelCapability[];
   voices: string[];
 };
 
@@ -39,6 +40,16 @@ export function classifyModel(raw: Raw): AiModelKind[] {
   return kinds;
 }
 
+/** What the model can do: read images, call tools, answer in a given JSON schema. */
+export function modelCapabilities(raw: Raw): ModelCapability[] {
+  const parameters = strings(raw.supported_parameters);
+  const capabilities: ModelCapability[] = [];
+  if (strings(raw.architecture?.input_modalities).includes("image")) capabilities.push("vision");
+  if (parameters.includes("tools")) capabilities.push("tools");
+  if (parameters.includes("response_format") || parameters.includes("structured_outputs")) capabilities.push("structured");
+  return capabilities;
+}
+
 export function toOpenRouterModel(raw: Raw): OpenRouterModel | null {
   if (typeof raw.id !== "string") return null;
   const pricing = Object.fromEntries(Object.entries(raw.pricing ?? {}).filter((entry): entry is [string, string] => typeof entry[1] === "string"));
@@ -49,6 +60,7 @@ export function toOpenRouterModel(raw: Raw): OpenRouterModel | null {
     contextLength: typeof raw.context_length === "number" ? raw.context_length : null,
     pricing,
     kinds: classifyModel(raw),
+    capabilities: modelCapabilities(raw),
     voices: strings(raw.supported_voices),
   };
 }

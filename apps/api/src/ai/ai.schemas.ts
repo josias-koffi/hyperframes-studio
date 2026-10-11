@@ -1,4 +1,4 @@
-import { AGENT_BACKENDS, AI_MODEL_KINDS, aiPreferencesSchema } from "@studio/shared";
+import { AGENT_BACKENDS, AI_MODEL_KINDS, MODEL_CAPABILITIES, aiPreferencesSchema } from "@studio/shared";
 import { z } from "zod";
 
 const openrouterId = z.string().trim().regex(/^[\w.-]+\/[\w.:~-]+$/, "Identifiant OpenRouter attendu : éditeur/modèle");
@@ -19,6 +19,7 @@ export const createAiModelSchema = z.object({
   voices: z.array(voice).max(200).default([]),
   pricing: z.record(z.string(), z.string()).default({}),
   contextLength: z.number().int().positive().nullable().default(null),
+  capabilities: z.array(z.enum(MODEL_CAPABILITIES)).max(MODEL_CAPABILITIES.length).default([]),
 });
 export type CreateAiModel = z.infer<typeof createAiModelSchema>;
 

@@ -1,6 +1,7 @@
 import type {
   AgentBackend,
   AiModelKind,
+  ModelCapability,
   AiPreferences,
   CompositionVariable,
   CreationKind,
@@ -94,6 +95,7 @@ export type AiModel = {
   voices: string[];
   pricing: Record<string, string>;
   contextLength: number | null;
+  capabilities: ModelCapability[];
   createdAt: string;
   updatedAt: string;
 };
@@ -113,6 +115,7 @@ export type OpenRouterModel = {
   contextLength: number | null;
   pricing: Record<string, string>;
   kinds: AiModelKind[];
+  capabilities: ModelCapability[];
   voices: string[];
   /** Kinds it is already offered as. */
   inCatalog: AiModelKind[];
@@ -129,6 +132,8 @@ export type AiUsage = {
   byDay: (UsageTotals & { day: string })[];
   byUser: (UsageTotals & TokenTotals & { userId: string; email: string; name: string | null })[];
   byModel: (TokenTotals & { backend: AgentBackend; model: string | null; jobs: number; costUsd: number })[];
+  /** Steps that fell back to the escalation slot, per escalation model, with the cost of the escalated turns. */
+  escalations: { model: string | null; steps: string[]; jobs: number; costUsd: number }[];
 };
 
 export type Render = {

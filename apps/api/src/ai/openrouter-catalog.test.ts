@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyModel, toOpenRouterModel } from "./openrouter-catalog";
+import { classifyModel, modelCapabilities, toOpenRouterModel } from "./openrouter-catalog";
 
 describe("classifyModel", () => {
   it("offers a text model as an agent only when it calls tools", () => {
@@ -10,6 +10,16 @@ describe("classifyModel", () => {
   it("tells a voice from a music model by its voices", () => {
     expect(classifyModel({ architecture: { output_modalities: ["text", "audio"] } })).toEqual(["music"]);
     expect(classifyModel({ architecture: { output_modalities: ["audio"] }, supported_voices: ["alloy"] })).toEqual(["tts"]);
+  });
+});
+
+describe("modelCapabilities", () => {
+  it("reads vision from the input modalities and tools and structured answers from the parameters", () => {
+    expect(
+      modelCapabilities({ architecture: { input_modalities: ["text", "image"] }, supported_parameters: ["tools", "structured_outputs", "temperature"] }),
+    ).toEqual(["vision", "tools", "structured"]);
+    expect(modelCapabilities({ architecture: { input_modalities: ["text"] }, supported_parameters: ["response_format"] })).toEqual(["structured"]);
+    expect(modelCapabilities({})).toEqual([]);
   });
 });
 
@@ -30,6 +40,7 @@ describe("toOpenRouterModel", () => {
       contextLength: 1000,
       pricing: { prompt: "0", completion: "0" },
       kinds: ["music"],
+      capabilities: [],
       voices: [],
     });
     expect(toOpenRouterModel({ name: "no id" })).toBeNull();

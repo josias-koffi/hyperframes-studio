@@ -10,6 +10,14 @@ export type AgentBackend = (typeof AGENT_BACKENDS)[number];
 export const AI_MODEL_KINDS = ["agent", "tts", "music"] as const;
 export type AiModelKind = (typeof AI_MODEL_KINDS)[number];
 
+/**
+ * What a model can do, read from OpenRouter when it is imported (`architecture.input_modalities`,
+ * `supported_parameters`): `vision` reads images, `tools` calls tools (an agent), `structured` answers in a given
+ * JSON schema (`response_format` or `structured_outputs`).
+ */
+export const MODEL_CAPABILITIES = ["vision", "tools", "structured"] as const;
+export type ModelCapability = (typeof MODEL_CAPABILITIES)[number];
+
 /** The backend and model of one job, resolved by the API when it is enqueued. */
 export const agentChoiceSchema = z.object({
   backend: z.enum(AGENT_BACKENDS),

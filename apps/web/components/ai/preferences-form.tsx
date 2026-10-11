@@ -1,6 +1,6 @@
 "use client";
 
-import { MODEL_SLOTS, type AgentBackend, type AiPreferences, type ModelSlot } from "@studio/shared/browser";
+import { MODEL_SLOTS, VISION_SLOTS, type AgentBackend, type AiPreferences, type ModelSlot } from "@studio/shared/browser";
 import { AudioLinesIcon, BotIcon, CpuIcon, MusicIcon, SaveIcon, TerminalSquareIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
@@ -47,11 +47,17 @@ export function PreferencesForm({ mode, models, value, fallback, backend }: Prop
   const labelOf = (id: string | undefined) => (id ? (models.find((model) => model.openrouterId === id)?.label ?? id) : undefined);
   const onClaudeCode = engine === "claude-code";
 
+  const vision = (id: string | undefined) => byKind.agent.some((model) => model.openrouterId === id && model.capabilities.includes("vision"));
+
+  /** The models a slot may take: a vision slot only those that read images. */
+  const choicesFor = (slot: ModelSlot) => (VISION_SLOTS.includes(slot) ? byKind.agent.filter((model) => model.capabilities.includes("vision")) : byKind.agent);
+
   /** What the « par défaut » option of a slot stands for. */
   function inherited(slot: ModelSlot): string {
-    if (mode === "defaults") return slot === "build" ? "Aucun" : "Comme le build";
-    const id = fallback?.models[slot] ?? fallback?.models.build;
-    return labelOf(id) ?? "Aucun";
+    const visionSlot = VISION_SLOTS.includes(slot);
+    if (mode === "defaults") return slot === "build" ? "Aucun" : visionSlot ? "Le build s'il lit les images" : "Comme le build";
+    const id = [fallback?.models[slot], fallback?.models.build].find((candidate) => candidate && (!visionSlot || vision(candidate)));
+    return labelOf(id) ?? (visionSlot ? "Aucun modèle avec vision" : "Aucun");
   }
 
   function setModel(slot: ModelSlot, next: string) {
@@ -160,7 +166,7 @@ export function PreferencesForm({ mode, models, value, fallback, backend }: Prop
                     <SelectItem value={INHERIT}>
                       <span className="text-muted-foreground">Par défaut · {inherited(slot)}</span>
                     </SelectItem>
-                    {byKind.agent.map((model) => (
+                    {choicesFor(slot).map((model) => (
                       <SelectItem key={model.id} value={model.openrouterId}>
                         <span className="flex flex-col">
                           <span>{model.label}</span>
