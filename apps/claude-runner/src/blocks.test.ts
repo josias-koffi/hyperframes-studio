@@ -125,6 +125,8 @@ describe("writeStoryboard", () => {
     expect(bodies).toHaveLength(2);
     expect(bodies[0].response_format.type).toBe("json_schema");
     expect(bodies[0].messages[0].content).toContain("### hook-kinetic");
+    // The shape of the answer is in the prompt too, for a model that refuses json_schema.
+    expect(bodies[0].messages[0].content).toContain('"overlays":[{"id":"o1","block":"captions-karaoke"');
     expect(bodies[1].messages.at(-1)?.content).toMatch(/80 caractères, 48 au plus/);
   });
 

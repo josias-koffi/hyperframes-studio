@@ -105,6 +105,14 @@ export function storyboardSystemPrompt(manifests: readonly BlockManifest[], form
   return [
     ...rules,
     "",
+    "# Forme de la réponse",
+    "",
+    "Exactement ces champs, rien d'autre (les valeurs ne sont qu'un exemple) :",
+    "",
+    "```json",
+    JSON.stringify(answerShape(format)),
+    "```",
+    "",
     `Cadre : ${format.width}×${format.height} px.`,
     "",
     "# Catalogue des blocs",
@@ -112,6 +120,32 @@ export function storyboardSystemPrompt(manifests: readonly BlockManifest[], form
     blocksCatalog(manifests, format),
     ...(format.variables?.length ? ["", templateSection(format.variables)] : []),
   ].join("\n");
+}
+
+/**
+ * An example of the whole answer: the JSON schema only reaches a model through `response_format: json_schema`, and
+ * a model that refuses it (the `json_object` fallback) would otherwise guess the shape.
+ */
+export function answerShape(format: StoryboardFormat): Record<string, unknown> {
+  const variables = format.variables?.length ? { variables: { text: format.variables[0].id } } : {};
+  if (format.frames)
+    return {
+      version: 1,
+      title: "Titre court",
+      audio: { voice: false, music: null },
+      scenes: [{ id: "s1", title: "Accroche", block: "hook-kinetic", duration: 1, props: { text: "…" }, voiceover: "", transition: "cut", ...variables }],
+      overlays: [],
+    };
+  return {
+    version: 1,
+    title: "Titre court",
+    audio: { voice: true, music: "warm lo-fi, instrumental, 90 bpm" },
+    scenes: [
+      { id: "s1", title: "Accroche", block: "hook-kinetic", duration: 2.5, props: { text: "…", highlight: "…" }, voiceover: "…", transition: "cut", ...variables },
+      { id: "s2", title: "Fin", block: "cta-end", duration: 3, props: { headline: "…", action: "…" }, voiceover: "…", transition: "fade" },
+    ],
+    overlays: [{ id: "o1", block: "captions-karaoke", from: "s1", to: "s2", props: {} }],
+  };
 }
 
 /** A carousel (`frames` slides) or an image (1): one block per slide, no time, no sound. */
