@@ -34,8 +34,11 @@ export function usesBlocks(creation: CreationShape): boolean {
   return creation.brief?.engine === "blocks" && !hasFootage(creation);
 }
 
-/** Steps the blocks engine runs itself; the brief, and any edit asked from the editor, stay agent turns. */
-export const BLOCKS_STEPS: readonly GenerationStep[] = ["storyboard", "media", "build"];
+/**
+ * Steps the blocks engine runs itself: structured calls (brief, variables, storyboard) and code (media, build). Only
+ * an edit asked from the editor, and a custom scene, stay agent turns.
+ */
+export const BLOCKS_STEPS: readonly GenerationStep[] = ["brief", "variables", "storyboard", "media", "build"];
 
 /**
  * Steps a création goes through: only a video made from uploaded footage analyses it, only a

@@ -47,6 +47,10 @@ export type RunnerConfig = {
    * OpenRouter does not know by alias. An OpenCode job uses its own step model.
    */
   blocksModel: string | null;
+  /** OpenRouter model the blocks engine falls back to after two failures, for an owner on Claude Code. */
+  escalationModel: string | null;
+  /** OpenRouter model with vision for the visual check of a build, for an owner on Claude Code. */
+  visualModel: string | null;
 };
 
 export function resolveRunnerConfig(env: NodeJS.ProcessEnv = process.env): RunnerConfig {
@@ -72,5 +76,7 @@ export function resolveRunnerConfig(env: NodeJS.ProcessEnv = process.env): Runne
     openrouterApiKey: env.OPENROUTER_API_KEY?.trim() || null,
     openrouterBaseUrl: env.OPENROUTER_BASE_URL?.trim() || "https://openrouter.ai/api/v1",
     blocksModel: env.BLOCKS_MODEL?.trim() || null,
+    escalationModel: env.ESCALATION_MODEL?.trim() || null,
+    visualModel: env.VISUAL_MODEL?.trim() || null,
   };
 }

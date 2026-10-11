@@ -18,8 +18,11 @@ images de fond (`backgrounds`, noms de fichiers dans `assets/uploads/`) : `parti
 Chaque prompt se termine sur une **consigne d'arrêt** : le studio, pas Claude, décide de la suite (checkpoint de
 validation ou étape suivante). Les règles HyperFrames restent dans les skills et le `CLAUDE.md` du workspace.
 
-**Moteur blocs.** Une vidéo dont le brief porte `engine: "blocks"` n'utilise que `brief.md` (et `feedback.md` pour le
-brief) : son storyboard est un appel structuré du runner (`apps/claude-runner/src/blocks.ts`) qui écrit
-`STORYBOARD.json` à partir du catalogue de `workspace/blocks/`, ses médias passent directement par
-`scripts/audio.mjs` et son build est assemblé par `assembleVideo` (`packages/shared/src/storyboard.ts`). Seule une
+**Moteur blocs.** Une création dont le brief porte `engine: "blocks"` n'utilise aucun de ces fichiers : le brief
+(`BRIEF.json`, puis `BRIEF.md` généré), les variables d'un template (`VARIABLES.json`) et le storyboard
+(`STORYBOARD.json`, à partir du catalogue de `workspace/blocks/`) sont des appels structurés du runner
+(`apps/claude-runner/src/blocks.ts`, prompts écrits dans le code). Deux réponses refusées font passer l'appel au
+modèle d'escalade. Les médias passent directement par `scripts/audio.mjs` et le build est assemblé par
+`assembleVideo` (`packages/shared/src/storyboard.ts`) ; un `check` en échec renvoie sa sortie au modèle, qui corrige
+les props, et le second échec passe au modèle d'escalade. Seule une
 scène `custom` passe par un agent, avec un prompt écrit dans le code (`customScenePrompt`, même fichier que le runner).

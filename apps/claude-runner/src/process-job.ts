@@ -18,6 +18,7 @@ import { and, eq, isNull, or } from "drizzle-orm";
 import { agentEnv } from "./agent-env";
 import type { AgentRunner, AgentTurnResult } from "./agents/types";
 import { runBlocksStep } from "./blocks";
+import type { Escalation } from "./structured";
 import type { RunnerConfig } from "./config";
 import type { OpenrouterProxy } from "./openrouter-proxy";
 import { buildPrompt } from "./prompt";
@@ -49,6 +50,15 @@ export function agentFor(job: ClaudeJob, config: RunnerConfig): AgentChoice {
 export function blocksModelFor(job: ClaudeJob, config: Pick<RunnerConfig, "blocksModel">): string | null {
   const model = job.ai?.models[modelSlotFor(job)];
   return job.ai?.backend === "opencode" && model ? model : config.blocksModel;
+}
+
+/**
+ * The OpenRouter models of the escalation and of the visual check: the owner's slots on OpenCode, else
+ * `ESCALATION_MODEL` and `VISUAL_MODEL`. Null: no escalation, no visual check.
+ */
+export function blocksSlotModels(job: ClaudeJob, config: Pick<RunnerConfig, "escalationModel" | "visualModel">): { escalation: string | null; visual: string | null } {
+  if (job.ai?.backend === "opencode") return { escalation: job.ai.models.escalation ?? null, visual: job.ai.models.visual ?? null };
+  return { escalation: config.escalationModel, visual: config.visualModel };
 }
 
 /**
@@ -102,9 +112,11 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
 
     let agent: AgentChoice;
     let result: AgentTurnResult;
+    let escalation: Escalation | undefined;
     if (usesBlocks(creation) && BLOCKS_STEPS.includes(job.step) && job.mode !== "edit") {
       // The blocks engine: a structured call and code, no agent turn and no session, but for a custom scene.
       agent = { backend: "opencode", model: blocksModelFor(job, config) ?? "aucun" };
+      const slots = blocksSlotModels(job, config);
       const sceneAgent = agentFor(job, config);
       const sceneRunner = deps.runnerFor(sceneAgent.backend);
       const step = await runBlocksStep({
@@ -118,8 +130,10 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
           frames: creation.type === "carousel" ? (creation.slideCount ?? SLIDE_COUNT.default) : creation.type === "image" ? 1 : null,
         },
         campaign,
+        creation: { type: creation.type, kind: creation.kind, brief: creation.brief },
         feedback: job.feedback,
         model: blocksModelFor(job, config),
+        escalationModel: slots.escalation,
         openrouter: media ? { baseUrl: media.baseUrl, token: media.token } : null,
         env: agentEnv({ home: homedir(), tmp: config.agentTmpDir }, {}),
         timeoutMs: config.timeoutMs,
@@ -132,6 +146,7 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
           : undefined,
       });
       result = { ok: step.ok, sessionId: null, resultText: step.resultText, usage: step.usage, costUsd: step.costUsd };
+      escalation = step.escalation;
       if (!step.ok && step.resultText) await report.event({ kind: "log", level: "error", text: step.resultText });
     } else {
       agent = agentFor(job, config);
@@ -175,6 +190,8 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
       costUsd: result.costUsd === undefined && mediaCost === 0 ? null : (result.costUsd ?? 0) + mediaCost,
       inputTokens: result.usage ? result.usage.inputTokens + result.usage.cacheReadTokens + result.usage.cacheCreationTokens : null,
       outputTokens: result.usage?.outputTokens ?? null,
+      escalationModel: escalation?.model ?? null,
+      escalationCostUsd: escalation?.costUsd ?? null,
     };
 
     if (result.sessionId) {

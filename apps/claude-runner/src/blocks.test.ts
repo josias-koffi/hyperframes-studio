@@ -160,7 +160,7 @@ describe("writeStoryboard", () => {
  * A workspace with the shipped blocks and stand-ins for what the steps run: `scripts/audio.mjs`, `npm` (check) and
  * `npx` (snapshot) only write down how they were called.
  */
-async function fakeWorkspace(storyboard: unknown) {
+async function fakeWorkspace(storyboard: unknown, { checkFailures = 0 } = {}) {
   const dir = await mkdtemp(join(tmpdir(), "blocks-steps-"));
   const bin = join(dir, "bin");
   const calls = join(dir, "calls.log");
@@ -174,6 +174,13 @@ async function fakeWorkspace(storyboard: unknown) {
     await writeFile(join(bin, tool), `#!/bin/sh\necho "${tool} $*" >> ${JSON.stringify(calls)}\n`);
     await chmod(join(bin, tool), 0o755);
   }
+  // `check` fails as many times as asked, with a finding the model must fix.
+  const fails = join(dir, "fails");
+  await writeFile(fails, String(checkFailures));
+  await writeFile(
+    join(bin, "npm"),
+    `#!/bin/sh\necho "npm $*" >> ${JSON.stringify(calls)}\nn=$(cat ${JSON.stringify(fails)})\nif [ "$n" -gt 0 ]; then echo $((n-1)) > ${JSON.stringify(fails)}; echo "✗ text_overflow #scene-s1-title"; exit 1; fi\n`,
+  );
   await writeFile(join(dir, "videos/essai/STORYBOARD.json"), JSON.stringify(storyboard));
   const ctx = (step: BlocksContext["step"], extra: Partial<BlocksContext> = {}): BlocksContext => ({
     ...context((async () => answer(null, 500)) as unknown as typeof fetch),
@@ -261,6 +268,99 @@ describe("runBlocksStep", () => {
     const result = await runBlocksStep(ctx("build", { customScene: async () => ({ ok: true, resultText: "Fait." }) }));
     expect(result).toMatchObject({ ok: false });
     expect(result.resultText).toMatch(/n'a pas été écrite dans compositions\/custom\/s1.html/);
+  });
+});
+
+describe("structured steps and escalation", () => {
+  const brief = {
+    title: "Thermo, le café chaud 3 h",
+    objective: "Faire connaître la tasse",
+    audience: "Télétravailleurs 25-35 ans",
+    keyMessage: "Ton café reste chaud 3 heures.",
+    points: ["Double paroi céramique", "3 h à 60 °C"],
+    callToAction: "thermo.fr, code CHAUD",
+    tone: "Complice",
+    audio: { voice: true, music: "light lo-fi" },
+    assumptions: ["Pas de prix donné : non affiché."],
+  };
+
+  it("writes BRIEF.json and BRIEF.md from the studio brief, with no sound for a still", async () => {
+    const { dir, ctx } = await fakeWorkspace(valid);
+    const bodies: { messages: { content: string }[] }[] = [];
+    const fetchImpl = (async (_url: string, init: RequestInit) => {
+      bodies.push(JSON.parse(String(init.body)));
+      return answer(brief);
+    }) as unknown as typeof fetch;
+    const creation = { type: "carousel" as const, kind: "oneshot" as const, brief: { message: "Une tasse qui garde le café chaud", engine: "blocks" } };
+    const result = await runBlocksStep(ctx("brief", { fetchImpl, creation, format: { width: 1080, height: 1350, frames: 5 } }));
+    expect(result).toMatchObject({ ok: true });
+    expect(bodies[0].messages[1].content).toContain("Une tasse qui garde le café chaud");
+    expect(bodies[0].messages[1].content).toContain("carrousel de 5 slides 1080×1350");
+    expect(JSON.parse(await readFile(join(dir, "videos/essai/BRIEF.json"), "utf8")).audio).toEqual({ voice: false, music: null });
+    const md = await readFile(join(dir, "videos/essai/BRIEF.md"), "utf8");
+    expect(md).toContain("# Thermo, le café chaud 3 h");
+    expect(md).toContain("- 3 h à 60 °C");
+    expect(md).not.toContain("## Son");
+  });
+
+  it("writes a template's VARIABLES.json, refusing a default longer than its maxLength", async () => {
+    const { dir, ctx } = await fakeWorkspace(valid);
+    await writeFile(join(dir, "videos/essai/BRIEF.md"), "# Brief");
+    const long = { variables: [{ id: "headline", type: "string", label: "Accroche", default: "x".repeat(40), maxLength: 30 }] };
+    const fixed = { variables: [{ id: "headline", type: "string", label: "Accroche", default: "-30 % sur le lin", maxLength: 30 }] };
+    const replies = [answer(long), answer(fixed)];
+    const fetchImpl = (async () => replies.shift()!) as unknown as typeof fetch;
+    const result = await runBlocksStep(ctx("variables", { fetchImpl }));
+    expect(result).toMatchObject({ ok: true, resultText: "headline : Accroche" });
+    expect(JSON.parse(await readFile(join(dir, "videos/essai/VARIABLES.json"), "utf8"))).toEqual(fixed.variables);
+  });
+
+  it("hands the storyboard to the escalation model after two refused answers, and reports its cost", async () => {
+    const models: string[] = [];
+    const bad = { ...valid, scenes: [{ ...valid.scenes[0], props: { text: "x".repeat(80) } }, ...valid.scenes.slice(1)] };
+    const replies = [answer(bad), answer(bad), answer(valid)];
+    const fetchImpl = (async (_url: string, init: RequestInit) => {
+      models.push(JSON.parse(String(init.body)).model);
+      const reply = replies.shift()!;
+      const body = JSON.parse(await reply.text());
+      return new Response(JSON.stringify({ ...body, usage: { ...body.usage, cost: 0.01 } }), { status: 200 });
+    }) as unknown as typeof fetch;
+    const events: StudioEvent[] = [];
+    const { manifests } = await loadBlocks(SKELETON);
+    const result = await writeStoryboard({ ...context(fetchImpl, events), escalationModel: "anthropic/claude-sonnet" }, { manifests, brief: "# Brief", assets: [] });
+    expect(models).toEqual(["deepseek/deepseek-v4", "deepseek/deepseek-v4", "anthropic/claude-sonnet"]);
+    expect(result.storyboard).not.toBeNull();
+    expect(result.escalation).toEqual({ model: "anthropic/claude-sonnet", costUsd: 0.01 });
+    expect(result.costUsd).toBeCloseTo(0.03);
+    expect(events.some((event) => event.kind === "log" && /Escalade : Storyboard refusé 2 fois/.test(event.text))).toBe(true);
+  });
+
+  it("repairs the storyboard after a failed check, then escalates on the second failure", async () => {
+    const { dir, ctx, calls } = await fakeWorkspace(valid, { checkFailures: 2 });
+    await writeFile(join(dir, "videos/essai/BRIEF.md"), "# Brief");
+    const asked: { model: string; request: string }[] = [];
+    const fetchImpl = (async (_url: string, init: RequestInit) => {
+      const body = JSON.parse(String(init.body));
+      asked.push({ model: body.model, request: body.messages[1].content });
+      return answer({ ...valid, scenes: [{ ...valid.scenes[0], props: { text: "Court" } }, ...valid.scenes.slice(1)] });
+    }) as unknown as typeof fetch;
+    const result = await runBlocksStep(ctx("build", { fetchImpl, escalationModel: "anthropic/claude-sonnet" }));
+    expect(result).toMatchObject({ ok: true, escalation: { model: "anthropic/claude-sonnet", costUsd: 0 } });
+    expect(asked.map((call) => call.model)).toEqual(["deepseek/deepseek-v4", "anthropic/claude-sonnet"]);
+    expect(asked[0].request).toContain("text_overflow #scene-s1-title");
+    expect(result.resultText).toMatch(/storyboard corrigé par anthropic\/claude-sonnet/);
+    expect(JSON.parse(await readFile(join(dir, "videos/essai/STORYBOARD.json"), "utf8")).scenes[0].props.text).toBe("Court");
+    expect((await calls()).filter((call) => call.startsWith("npm"))).toHaveLength(3);
+  });
+
+  it("fails the build when the check keeps failing and there is no escalation model", async () => {
+    const { dir, ctx } = await fakeWorkspace(valid, { checkFailures: 5 });
+    await writeFile(join(dir, "videos/essai/BRIEF.md"), "# Brief");
+    const fetchImpl = (async () => answer(valid)) as unknown as typeof fetch;
+    const result = await runBlocksStep(ctx("build", { fetchImpl }));
+    expect(result).toMatchObject({ ok: false });
+    expect(result.resultText).toMatch(/Le check HyperFrames a échoué/);
+    expect(result.escalation).toBeUndefined();
   });
 });
 

@@ -7,12 +7,19 @@ import {
   assembleVideo,
   blockManifestSchema,
   blocksCatalog,
+  blocksVariablesAnswerSchema,
+  blocksVariablesJsonSchema,
   BINDABLE_VARIABLE_TYPES,
+  briefDocJsonSchema,
+  briefDocSchema,
+  briefFormatLine,
   compositionVariablesSchema,
   CUSTOM_BLOCK,
   customScenePath,
   sceneCompositionId,
+  parseJsonAnswer,
   parseStoryboard,
+  renderBriefMd,
   renderScriptMd,
   renderStoryboardHtml,
   renderStoryboardMd,
@@ -21,6 +28,10 @@ import {
   type AssembledVideo,
   type AudioMeta,
   type BlockManifest,
+  type BriefFormat,
+  type CompositionVariable,
+  type CreationKind,
+  type CreationType,
   type GenerationStep,
   type LoadedBlock,
   type StoryboardFormat,
@@ -28,9 +39,18 @@ import {
   type StudioEvent,
   type TokenUsage,
 } from "@studio/shared";
+import { addUsage, ANSWERS_WITHOUT_ESCALATION, structuredCall, type Escalation } from "./structured";
 
-/** What a blocks step hands back to `processClaudeJob`, in the shape of an agent turn. */
-export type BlocksStepResult = { ok: boolean; resultText: string | null; usage?: TokenUsage; costUsd?: number };
+/**
+ * What a blocks step hands back to `processClaudeJob`, in the shape of an agent turn. `costUsd` is what the agent
+ * turns cost (the structured calls are counted by the proxy), `escalation` is set when the escalation model took over.
+ */
+export type BlocksStepResult = { ok: boolean; resultText: string | null; usage?: TokenUsage; costUsd?: number; escalation?: Escalation };
+
+/** Two escalations of the same step (a storyboard rewritten, then repaired after a check) add up. */
+function mergeEscalation(a: Escalation | undefined, b: Escalation | undefined): Escalation | undefined {
+  return !a ? b : !b ? a : { model: b.model, costUsd: a.costUsd + b.costUsd };
+}
 
 /** An agent turn in the workspace, for the scenes no block covers (`custom`). */
 export type CustomSceneAgent = (prompt: string) => Promise<BlocksStepResult>;
@@ -43,8 +63,12 @@ export type BlocksContext = {
   /** Campaign name and context, shared by the créations of the project. */
   campaign: string;
   feedback?: string;
-  /** OpenRouter id of the model writing STORYBOARD.json; only the storyboard and the comments need one. */
+  /** What the brief and the variables are written from; without it, those steps cannot run. */
+  creation?: { type: CreationType; kind: CreationKind; brief: Record<string, unknown> };
+  /** OpenRouter id of the model of the structured calls (brief, variables, storyboard, a build comment). */
   model: string | null;
+  /** OpenRouter id of the stronger model a call falls back to after two refused answers or two failed checks. */
+  escalationModel?: string | null;
   /** The job's proxy token: the call is billed to the job like the voice and the music. */
   openrouter: { baseUrl: string; token: string } | null;
   /** Environment of the workspace scripts (`audio.mjs`, the HyperFrames CLI). */
@@ -56,8 +80,8 @@ export type BlocksContext = {
   customScene?: CustomSceneAgent;
 };
 
-/** Answers the model may give before one passes the schema and the block rules. */
-export const STORYBOARD_ATTEMPTS = 3;
+/** Answers the model may give before one passes the schema and the block rules, without escalation. */
+export const STORYBOARD_ATTEMPTS = ANSWERS_WITHOUT_ESCALATION;
 
 async function exists(path: string): Promise<boolean> {
   try {
@@ -251,81 +275,31 @@ export function storyboardUserPrompt({
   return parts.join("\n");
 }
 
-type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
-
-async function chat(
-  ctx: BlocksContext,
-  messages: ChatMessage[],
-  schema: Record<string, unknown>,
-  jsonSchema: boolean,
-): Promise<{ ok: true; content: string; usage?: TokenUsage } | { ok: false; status: number; error: string }> {
-  const fetchImpl = ctx.fetchImpl ?? fetch;
-  const response = await fetchImpl(`${ctx.openrouter!.baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: { authorization: `Bearer ${ctx.openrouter!.token}`, "content-type": "application/json" },
-    body: JSON.stringify({
-      model: ctx.model,
-      messages,
-      temperature: 0.5,
-      response_format: jsonSchema ? { type: "json_schema", json_schema: { name: "storyboard", strict: false, schema } } : { type: "json_object" },
-      usage: { include: true },
-    }),
-    signal: AbortSignal.timeout(Math.min(ctx.timeoutMs, 5 * 60 * 1000)),
-  });
-  const text = await response.text();
-  if (!response.ok) return { ok: false, status: response.status, error: text.slice(0, 1000) };
-  const body = JSON.parse(text) as {
-    choices?: { message?: { content?: string | null } }[];
-    usage?: { prompt_tokens?: number; completion_tokens?: number };
-    error?: { message?: string };
-  };
-  const content = body.choices?.[0]?.message?.content;
-  if (!content) return { ok: false, status: 502, error: body.error?.message ?? "réponse vide du modèle" };
-  const usage = body.usage
-    ? { inputTokens: body.usage.prompt_tokens ?? 0, outputTokens: body.usage.completion_tokens ?? 0, cacheReadTokens: 0, cacheCreationTokens: 0 }
-    : undefined;
-  return { ok: true, content, usage };
-}
-
-const addUsage = (a: TokenUsage | undefined, b: TokenUsage | undefined): TokenUsage | undefined =>
-  !a ? b : !b ? a : { inputTokens: a.inputTokens + b.inputTokens, outputTokens: a.outputTokens + b.outputTokens, cacheReadTokens: 0, cacheCreationTokens: 0 };
-
 /**
- * One structured call, answered again with the errors until the storyboard passes (`STORYBOARD_ATTEMPTS`). A model
- * that refuses `json_schema` is asked once more with `json_object`: the zod schema has the last word either way.
+ * Asks the model for STORYBOARD.json until it passes the schema and the block rules; after two refusals the
+ * escalation model takes over (`structuredCall`).
  */
 export async function writeStoryboard(
   ctx: BlocksContext,
-  input: { manifests: readonly BlockManifest[]; brief: string; assets: readonly string[]; current?: Storyboard | null },
-): Promise<{ storyboard: Storyboard | null; warnings: string[]; errors: string[]; usage?: TokenUsage }> {
-  const schema = storyboardJsonSchema(input.manifests);
-  const messages: ChatMessage[] = [
-    { role: "system", content: storyboardSystemPrompt(input.manifests, ctx.format) },
-    { role: "user", content: storyboardUserPrompt({ campaign: ctx.campaign, brief: input.brief, assets: input.assets, current: input.current, feedback: ctx.feedback }) },
-  ];
-  let jsonSchema = true;
-  let usage: TokenUsage | undefined;
-  let errors: string[] = [];
-  for (let attempt = 1; attempt <= STORYBOARD_ATTEMPTS; attempt++) {
-    let answer = await chat(ctx, messages, schema, jsonSchema);
-    if (!answer.ok && jsonSchema && answer.status >= 400 && answer.status < 500) {
-      await ctx.onEvent({ kind: "log", level: "info", text: `Le modèle refuse json_schema (HTTP ${answer.status}) : nouvel essai en json_object.` });
-      jsonSchema = false;
-      answer = await chat(ctx, messages, schema, jsonSchema);
-    }
-    if (!answer.ok) return { storyboard: null, warnings: [], errors: [`Appel du modèle refusé (HTTP ${answer.status}) : ${answer.error}`], usage };
-    usage = addUsage(usage, answer.usage);
-    const parsed = parseStoryboard(answer.content, input.manifests, ctx.format);
-    const missing = parsed.storyboard ? await missingImages(ctx, parsed.storyboard, input.manifests, input.assets) : [];
-    errors = [...parsed.errors, ...missing];
-    if (parsed.storyboard && errors.length === 0) return { storyboard: parsed.storyboard, warnings: parsed.warnings, errors: [], usage };
-    await ctx.onEvent({ kind: "log", level: "info", text: `Storyboard refusé (essai ${attempt}/${STORYBOARD_ATTEMPTS}) :\n- ${errors.join("\n- ")}` });
-    messages.push(
-      { role: "assistant", content: answer.content },
-      { role: "user", content: `Ce storyboard est refusé :\n- ${errors.join("\n- ")}\n\nCorrige ces points et renvoie le storyboard complet, en JSON seulement.` },
-    );
-  }
-  return { storyboard: null, warnings: [], errors, usage };
+  input: { manifests: readonly BlockManifest[]; brief: string; assets: readonly string[]; current?: Storyboard | null; model?: string },
+): Promise<{ storyboard: Storyboard | null; warnings: string[]; errors: string[]; usage?: TokenUsage; costUsd: number; escalation?: Escalation }> {
+  const outcome = await structuredCall(ctx, {
+    label: "Storyboard",
+    name: "storyboard",
+    schema: storyboardJsonSchema(input.manifests),
+    model: input.model ?? ctx.model!,
+    escalationModel: ctx.escalationModel,
+    messages: [
+      { role: "system", content: storyboardSystemPrompt(input.manifests, ctx.format) },
+      { role: "user", content: storyboardUserPrompt({ campaign: ctx.campaign, brief: input.brief, assets: input.assets, current: input.current, feedback: ctx.feedback }) },
+    ],
+    check: async (content) => {
+      const parsed = parseStoryboard(content, input.manifests, ctx.format);
+      const errors = [...parsed.errors, ...(parsed.storyboard ? await missingImages(ctx, parsed.storyboard, input.manifests, input.assets) : [])];
+      return { value: parsed.storyboard, errors, warnings: parsed.warnings };
+    },
+  });
+  return { storyboard: outcome.value, warnings: outcome.warnings, errors: outcome.errors, usage: outcome.usage, costUsd: outcome.costUsd, escalation: outcome.escalation };
 }
 
 async function missingImages(ctx: BlocksContext, storyboard: Storyboard, manifests: readonly BlockManifest[], assets: readonly string[]): Promise<string[]> {
@@ -401,9 +375,14 @@ export async function pinnedHyperframes(workspaceDir: string): Promise<string> {
 
 const tail = (text: string, size = 3000) => (text.length > size ? `…${text.slice(-size)}` : text);
 
-async function storyboardStep(ctx: BlocksContext, manifests: BlockManifest[], current: Storyboard | null): Promise<BlocksStepResult> {
-  if (!ctx.model) return { ok: false, resultText: "Aucun modèle OpenRouter pour le moteur blocs : choisis OpenCode dans les réglages IA, ou renseigne BLOCKS_MODEL." };
-  if (!ctx.openrouter) return { ok: false, resultText: "Clé OpenRouter absente : le moteur blocs ne peut pas appeler le modèle." };
+async function storyboardStep(
+  ctx: BlocksContext,
+  manifests: BlockManifest[],
+  current: Storyboard | null,
+  { escalated = false }: { escalated?: boolean } = {},
+): Promise<BlocksStepResult> {
+  const missing = needsModel(ctx);
+  if (missing) return missing;
   const dir = videoDir(ctx);
   const briefPath = join(dir, "BRIEF.md");
   if (!(await exists(briefPath))) return { ok: false, resultText: "BRIEF.md absent : relance l'étape brief." };
@@ -413,13 +392,19 @@ async function storyboardStep(ctx: BlocksContext, manifests: BlockManifest[], cu
     assets: await availableAssets(dir),
     current,
   });
-  if (!result.storyboard)
-    return { ok: false, resultText: `Storyboard refusé après ${STORYBOARD_ATTEMPTS} essais :\n- ${result.errors.join("\n- ")}`, usage: result.usage };
+  // Called as the escalation itself (a build repaired by the escalation model), the whole call is the escalation.
+  const escalation = escalated ? { model: ctx.model!, costUsd: result.costUsd } : result.escalation;
+  if (!result.storyboard) return { ok: false, resultText: `Storyboard refusé :\n- ${result.errors.join("\n- ")}`, usage: result.usage, escalation };
   await saveStoryboard(ctx, result.storyboard, manifests, result.warnings);
   const { storyboard } = result;
   const total = storyboard.scenes.reduce((sum, scene) => sum + scene.duration, 0);
   const lines = storyboard.scenes.map((scene, index) => `${index + 1}. ${scene.title} (${scene.block}, ${scene.duration} s)`);
-  return { ok: true, resultText: [`${storyboard.scenes.length} scènes, environ ${total.toFixed(1)} s.`, ...lines, ...result.warnings].join("\n"), usage: result.usage };
+  return {
+    ok: true,
+    resultText: [`${storyboard.scenes.length} scènes, environ ${total.toFixed(1)} s.`, ...lines, ...result.warnings].join("\n"),
+    usage: result.usage,
+    escalation,
+  };
 }
 
 async function mediaStep(ctx: BlocksContext, manifests: BlockManifest[]): Promise<BlocksStepResult> {
@@ -533,7 +518,10 @@ async function buildCustomScenes(
   return { ok: true, resultText: written.length ? `Scènes sur mesure écrites : ${written.join(", ")}.` : null, usage, costUsd };
 }
 
-async function buildStep(ctx: BlocksContext, manifests: BlockManifest[], blocks: Map<string, LoadedBlock>): Promise<BlocksStepResult> {
+/** A round of the build: STORYBOARD.json assembled, its custom scenes written and `check` run on the result. */
+type BuildRound = BlocksStepResult & { assembled?: AssembledVideo; storyboard?: Storyboard; checkOutput?: string };
+
+async function assembleAndCheck(ctx: BlocksContext, manifests: BlockManifest[], blocks: Map<string, LoadedBlock>): Promise<BuildRound> {
   const dir = videoDir(ctx);
   const { storyboard, errors } = await readStoryboard(ctx, manifests);
   if (!storyboard) return { ok: false, resultText: errors.join("\n") };
@@ -553,20 +541,248 @@ async function buildStep(ctx: BlocksContext, manifests: BlockManifest[], blocks:
   await ctx.onEvent({ kind: "log", level: "info", text: `Composition assemblée : ${storyboard.scenes.length} scènes, ${assembled.duration} s.` });
   const custom = await buildCustomScenes(ctx, storyboard, assembled);
   if (!custom.ok) return custom;
-  const done = (result: BlocksStepResult): BlocksStepResult => ({
-    ...result,
-    resultText: [custom.resultText, result.resultText].filter(Boolean).join("\n"),
-    usage: addUsage(custom.usage, result.usage),
-    costUsd: custom.costUsd,
-  });
-
   const check = await runCommand(ctx, "npm", ["run", "check", "--", `videos/${ctx.slug}`], ctx.timeoutMs);
-  if (check.code !== 0) return done({ ok: false, resultText: `Le check HyperFrames a échoué sur la composition assemblée :\n${tail(check.output)}` });
-  const cli = await pinnedHyperframes(ctx.workspaceDir);
-  const at = sceneMidpoints(assembled.timings).join(",");
-  const snapshot = await runCommand(ctx, "npx", ["--yes", cli, "snapshot", `videos/${ctx.slug}`, "--at", at], ctx.timeoutMs);
-  if (snapshot.code !== 0) await ctx.onEvent({ kind: "log", level: "error", text: `Snapshots impossibles (code ${snapshot.code}) : la planche de relecture manque.` });
-  return done({ ok: true, resultText: `Check passé. ${storyboard.scenes.length} scènes, ${assembled.duration} s.` });
+  return { ...custom, assembled, storyboard, checkOutput: check.code === 0 ? undefined : tail(check.output) };
+}
+
+/** Check failures after which the storyboard is repaired: by the step's model, then by the escalation model. */
+export const CHECK_REPAIRS = 2;
+
+function repairRequest(checkOutput: string): string {
+  return [
+    "Le check HyperFrames refuse la vidéo assemblée à partir de ce storyboard :",
+    "",
+    "```",
+    checkOutput.trim(),
+    "```",
+    "",
+    "Corrige les props des scènes en cause (texte trop long pour sa place, contraste insuffisant entre le texte et son fond, image qui ne convient pas) et ne change rien d'autre, ni la voix off ni les durées.",
+  ].join("\n");
+}
+
+/**
+ * Assembles and checks; a failed check sends its output to the model, which corrects the props, then the build runs
+ * again. The second failure goes to the escalation model; the third one fails the step.
+ */
+async function buildStep(ctx: BlocksContext, manifests: BlockManifest[], blocks: Map<string, LoadedBlock>): Promise<BlocksStepResult> {
+  let usage: TokenUsage | undefined;
+  let costUsd: number | undefined;
+  let escalation: Escalation | undefined;
+  const notes: string[] = [];
+  const finish = (result: BlocksStepResult): BlocksStepResult => ({
+    ...result,
+    resultText: [...notes, result.resultText].filter(Boolean).join("\n"),
+    usage,
+    costUsd,
+    escalation,
+  });
+  for (let failures = 0; ; ) {
+    const round = await assembleAndCheck(ctx, manifests, blocks);
+    usage = addUsage(usage, round.usage);
+    if (round.costUsd !== undefined) costUsd = (costUsd ?? 0) + round.costUsd;
+    if (round.resultText) notes.push(round.resultText);
+    if (!round.ok) return finish({ ok: false, resultText: null });
+    const { assembled, storyboard } = round as Required<Pick<BuildRound, "assembled" | "storyboard">>;
+    if (round.checkOutput === undefined) {
+      const cli = await pinnedHyperframes(ctx.workspaceDir);
+      const at = sceneMidpoints(assembled.timings).join(",");
+      const snapshot = await runCommand(ctx, "npx", ["--yes", cli, "snapshot", `videos/${ctx.slug}`, "--at", at], ctx.timeoutMs);
+      if (snapshot.code !== 0) await ctx.onEvent({ kind: "log", level: "error", text: `Snapshots impossibles (code ${snapshot.code}) : la planche de relecture manque.` });
+      return finish({ ok: true, resultText: `Check passé. ${storyboard.scenes.length} scènes, ${assembled.duration} s.` });
+    }
+
+    failures++;
+    const escalating = failures === CHECK_REPAIRS;
+    const model = escalating ? (ctx.escalationModel && ctx.escalationModel !== ctx.model ? ctx.escalationModel : null) : ctx.model;
+    const failed = `Le check HyperFrames a échoué sur la composition assemblée :\n${round.checkOutput}`;
+    if (failures > CHECK_REPAIRS || !model || !ctx.openrouter) return finish({ ok: false, resultText: failed });
+    await ctx.onEvent({
+      kind: "log",
+      level: "info",
+      text: escalating ? `Escalade : deuxième check en échec, ${model} corrige le storyboard.` : `Check en échec : ${model} corrige le storyboard.`,
+    });
+    const repaired = await storyboardStep({ ...ctx, model, escalationModel: escalating ? null : ctx.escalationModel, feedback: repairRequest(round.checkOutput) }, manifests, storyboard, {
+      escalated: escalating,
+    });
+    usage = addUsage(usage, repaired.usage);
+    escalation = mergeEscalation(escalation, repaired.escalation);
+    if (!repaired.ok) return finish({ ok: false, resultText: `${failed}\n\nCorrection impossible : ${repaired.resultText}` });
+    notes.push(`Check en échec : storyboard corrigé par ${model}.`);
+  }
+}
+
+/** The format of the création, for the brief: a still has its slide count, a video its target duration. */
+function briefFormat(ctx: BlocksContext): BriefFormat {
+  const type = ctx.creation?.type ?? (ctx.format.frames ? (ctx.format.frames === 1 ? "image" : "carousel") : "video");
+  return { type, width: ctx.format.width, height: ctx.format.height, durationSeconds: ctx.format.durationSeconds, frames: ctx.format.frames };
+}
+
+export function briefSystemPrompt(type: CreationType): string {
+  const video = type === "video";
+  return [
+    "Tu es chef de projet dans un studio de contenus pour les réseaux sociaux. Tu transformes la demande saisie dans le studio en un brief clair, que le réalisateur suivra pour écrire le storyboard.",
+    "Tu réponds uniquement par un objet JSON conforme au schéma, sans texte autour.",
+    "",
+    "Règles :",
+    "- `points` reprend mot pour mot les faits, chiffres, citations, offres, dates, étapes et liens de la demande : le storyboard n'utilisera que ceux-là. N'invente jamais de chiffre, de témoignage ni de promesse.",
+    "- `keyMessage` : la phrase que le public doit retenir, en une ligne.",
+    "- `callToAction` : l'action demandée, avec le lien ou le code s'il y en a un ; vide si la demande n'en donne pas.",
+    "- `tone` : le ton, d'après la demande et la campagne.",
+    video
+      ? "- `audio.voice` vaut false si la demande veut une vidéo muette ou sans voix off, true sinon. `audio.music` est une description courte en anglais de la musique (ambiance, tempo, instrumental), ou null si la demande n'en veut pas."
+      : "- Pas de son : `audio` vaut { \"voice\": false, \"music\": null }.",
+    "- Ce que la demande ne dit pas : choisis la valeur la plus raisonnable et note ce choix dans `assumptions`.",
+    "- Écris en français naturel, sans emoji.",
+    "",
+    "# Forme de la réponse",
+    "",
+    "Exactement ces champs (les valeurs ne sont qu'un exemple) :",
+    "",
+    "```json",
+    JSON.stringify({
+      title: "Thermo, le café chaud 3 heures",
+      objective: "…",
+      audience: "…",
+      keyMessage: "…",
+      points: ["…", "…"],
+      callToAction: "…",
+      tone: "…",
+      audio: video ? { voice: true, music: "light lo-fi, instrumental, 85 bpm" } : { voice: false, music: null },
+      assumptions: ["…"],
+    }),
+    "```",
+  ].join("\n");
+}
+
+export function briefUserPrompt({ campaign, brief, format, assets }: { campaign: string; brief: Record<string, unknown>; format: string; assets: readonly string[] }): string {
+  return [
+    "## Campagne",
+    "",
+    campaign.trim() || "(pas de contexte de campagne)",
+    "",
+    "## Demande saisie dans le studio (JSON)",
+    "",
+    "```json",
+    JSON.stringify(brief, null, 2),
+    "```",
+    "",
+    `## Format\n\n${format}`,
+    "",
+    "## Fichiers fournis",
+    "",
+    assets.length ? assets.map((asset) => `- ${asset}`).join("\n") : "(aucun)",
+    "",
+    "Écris le brief.",
+  ].join("\n");
+}
+
+const needsModel = (ctx: BlocksContext): BlocksStepResult | null =>
+  !ctx.model
+    ? { ok: false, resultText: "Aucun modèle OpenRouter pour le moteur blocs : choisis OpenCode dans les réglages IA, ou renseigne BLOCKS_MODEL." }
+    : !ctx.openrouter
+      ? { ok: false, resultText: "Clé OpenRouter absente : le moteur blocs ne peut pas appeler le modèle." }
+      : null;
+
+/** BRIEF.json from what was typed in the studio, and BRIEF.md generated from it for the storyboard and the review. */
+async function briefStep(ctx: BlocksContext): Promise<BlocksStepResult> {
+  const missing = needsModel(ctx);
+  if (missing) return missing;
+  if (!ctx.creation) return { ok: false, resultText: "Brief du studio absent : impossible d'écrire BRIEF.json." };
+  const dir = videoDir(ctx);
+  const format = briefFormat(ctx);
+  const outcome = await structuredCall(ctx, {
+    label: "Brief",
+    name: "brief",
+    schema: briefDocJsonSchema(),
+    model: ctx.model!,
+    escalationModel: ctx.escalationModel,
+    messages: [
+      { role: "system", content: briefSystemPrompt(format.type) },
+      { role: "user", content: briefUserPrompt({ campaign: ctx.campaign, brief: ctx.creation.brief, format: briefFormatLine(format), assets: await availableAssets(dir) }) },
+    ],
+    check: async (content) => parseJsonAnswer(content, briefDocSchema),
+  });
+  if (!outcome.value) return { ok: false, resultText: `Brief refusé :\n- ${outcome.errors.join("\n- ")}`, usage: outcome.usage, escalation: outcome.escalation };
+  // A still has no sound, whatever the model said.
+  const doc = format.type === "video" ? outcome.value : { ...outcome.value, audio: { voice: false, music: null } };
+  await writeFile(join(dir, "BRIEF.json"), `${JSON.stringify(doc, null, 2)}\n`);
+  await writeFile(join(dir, "BRIEF.md"), renderBriefMd(doc, format));
+  const summary = [doc.title, doc.keyMessage, doc.assumptions.length ? `${doc.assumptions.length} hypothèse(s) : ${doc.assumptions.join(" ; ")}` : "Aucune hypothèse."];
+  return { ok: true, resultText: summary.join("\n"), usage: outcome.usage, escalation: outcome.escalation };
+}
+
+export function variablesSystemPrompt(): string {
+  return [
+    "Tu prépares un template de contenu pour les réseaux sociaux : il sera réutilisé en changeant des variables, puis rendu sans toi. Tu proposes ces variables ; l'utilisateur les valide avant le storyboard.",
+    "Tu réponds uniquement par un objet JSON conforme au schéma, sans texte autour.",
+    "",
+    "Règles :",
+    "- Reprends chaque variable suggérée par l'utilisateur, puis ajoute celles que le brief rend évidentes : ce qui changera d'une déclinaison à l'autre (accroche, nom du produit, prix, date, texte du bouton, photo du produit). Garde fixe ce qui fait l'identité de la création (couleurs, logo, ton).",
+    "- Peu de variables, chacune utile : 3 à 6 en général.",
+    "- Le template est assemblé à partir de blocs : une variable n'est qu'un texte affiché ou le chemin d'une image, toujours de type `string`. Un prix ou une date s'écrit en texte (« 29 € », « Jusqu'au 30 novembre »).",
+    "- `id` : minuscules, chiffres et _, en commençant par une lettre (ex. `headline`). `label` : en français, ce que l'utilisateur remplit. `default` : la valeur de la première version, tirée du brief.",
+    "- Chaque texte affiché a `maxLength`, d'après la place qu'il aura : 20 à 40 pour une accroche ou un bouton, 60 à 90 pour une phrase. La valeur par défaut tient dans cette longueur.",
+    "- Une image est un chemin vers un fichier fourni (`assets/uploads/…`), sans `maxLength`.",
+    "",
+    "# Forme de la réponse",
+    "",
+    "```json",
+    JSON.stringify({
+      variables: [
+        { id: "headline", type: "string", label: "Accroche de l'offre", default: "-30 % sur le lin lavé", maxLength: 32 },
+        { id: "product_photo", type: "string", label: "Photo du produit", default: "assets/uploads/produit.jpg" },
+      ],
+    }),
+    "```",
+  ].join("\n");
+}
+
+/** VARIABLES.json of a template on the blocks engine: a structured call, the user's comment applied to the current list. */
+async function variablesStep(ctx: BlocksContext): Promise<BlocksStepResult> {
+  const missing = needsModel(ctx);
+  if (missing) return missing;
+  const dir = videoDir(ctx);
+  const briefPath = join(dir, "BRIEF.md");
+  if (!(await exists(briefPath))) return { ok: false, resultText: "BRIEF.md absent : relance l'étape brief." };
+  const current = ctx.feedback ? await readFile(join(dir, "VARIABLES.json"), "utf8").catch(() => null) : null;
+  const suggested = ctx.creation?.brief.variables;
+  const user = [
+    "## Brief validé",
+    "",
+    (await readFile(briefPath, "utf8")).trim(),
+    "",
+    "## Fichiers fournis",
+    "",
+    (await availableAssets(dir)).map((asset) => `- ${asset}`).join("\n") || "(aucun)",
+    ...(suggested ? ["", "## Variables suggérées par l'utilisateur", "", "```json", JSON.stringify(suggested, null, 2), "```"] : []),
+    ...(current && ctx.feedback
+      ? ["", "## Variables actuelles", "", "```json", current.trim(), "```", "", "## Demande de l'utilisateur", "", ctx.feedback.trim(), "", "Applique cette demande et renvoie la liste complète."]
+      : ["", "Propose les variables de ce template."]),
+  ].join("\n");
+  const outcome = await structuredCall(ctx, {
+    label: "Variables",
+    name: "variables",
+    schema: blocksVariablesJsonSchema(),
+    model: ctx.model!,
+    escalationModel: ctx.escalationModel,
+    messages: [
+      { role: "system", content: variablesSystemPrompt() },
+      { role: "user", content: user },
+    ],
+    check: async (content) => {
+      const parsed = parseJsonAnswer(content, blocksVariablesAnswerSchema);
+      return { value: parsed.value?.variables ?? null, errors: parsed.errors };
+    },
+  });
+  if (!outcome.value) return { ok: false, resultText: `Variables refusées :\n- ${outcome.errors.join("\n- ")}`, usage: outcome.usage, escalation: outcome.escalation };
+  const variables: CompositionVariable[] = outcome.value;
+  await writeFile(join(dir, "VARIABLES.json"), `${JSON.stringify(variables, null, 2)}\n`);
+  return {
+    ok: true,
+    resultText: variables.map((variable) => `${variable.id} : ${variable.label}`).join("\n"),
+    usage: outcome.usage,
+    escalation: outcome.escalation,
+  };
 }
 
 /** A template's `VARIABLES.json`, which the blocks can show only as texts and images; a string explains a refusal. */
@@ -591,6 +807,8 @@ async function readContract(ctx: BlocksContext): Promise<StoryboardFormat["varia
  * (never the HTML), and a build comment then assembles again.
  */
 export async function runBlocksStep(ctx: BlocksContext): Promise<BlocksStepResult> {
+  if (ctx.step === "brief") return briefStep(ctx);
+  if (ctx.step === "variables") return variablesStep(ctx);
   const { manifests, blocks } = await loadBlocks(ctx.workspaceDir);
   const contract = await readContract(ctx);
   if (typeof contract === "string") return { ok: false, resultText: contract };
@@ -602,6 +820,7 @@ export async function runBlocksStep(ctx: BlocksContext): Promise<BlocksStepResul
   if (ctx.step === "media") return mediaStep(ctx, manifests);
   if (ctx.step === "build") {
     let usage: TokenUsage | undefined;
+    let escalation: Escalation | undefined;
     let staleVoice = false;
     // An image has no storyboard step: its build writes STORYBOARD.json first.
     const missing = !(await exists(join(videoDir(ctx), "STORYBOARD.json")));
@@ -610,13 +829,14 @@ export async function runBlocksStep(ctx: BlocksContext): Promise<BlocksStepResul
       const rewritten = await storyboardStep(ctx, manifests, current);
       if (!rewritten.ok) return rewritten;
       usage = rewritten.usage;
+      escalation = rewritten.escalation;
       const after = (await readStoryboard(ctx, manifests)).storyboard;
       const spoken = (storyboard: Storyboard | null) => JSON.stringify(storyboard?.scenes.map((scene) => scene.voiceover) ?? []);
       staleVoice = spoken(current) !== spoken(after) && (await exists(join(videoDir(ctx), "audio_meta.json")));
     }
     const built = await buildStep(ctx, manifests, blocks);
     const warning = staleVoice ? "\nLa voix off a changé dans le storyboard : relance l'étape médias pour réenregistrer la voix." : "";
-    return { ...built, resultText: `${built.resultText ?? ""}${warning}`, usage: addUsage(usage, built.usage) };
+    return { ...built, resultText: `${built.resultText ?? ""}${warning}`, usage: addUsage(usage, built.usage), escalation: mergeEscalation(escalation, built.escalation) };
   }
   return { ok: false, resultText: `Le moteur blocs ne gère pas l'étape « ${ctx.step} ».` };
 }
