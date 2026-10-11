@@ -102,8 +102,10 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
     let agent: AgentChoice;
     let result: AgentTurnResult;
     if (usesBlocks(creation) && BLOCKS_STEPS.includes(job.step) && job.mode !== "edit") {
-      // The blocks engine: a structured call and code, no agent turn and no session.
+      // The blocks engine: a structured call and code, no agent turn and no session, but for a custom scene.
       agent = { backend: "opencode", model: blocksModelFor(job, config) ?? "aucun" };
+      const sceneAgent = agentFor(job, config);
+      const sceneRunner = deps.runnerFor(sceneAgent.backend);
       const step = await runBlocksStep({
         workspaceDir: config.workspaceDir,
         slug: job.slug,
@@ -116,8 +118,14 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
         env: agentEnv({ home: homedir(), tmp: config.agentTmpDir }, {}),
         timeoutMs: config.timeoutMs,
         onEvent: (event) => report.event(event),
+        customScene: sceneRunner
+          ? async (prompt) => {
+              const turn = await sceneRunner.run({ prompt, sessionId: null, model: sceneAgent.model, cwd: config.workspaceDir, timeoutMs: config.timeoutMs, onEvent: (event) => report.event(event) });
+              return { ok: turn.ok, resultText: turn.resultText, usage: turn.usage, costUsd: turn.costUsd };
+            }
+          : undefined,
       });
-      result = { ok: step.ok, sessionId: null, resultText: step.resultText, usage: step.usage };
+      result = { ok: step.ok, sessionId: null, resultText: step.resultText, usage: step.usage, costUsd: step.costUsd };
       if (!step.ok && step.resultText) await report.event({ kind: "log", level: "error", text: step.resultText });
     } else {
       agent = agentFor(job, config);

@@ -1,9 +1,9 @@
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { assembleVideo, parseStoryboard, type StudioEvent } from "@studio/shared";
 import { describe, expect, it } from "vitest";
-import { availableAssets, loadBlocks, writeStoryboard, type BlocksContext } from "./blocks";
+import { availableAssets, loadBlocks, runBlocksStep, writeStoryboard, type BlocksContext } from "./blocks";
 import { blocksModelFor } from "./process-job";
 
 /** The workspace skeleton shipped with the app, whose blocks are tested as they are. */
@@ -109,6 +109,85 @@ describe("writeStoryboard", () => {
     const result = await writeStoryboard(context(fetchImpl), { manifests, brief: "# Brief", assets: ["assets/uploads/vrai.png"] });
     expect(result.storyboard).toBeNull();
     expect(result.errors.join("\n")).toMatch(/invente\.png » n'est pas dans les fichiers disponibles/);
+  });
+});
+
+/**
+ * A workspace with the shipped blocks and stand-ins for what the steps run: `scripts/audio.mjs`, `npm` (check) and
+ * `npx` (snapshot) only write down how they were called.
+ */
+async function fakeWorkspace(storyboard: unknown) {
+  const dir = await mkdtemp(join(tmpdir(), "blocks-steps-"));
+  const bin = join(dir, "bin");
+  const calls = join(dir, "calls.log");
+  await symlink(join(SKELETON, "blocks"), join(dir, "blocks"));
+  await mkdir(join(dir, "scripts"), { recursive: true });
+  await mkdir(bin);
+  await mkdir(join(dir, "videos/essai"), { recursive: true });
+  await writeFile(join(dir, "package.json"), JSON.stringify({ scripts: { check: "npx --yes hyperframes@0.0.1 check" } }));
+  await writeFile(join(dir, "scripts/audio.mjs"), `import { appendFileSync } from "node:fs";\nappendFileSync(${JSON.stringify(calls)}, "audio " + process.argv.slice(2).join(" ") + "\\n");\n`);
+  for (const tool of ["npm", "npx"]) {
+    await writeFile(join(bin, tool), `#!/bin/sh\necho "${tool} $*" >> ${JSON.stringify(calls)}\n`);
+    await chmod(join(bin, tool), 0o755);
+  }
+  await writeFile(join(dir, "videos/essai/STORYBOARD.json"), JSON.stringify(storyboard));
+  const ctx = (step: BlocksContext["step"], extra: Partial<BlocksContext> = {}): BlocksContext => ({
+    ...context((async () => answer(null, 500)) as unknown as typeof fetch),
+    workspaceDir: dir,
+    step,
+    env: { PATH: `${bin}:${process.env.PATH}` },
+    ...extra,
+  });
+  return { dir, ctx, calls: async () => (await readFile(calls, "utf8").catch(() => "")).trim().split("\n").filter(Boolean) };
+}
+
+describe("runBlocksStep", () => {
+  it("makes the music alone, as long as the storyboard, when there is no voice", async () => {
+    const { ctx, calls } = await fakeWorkspace({ ...valid, audio: { voice: false, music: "warm lofi" } });
+    const result = await runBlocksStep(ctx("media"));
+    expect(result).toMatchObject({ ok: true, resultText: "Musique en place (audio_meta.json)." });
+    expect(await calls()).toEqual(["audio videos/essai --music warm lofi --steps music,meta --duration 13"]);
+  });
+
+  it("skips the media step of a silent video", async () => {
+    const { ctx, calls } = await fakeWorkspace(valid);
+    expect((await runBlocksStep(ctx("media"))).ok).toBe(true);
+    expect(await calls()).toEqual([]);
+  });
+
+  it("has an agent write a custom scene once, then checks and snapshots the video", async () => {
+    const withCustom = {
+      ...valid,
+      scenes: [valid.scenes[0], { id: "s2", title: "Schéma", block: "custom", duration: 6, props: { description: "Trois étapes reliées par une flèche." }, voiceover: "", transition: "cut" }, valid.scenes[2]],
+    };
+    const { dir, ctx, calls } = await fakeWorkspace(withCustom);
+    const prompts: string[] = [];
+    const customScene = async (prompt: string) => {
+      prompts.push(prompt);
+      await writeFile(join(dir, "videos/essai/compositions/custom/s2.html"), '<template><div id="root" data-composition-id="scene-s2"></div></template>');
+      return { ok: true, resultText: "Un schéma.", costUsd: 0.12 };
+    };
+    const first = await runBlocksStep(ctx("build", { customScene }));
+    expect(first).toMatchObject({ ok: true, costUsd: 0.12 });
+    expect(first.resultText).toMatch(/Scènes sur mesure écrites : s2/);
+    expect(prompts[0]).toContain("videos/essai/compositions/custom/s2.html");
+    expect(prompts[0]).toContain("Trois étapes reliées par une flèche.");
+    expect(prompts[0]).toContain('data-composition-id="scene-s2"');
+    expect(await readFile(join(dir, "videos/essai/index.html"), "utf8")).toContain('data-composition-src="compositions/custom/s2.html"');
+    expect(await calls()).toEqual(["npm run check -- videos/essai", "npx --yes hyperframes@0.0.1 snapshot videos/essai --at 1.5,6,11"]);
+
+    // Same description, same slot: the scene is kept as it is.
+    expect((await runBlocksStep(ctx("build", { customScene }))).ok).toBe(true);
+    expect(prompts).toHaveLength(1);
+  });
+
+  it("fails a custom scene the agent did not write, or that no agent can write", async () => {
+    const withCustom = { ...valid, scenes: [{ id: "s1", title: "Schéma", block: "custom", duration: 13, props: { description: "Un schéma." }, voiceover: "", transition: "cut" }] };
+    const { ctx } = await fakeWorkspace(withCustom);
+    expect((await runBlocksStep(ctx("build"))).resultText).toMatch(/aucun agent n'est disponible/);
+    const result = await runBlocksStep(ctx("build", { customScene: async () => ({ ok: true, resultText: "Fait." }) }));
+    expect(result).toMatchObject({ ok: false });
+    expect(result.resultText).toMatch(/n'a pas été écrite dans compositions\/custom\/s1.html/);
   });
 });
 

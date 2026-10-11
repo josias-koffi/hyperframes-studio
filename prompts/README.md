@@ -21,4 +21,5 @@ validation ou étape suivante). Les règles HyperFrames restent dans les skills 
 **Moteur blocs.** Une vidéo dont le brief porte `engine: "blocks"` n'utilise que `brief.md` (et `feedback.md` pour le
 brief) : son storyboard est un appel structuré du runner (`apps/claude-runner/src/blocks.ts`) qui écrit
 `STORYBOARD.json` à partir du catalogue de `workspace/blocks/`, ses médias passent directement par
-`scripts/audio.mjs` et son build est assemblé par `assembleVideo` (`packages/shared/src/storyboard.ts`).
+`scripts/audio.mjs` et son build est assemblé par `assembleVideo` (`packages/shared/src/storyboard.ts`). Seule une
+scène `custom` passe par un agent, avec un prompt écrit dans le code (`customScenePrompt`, même fichier que le runner).

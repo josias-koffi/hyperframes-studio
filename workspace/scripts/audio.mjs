@@ -9,6 +9,7 @@
 //   node scripts/audio.mjs videos/<nom> --music "<prompt anglais, instrumental>" [--lang fr] [--steps tts,normalize,music,meta]
 // Sans --music, pas de musique (bgm absent de audio_meta.json). SCRIPT.md : un titre `## … (Frame N)` par frame,
 // le texte parlé en lignes indentées de 4 espaces.
+// Musique sans voix : --steps music,meta --duration <secondes> (la musique est coupée à cette durée, sans SCRIPT.md parlé).
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -33,6 +34,11 @@ if (!video || !existsSync(join(video, "SCRIPT.md"))) {
 const musicPrompt = flag("music", null);
 const lang = flag("lang", "fr");
 const steps = new Set(flag("steps", "tts,normalize,music,meta").split(","));
+const fixedDuration = flag("duration", null) === null ? null : Number(flag("duration", null));
+if (fixedDuration !== null && !(fixedDuration > 0)) {
+  console.error("--duration attend une durée en secondes");
+  process.exit(1);
+}
 
 // Dans le studio, le `.env` racine n'est pas lisible par l'agent : la clé vient du jeton de `.studio.env`.
 const readText = (file) => {
@@ -119,6 +125,7 @@ function normalize() {
 
 function voiceTotal() {
   const dir = join(video, "assets/audio/voice");
+  if (!existsSync(dir)) return 0;
   return readdirSync(dir)
     .filter((n) => n.endsWith(".wav"))
     .reduce((sum, n) => sum + duration(join(dir, n)), 0);
@@ -162,8 +169,8 @@ async function music() {
   const raw = join(mediaDir, `lyria-raw.${magic === "RIFF" ? "wav" : "mp3"}`);
   writeFileSync(raw, buf);
 
-  // Coupée à la durée de la voix + une queue, avec un fondu de sortie.
-  const length = Math.min(duration(raw), voiceTotal() + MUSIC_TAIL_S);
+  // Coupée à la durée donnée, sinon à celle de la voix + une queue, avec un fondu de sortie.
+  const length = Math.min(duration(raw), fixedDuration ?? voiceTotal() + MUSIC_TAIL_S);
   const out = join(video, "assets/audio/music/bgm.mp3");
   mkdirSync(join(video, "assets/audio/music"), { recursive: true });
   execFileSync("ffmpeg", [
@@ -179,12 +186,14 @@ const tokens = (text) =>
   text.split(/\s+/).reduce((acc, w) => (/^[?!:;»]+$/.test(w) && acc.length ? ((acc[acc.length - 1] += ` ${w}`), acc) : (acc.push(w), acc)), []);
 
 function meta() {
-  const script = scriptLines();
+  const dir = join(video, "assets/audio/voice");
+  const files = existsSync(dir) ? readdirSync(dir).filter((n) => n.endsWith(".wav")).sort() : [];
+  // Une musique sans voix n'a pas de SCRIPT.md parlé : pas de mots à transcrire.
+  const script = files.length ? scriptLines() : new Map();
   const scratch = mkdtempSync(join(tmpdir(), "studio-audio-"));
   const voices = [];
   try {
-    const dir = join(video, "assets/audio/voice");
-    for (const file of readdirSync(dir).filter((n) => n.endsWith(".wav")).sort()) {
+    for (const file of files) {
       const frame = Number(file.slice(0, 2));
       const abs = join(dir, file);
       const out = join(scratch, file);

@@ -123,7 +123,9 @@ https://hyperframes.heygen.com/llms.txt
 A video whose `STORYBOARD.md` frontmatter says `engine: blocks` is assembled by the studio from
 `STORYBOARD.json` and the blocks of `blocks/<id>/` (`block.json` manifest + `block.html` template): its
 `index.html` and `compositions/scenes/*.html` are regenerated at every build. To change such a video for good,
-change `STORYBOARD.json` (props, order, durations); an edit of the HTML lasts until the next build.
+change `STORYBOARD.json` (props, order, durations, `overlays`); an edit of the HTML lasts until the next build.
+A scene whose block is `custom` is the exception: its sub-composition, `compositions/custom/<scene>.html`, is
+written by an agent and kept across builds until its description changes.
 
 ## Linting — ALWAYS RUN AFTER CHANGES
 

@@ -1,10 +1,14 @@
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import {
   assembleVideo,
   blockManifestSchema,
   blocksCatalog,
+  CUSTOM_BLOCK,
+  customScenePath,
+  sceneCompositionId,
   parseStoryboard,
   renderScriptMd,
   renderStoryboardHtml,
@@ -22,7 +26,10 @@ import {
 } from "@studio/shared";
 
 /** What a blocks step hands back to `processClaudeJob`, in the shape of an agent turn. */
-export type BlocksStepResult = { ok: boolean; resultText: string | null; usage?: TokenUsage };
+export type BlocksStepResult = { ok: boolean; resultText: string | null; usage?: TokenUsage; costUsd?: number };
+
+/** An agent turn in the workspace, for the scenes no block covers (`custom`). */
+export type CustomSceneAgent = (prompt: string) => Promise<BlocksStepResult>;
 
 export type BlocksContext = {
   workspaceDir: string;
@@ -41,6 +48,8 @@ export type BlocksContext = {
   timeoutMs: number;
   onEvent: (event: StudioEvent) => Promise<void> | void;
   fetchImpl?: typeof fetch;
+  /** Writes a custom scene; without it, a storyboard with a custom scene cannot be built. */
+  customScene?: CustomSceneAgent;
 };
 
 /** Answers the model may give before one passes the schema and the block rules. */
@@ -94,18 +103,21 @@ export function storyboardSystemPrompt(manifests: readonly BlockManifest[], form
     "",
     "Règles :",
     "- Une idée par scène. Une vidéo courte commence par une accroche (hook-kinetic) et finit par un appel à l'action (cta-end).",
+    "- Varie les blocs : pas deux fois de suite le même bloc, sauf raison claire.",
     "- Respecte la longueur maximale de chaque texte : un texte trop long est refusé. Écris court, concret, en français naturel, sans emoji.",
     "- La durée d'une scène suit son texte : environ 2,5 mots lus par seconde, sans sortir des bornes du bloc.",
     format.durationSeconds ? `- La somme des durées vise ${format.durationSeconds} s.` : "- Garde la vidéo sous 45 s.",
     "- Une image ne peut venir que de la liste des fichiers disponibles. Sans fichier adapté, n'utilise pas de bloc d'image.",
     "- Garde une identité visuelle commune : mêmes couleurs d'accent et de texte d'une scène à l'autre, sauf raison claire. Les couleurs s'écrivent #RRGGBB.",
     "- Voix off : si `audio.voice` vaut true, chaque scène a une phrase parlée (`voiceover`) qui complète l'écran au lieu de le répéter mot pour mot ; sinon tous les `voiceover` sont vides.",
-    "- `audio.music` est une description en anglais de la musique (ambiance, tempo, instrumental, sans voix), ou null. Pas de musique sans voix off pour l'instant.",
+    "- `audio.music` est une description en anglais de la musique (ambiance, tempo, instrumental, sans voix), ou null. Une vidéo sans voix off peut avoir une musique.",
+    "- `overlays` pose des calques par-dessus les scènes, de la scène `from` à la scène `to` (ids o1, o2…) : des sous-titres sur toute la vidéo quand il y a une voix off, un bandeau nom-fonction sur une scène. Liste vide si rien ne s'y prête.",
+    `- Le bloc \`${CUSTOM_BLOCK}\` est une scène sur mesure, écrite à part par un agent : seulement quand aucun bloc ne convient.`,
     "- Les ids de scène vont de s1 à sN dans l'ordre. `transition` vaut cut, fade ou slide-up ; la première scène est en cut.",
     "",
     `Cadre : ${format.width}×${format.height} px.`,
     "",
-    "## Catalogue des blocs",
+    "# Catalogue des blocs",
     "",
     blocksCatalog(manifests, format),
   ].join("\n");
@@ -332,12 +344,100 @@ async function storyboardStep(ctx: BlocksContext, manifests: BlockManifest[], cu
 async function mediaStep(ctx: BlocksContext, manifests: BlockManifest[]): Promise<BlocksStepResult> {
   const { storyboard, errors } = await readStoryboard(ctx, manifests);
   if (!storyboard) return { ok: false, resultText: errors.join("\n") };
-  if (!storyboard.audio.voice) return { ok: true, resultText: "Pas de voix off : aucun média à produire." };
+  const { voice, music } = storyboard.audio;
+  if (!voice && !music) return { ok: true, resultText: "Ni voix off ni musique : aucun média à produire." };
   const args = ["scripts/audio.mjs", `videos/${ctx.slug}`];
-  if (storyboard.audio.music) args.push("--music", storyboard.audio.music);
+  if (music) args.push("--music", music);
+  // Without a voice, nothing stretches the scenes: the music lasts as long as the storyboard.
+  if (!voice) args.push("--steps", "music,meta", "--duration", String(storyboard.scenes.reduce((sum, scene) => sum + scene.duration, 0)));
   const run = await runCommand(ctx, "node", args, ctx.timeoutMs);
   if (run.code !== 0) return { ok: false, resultText: `scripts/audio.mjs a échoué (code ${run.code}) :\n${tail(run.output)}` };
-  return { ok: true, resultText: "Voix off et musique en place (audio_meta.json)." };
+  return { ok: true, resultText: voice ? `Voix off${music ? " et musique" : ""} en place (audio_meta.json).` : "Musique en place (audio_meta.json)." };
+}
+
+/** What an agent needs to write one custom scene, every rule in the prompt: it does not read the skills. */
+export function customScenePrompt({
+  slug,
+  sceneId,
+  description,
+  duration,
+  width,
+  height,
+  colors,
+}: {
+  slug: string;
+  sceneId: string;
+  description: string;
+  duration: number;
+  width: number;
+  height: number;
+  colors: readonly string[];
+}): string {
+  const id = sceneCompositionId(sceneId);
+  const path = `videos/${slug}/${customScenePath(sceneId)}`;
+  return [
+    `Tu écris une seule scène d'une vidéo HyperFrames assemblée par le studio : le fichier \`${path}\`. Ne modifie aucun autre fichier : le reste de la vidéo est généré.`,
+    "",
+    "## La scène",
+    "",
+    description.trim(),
+    "",
+    `Durée : ${duration} s · Cadre : ${width}×${height} px${colors.length ? ` · Couleurs du reste de la vidéo : ${colors.join(", ")}` : ""}.`,
+    "",
+    "## Format du fichier",
+    "",
+    "- Un `<template>` qui contient un `<style>`, la racine puis un `<script>` : rien hors du template n'est lu.",
+    `- La racine : \`<div id="root" data-composition-id="${id}" data-width="${width}" data-height="${height}">\`, stylée par \`#root\` (position: absolute; inset: 0; overflow: hidden; un fond opaque), jamais par une classe.`,
+    `- Les enfants sont stylés par des classes simples et leurs ids préfixés : \`id="${id}-titre"\`.`,
+    "- Chaque élément visible que l'on voudra modifier (titre, texte, forme, image) est un élément à part, nommé en français par `data-label=\"…\"` (jamais `data-layer`). Les textes sont du texte simple, les images des `<img>` venant de `assets/`.",
+    `- Une seule timeline GSAP en pause (gsap est déjà chargé) : \`const tl = gsap.timeline({ paused: true });\` … \`window.__timelines["${id}"] = tl;\`. L'animation occupe les ${duration} s.`,
+    "- Logique déterministe : pas de Date.now(), de Math.random(), de réseau, de police ou d'image externe.",
+    "- Jamais deux `fromTo` sur la même cible : pour un second mouvement, anime un élément parent.",
+    "- Le texte reste lisible sur son fond (contraste 3:1 au moins pour le gros texte, 4,5:1 sinon) ; jamais de texte écrit dans sa propre couleur d'accent.",
+    "- Un texte animé dans un masque `overflow: hidden` a `padding-bottom: 0.08em` et `line-height` d'au moins 1.08.",
+    "",
+    "## Vérifier",
+    "",
+    `Lance \`npm run check -- videos/${slug}\` et corrige ta scène jusqu'à 0 erreur sur ${customScenePath(sceneId)}. Les autres scènes ne te concernent pas.`,
+    "Réponds en une phrase : ce que montre la scène.",
+  ].join("\n");
+}
+
+/**
+ * Writes the custom scenes whose description, slot or frame changed since their last build (the agent's turn is
+ * the slow part): `.media/custom/<id>.sha` remembers what each file was written for.
+ */
+async function buildCustomScenes(
+  ctx: BlocksContext,
+  storyboard: Storyboard,
+  slots: Readonly<Record<string, number>>,
+): Promise<BlocksStepResult> {
+  const dir = videoDir(ctx);
+  const colors = [...new Set(storyboard.scenes.flatMap((scene) => Object.values(scene.props).filter((value) => /^#[0-9a-fA-F]{6}$/.test(value))))];
+  let usage: TokenUsage | undefined;
+  let costUsd: number | undefined;
+  const written: string[] = [];
+  for (const scene of storyboard.scenes.filter((candidate) => candidate.block === CUSTOM_BLOCK)) {
+    const duration = slots[scene.id] ?? scene.duration;
+    const input = { slug: ctx.slug, sceneId: scene.id, description: scene.props.description ?? "", duration, width: ctx.format.width, height: ctx.format.height, colors };
+    const sha = createHash("sha256").update(JSON.stringify(input)).digest("hex");
+    const file = join(dir, customScenePath(scene.id));
+    const shaFile = join(dir, ".media", "custom", `${scene.id}.sha`);
+    if ((await exists(file)) && (await readFile(shaFile, "utf8").catch(() => "")) === sha) continue;
+    if (!ctx.customScene) return { ok: false, resultText: `La scène ${scene.id} est sur mesure, mais aucun agent n'est disponible pour l'écrire.` };
+    await ctx.onEvent({ kind: "log", level: "info", text: `Scène sur mesure ${scene.id} : un agent l'écrit.` });
+    await mkdir(dirname(file), { recursive: true });
+    const turn = await ctx.customScene(customScenePrompt(input));
+    usage = addUsage(usage, turn.usage);
+    if (turn.costUsd !== undefined) costUsd = (costUsd ?? 0) + turn.costUsd;
+    const html = await readFile(file, "utf8").catch(() => "");
+    if (!turn.ok || !html.includes(`data-composition-id="${sceneCompositionId(scene.id)}"`))
+      return { ok: false, resultText: `La scène sur mesure ${scene.id} n'a pas été écrite dans ${customScenePath(scene.id)}.\n${turn.resultText ?? ""}`.trim(), usage, costUsd };
+    await mkdir(dirname(shaFile), { recursive: true });
+    await writeFile(shaFile, sha);
+    written.push(scene.id);
+  }
+  return { ok: true, resultText: written.length ? `Scènes sur mesure écrites : ${written.join(", ")}.` : null, usage, costUsd };
 }
 
 async function buildStep(ctx: BlocksContext, manifests: BlockManifest[], blocks: Map<string, LoadedBlock>): Promise<BlocksStepResult> {
@@ -355,14 +455,22 @@ async function buildStep(ctx: BlocksContext, manifests: BlockManifest[], blocks:
     await writeFile(join(dir, path), html);
   }
   await ctx.onEvent({ kind: "log", level: "info", text: `Composition assemblée : ${storyboard.scenes.length} scènes, ${assembled.duration} s.` });
+  const custom = await buildCustomScenes(ctx, storyboard, assembled.slots);
+  if (!custom.ok) return custom;
+  const done = (result: BlocksStepResult): BlocksStepResult => ({
+    ...result,
+    resultText: [custom.resultText, result.resultText].filter(Boolean).join("\n"),
+    usage: addUsage(custom.usage, result.usage),
+    costUsd: custom.costUsd,
+  });
 
   const check = await runCommand(ctx, "npm", ["run", "check", "--", `videos/${ctx.slug}`], ctx.timeoutMs);
-  if (check.code !== 0) return { ok: false, resultText: `Le check HyperFrames a échoué sur la composition assemblée :\n${tail(check.output)}` };
+  if (check.code !== 0) return done({ ok: false, resultText: `Le check HyperFrames a échoué sur la composition assemblée :\n${tail(check.output)}` });
   const cli = await pinnedHyperframes(ctx.workspaceDir);
   const at = sceneMidpoints(assembled.timings).join(",");
   const snapshot = await runCommand(ctx, "npx", ["--yes", cli, "snapshot", `videos/${ctx.slug}`, "--at", at], ctx.timeoutMs);
   if (snapshot.code !== 0) await ctx.onEvent({ kind: "log", level: "error", text: `Snapshots impossibles (code ${snapshot.code}) : la planche de relecture manque.` });
-  return { ok: true, resultText: `Check passé. ${storyboard.scenes.length} scènes, ${assembled.duration} s.` };
+  return done({ ok: true, resultText: `Check passé. ${storyboard.scenes.length} scènes, ${assembled.duration} s.` });
 }
 
 /**
