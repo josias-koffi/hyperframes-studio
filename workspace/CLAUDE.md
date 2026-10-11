@@ -127,7 +127,9 @@ change `STORYBOARD.json` (props, order, durations, `overlays`); an edit of the H
 A scene whose block is `custom` is the exception: its sub-composition, `compositions/custom/<scene>.html`, is
 written by an agent and kept across builds until its description changes. In a template, `scenes[].variables`
 binds block props to the variables of `VARIABLES.json` (`data-var-text` / `data-var-src` in the scene, the contract
-declared on `index.html`).
+declared on `index.html`). An image or a carousel made with blocks has each block inline in `index.html`, one
+`<section class="slide">` per slide (its CSS scoped to the slide, its timeline set once to its final state), so its
+layers stay editable in the canvas editor.
 
 ## Linting — ALWAYS RUN AFTER CHANGES
 

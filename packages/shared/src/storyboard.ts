@@ -124,6 +124,8 @@ export type StoryboardFormat = {
   durationSeconds?: number | null;
   /** A template's validated contract (`VARIABLES.json`): every variable is shown by at least one prop. */
   variables?: readonly CompositionVariable[] | null;
+  /** A still: its number of slides (an image has 1), one scene each, without sound, overlays or custom scene. */
+  frames?: number | null;
 };
 
 /** The variables a block can show: a text or an image path. */
@@ -199,6 +201,14 @@ export function validateStoryboard(storyboard: Storyboard, manifests: readonly B
     }
   };
 
+  const still = format.frames ?? null;
+  if (still !== null) {
+    if (storyboard.scenes.length !== still)
+      errors.push(still === 1 ? "Une image n'a qu'une scène." : `Ce carrousel a ${still} slides : écris exactement ${still} scènes, une par slide.`);
+    if (storyboard.audio.voice || storyboard.audio.music) errors.push("Une image fixe n'a pas de son : audio vaut { voice: false, music: null }.");
+    if (storyboard.overlays.length) errors.push("Une image fixe n'a pas de calque : overlays est une liste vide.");
+  }
+
   let custom = 0;
   for (const scene of storyboard.scenes) {
     const where = `scène ${scene.id}`;
@@ -206,6 +216,7 @@ export function validateStoryboard(storyboard: Storyboard, manifests: readonly B
     seen.add(scene.id);
     if (scene.block === CUSTOM_BLOCK) {
       custom++;
+      if (still !== null) errors.push(`${where} : pas de scène custom dans une image ou un carrousel, choisis un bloc du catalogue.`);
       const description = scene.props.description?.trim() ?? "";
       if (!description) errors.push(`${where} : une scène custom décrit ce qu'elle montre dans props.description.`);
       if (description.length > CUSTOM_DESCRIPTION_MAX)
@@ -221,7 +232,7 @@ export function validateStoryboard(storyboard: Storyboard, manifests: readonly B
       errors.push(`${where} : ${why}. Blocs de scène : ${[...ofKind("scene"), CUSTOM_BLOCK].join(", ")}.`);
       continue;
     }
-    if (scene.duration < manifest.duration.min || scene.duration > manifest.duration.max)
+    if (still === null && (scene.duration < manifest.duration.min || scene.duration > manifest.duration.max))
       errors.push(`${where} : durée ${scene.duration} s hors des bornes du bloc ${manifest.id} (${manifest.duration.min} à ${manifest.duration.max} s).`);
     checkBlock(where, manifest, scene.props);
     checkBindings(where, manifest, scene);
@@ -261,7 +272,7 @@ export function validateStoryboard(storyboard: Storyboard, manifests: readonly B
 
   if (storyboard.scenes[0]?.transition !== "cut" && storyboard.scenes.length > 0)
     warnings.push("La première scène n'a rien avant elle : sa transition est ignorée.");
-  const target = format.durationSeconds;
+  const target = still === null ? format.durationSeconds : null;
   if (target) {
     const total = storyboard.scenes.reduce((sum, scene) => sum + scene.duration, 0);
     if (total > target * 1.25 || total < target * 0.6)
@@ -372,7 +383,9 @@ export function storyboardJsonSchema(manifests: readonly BlockManifest[]): Recor
 /** The catalogue as the model reads it: the scene blocks that fit the frame, the custom scene, then the overlays. */
 export function blocksCatalog(manifests: readonly BlockManifest[], format: StoryboardFormat): string {
   const aspect = aspectOf(format.width, format.height);
-  const fitting = manifests.filter((manifest) => !aspect || !manifest.aspects || manifest.aspects.includes(aspect));
+  const still = (format.frames ?? null) !== null;
+  // A still has no time for an agent's animated scene nor for overlays.
+  const fitting = manifests.filter((manifest) => (!aspect || !manifest.aspects || manifest.aspects.includes(aspect)) && !(still && manifest.kind === "overlay"));
   const custom = [
     `### ${CUSTOM_BLOCK} — Scène sur mesure`,
     "Une scène qu'aucun bloc ne sait montrer (un schéma précis, une animation propre au produit), écrite à part par un agent : plus lente et plus chère.",
@@ -386,7 +399,7 @@ export function blocksCatalog(manifests: readonly BlockManifest[], format: Story
     "## Blocs de scène (scenes[].block)",
     "",
     ...fitting.filter((manifest) => manifest.kind === "scene").map((manifest) => `${catalogEntry(manifest)}\n`),
-    custom,
+    ...(still ? [] : [custom]),
     ...(overlays.length
       ? ["", "## Calques par-dessus les scènes (overlays[].block, de la scène from à la scène to)", "", overlays.map(catalogEntry).join("\n\n")]
       : []),
@@ -752,6 +765,141 @@ ${tweens.map((tween) => `      ${tween}`).join("\n")}
 </html>
 `;
   return { indexHtml, files, timings, slots, safeBottoms, duration: total };
+}
+
+/**
+ * Scopes a block's CSS to one slide: `#root` becomes the slide's block root, every other selector is prefixed with
+ * it, inside `@media` too. Enough for the shipped blocks' plain rules; comments are dropped.
+ */
+export function scopeCss(css: string, scope: string): string {
+  const scoped = (selectors: string) =>
+    selectors
+      .split(",")
+      .map((selector) => selector.trim())
+      .map((selector) => (selector.startsWith("#root") ? `#${scope}${selector.slice(5)}` : `#${scope} ${selector}`))
+      .join(", ");
+  const rules = (text: string): string => {
+    let out = "";
+    let index = 0;
+    while (index < text.length) {
+      const open = text.indexOf("{", index);
+      if (open === -1) break;
+      const head = text.slice(index, open).trim();
+      // The matching brace, nested blocks included.
+      let depth = 1;
+      let close = open + 1;
+      for (; close < text.length && depth > 0; close++) {
+        if (text[close] === "{") depth++;
+        if (text[close] === "}") depth--;
+      }
+      const body = text.slice(open + 1, close - 1);
+      out += head.startsWith("@") ? `${head} {\n${rules(body)}}\n` : `${scoped(head)} {${body}}\n`;
+      index = close;
+    }
+    return out;
+  };
+  return rules(css.replace(/\/\*[\s\S]*?\*\//g, ""));
+}
+
+/** Seconds into its timeline a block shows on a still: its entrance is over, its slow drifts are under way. */
+const STILL_SETTLE = 0.8;
+
+/**
+ * Builds a carousel (one slide per scene, slide `i` from `i` to `i + 1`, captured at `i + 0.5`) or an image (one
+ * slide) with every block inline in `index.html`, so the canvas editor edits its layers: the block's CSS scoped to
+ * its slide, its script run once to its settled state (a still shows one instant, nothing animates).
+ */
+export function assembleStills({
+  storyboard,
+  blocks,
+  width,
+  height,
+  variables,
+  gsapSrc = "https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js",
+}: {
+  storyboard: Storyboard;
+  blocks: ReadonlyMap<string, LoadedBlock>;
+  width: number;
+  height: number;
+  variables?: readonly CompositionVariable[] | null;
+  gsapSrc?: string;
+}): AssembledVideo {
+  const slides = storyboard.scenes.map((scene, index) => {
+    const block = blocks.get(scene.block);
+    if (!block) throw new Error(`slide ${scene.id} : bloc ${scene.block} introuvable`);
+    const id = sceneCompositionId(scene.id);
+    const duration = block.manifest.duration.default;
+    const filled = fillBlock(block, scene.props, { id, duration, width, height }, scene.variables);
+    const template = /<template>([\s\S]*)<\/template>/.exec(filled)?.[1] ?? filled;
+    const css = [...template.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((match) => match[1]).join("\n");
+    const settle = r3(duration * STILL_SETTLE);
+    // The block's timeline is not registered: it is set once to its settled state, from the root's script (which
+    // registers `main`). One line per block, so a carousel of many slides stays a short file (comment lines dropped).
+    const register = new RegExp(`window\\.__timelines\\["${id}"\\]\\s*=\\s*(\\w+);`);
+    const scripts = [...template.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => {
+      if (!register.test(match[1])) throw new Error(`bloc ${block.manifest.id} : timeline window.__timelines["{{@id}}"] introuvable`);
+      return match[1]
+        .replace(register, `$1.time(${settle});`)
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line && !line.startsWith("//"))
+        .join(" ");
+    });
+    // The block's root is the slide's content: no composition of its own, the slide is the clip.
+    const body = template
+      .replace(/<style>[\s\S]*?<\/style>/g, "")
+      .replace(/<script>[\s\S]*?<\/script>/g, "")
+      .replace(/<div id="root"([^>]*)>/, (_, attrs: string) => `<div id="${id}"${attrs.replace(/\s+data-(composition-id|width|height)="[^"]*"/g, "")}>`)
+      .trim();
+    return {
+      html: `      <section id="el-${scene.id}" class="clip slide" data-start="${index}" data-duration="1" data-track-index="${index}" data-label="${escapeHtml(`${index + 1}. ${scene.title}`)}">
+        <style>
+${scopeCss(css, id)}        </style>
+        ${body}
+      </section>`,
+      script: scripts.join(" "),
+    };
+  });
+  const total = storyboard.scenes.length;
+  const timings = storyboard.scenes.map((scene, index) => ({ id: scene.id, start: index, duration: 1 }));
+  const declared = variables?.length
+    ? ` data-composition-variables='${JSON.stringify(variables).replace(/&/g, "&amp;").replace(/'/g, "&#39;")}'`
+    : "";
+  const indexHtml = `<!doctype html>
+<html lang="fr"${declared}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=${width}, height=${height}" />
+    <script src="${gsapSrc}"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: ${width}px; height: ${height}px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: #000; }
+      .slide { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <!-- Assemblé par le moteur blocs depuis STORYBOARD.json : régénéré à chaque build. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="${total}" data-width="${width}" data-height="${height}">
+${slides.map((slide) => slide.html).join("\n")}
+    </div>
+    <script>
+${slides.map((slide) => `      ${slide.script}`).join("\n")}
+      const tl = gsap.timeline({ paused: true });
+      tl.to({}, { duration: ${total} }, 0);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
+`;
+  return {
+    indexHtml,
+    files: {},
+    timings,
+    slots: Object.fromEntries(timings.map((timing) => [timing.id, 1])),
+    safeBottoms: Object.fromEntries(timings.map((timing) => [timing.id, 0])),
+    duration: total,
+  };
 }
 
 /** Midpoint of each scene, for the contact sheet of the review. */

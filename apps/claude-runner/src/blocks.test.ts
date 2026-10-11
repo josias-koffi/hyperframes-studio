@@ -1,4 +1,4 @@
-import { chmod, mkdir, mkdtemp, readFile, symlink, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { assembleVideo, fillBlock, parseStoryboard, type StudioEvent } from "@studio/shared";
@@ -198,6 +198,26 @@ describe("runBlocksStep", () => {
     const result = await runBlocksStep(ctx("storyboard"));
     expect(result).toMatchObject({ ok: false });
     expect(result.resultText).toMatch(/que des variables texte ou image \(type string\) : price \(number\)/);
+  });
+
+  it("writes an image's storyboard at its build, then lays its one slide inline", async () => {
+    const { dir, ctx, calls } = await fakeWorkspace(valid);
+    await rm(join(dir, "videos/essai/STORYBOARD.json"));
+    await writeFile(join(dir, "videos/essai/BRIEF.md"), "# Brief");
+    const bodies: { messages: { content: string }[] }[] = [];
+    const image = { version: 1, title: "Visuel", audio: { voice: false, music: null }, scenes: [{ ...valid.scenes[1], id: "s1", duration: 1, transition: "cut" }], overlays: [] };
+    const fetchImpl = (async (_url: string, init: RequestInit) => {
+      bodies.push(JSON.parse(String(init.body)));
+      return answer(image);
+    }) as unknown as typeof fetch;
+    const result = await runBlocksStep(ctx("build", { fetchImpl, format: { width: 1080, height: 1080, frames: 1 } }));
+    expect(result).toMatchObject({ ok: true });
+    expect(bodies[0].messages[0].content).toContain("Tu composes une image fixe");
+    expect(bodies[0].messages[0].content).not.toContain("### captions-karaoke");
+    const html = await readFile(join(dir, "videos/essai/index.html"), "utf8");
+    expect(html).toContain('<section id="el-s1" class="clip slide" data-start="0" data-duration="1"');
+    expect(await readFile(join(dir, "videos/essai/SCRIPT.md"), "utf8").catch(() => null)).toBeNull();
+    expect(await calls()).toEqual(["npm run check -- videos/essai", "npx --yes hyperframes@0.0.1 snapshot videos/essai --at 0.5"]);
   });
 
   it("skips the media step of a silent video", async () => {

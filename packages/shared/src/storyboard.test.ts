@@ -9,6 +9,8 @@ import {
   renderScriptMd,
   renderStoryboardMd,
   safeBottomPixels,
+  scopeCss,
+  assembleStills,
   sceneMidpoints,
   storyboardJsonSchema,
   studioAudio,
@@ -17,6 +19,7 @@ import {
   type Storyboard,
 } from "./storyboard";
 import { usesBlocks } from "./jobs";
+import { layersOf, slidesOf } from "./editor";
 
 const hook: BlockManifest = blockManifestSchema.parse({
   id: "hook",
@@ -340,11 +343,93 @@ describe("templates", () => {
   });
 });
 
+describe("stills", () => {
+  const card: BlockManifest = blockManifestSchema.parse({
+    id: "card",
+    name: "Carte",
+    description: "Un titre.",
+    useWhen: "Partout.",
+    props: { title: { type: "text", label: "Titre", maxLength: 30 }, accent: { type: "color", label: "Accent", required: false, default: "#FF0000" } },
+    duration: { min: 2, max: 6, default: 4 },
+  });
+  const cards = new Map<string, LoadedBlock>([
+    [
+      "card",
+      {
+        manifest: card,
+        html: `<!doctype html><html><body><template>
+<style>
+  #root { background: {{accent}}; }
+  /* the title */
+  .c-title, .c-sub { color: #fff; }
+  @media (min-aspect-ratio: 1/1) { #root[data-x] .c-title { font-size: 10px; } }
+</style>
+<div id="root" data-composition-id="{{@id}}" data-width="{{@width}}" data-height="{{@height}}" data-x="1"><h2 id="{{@id}}-title" class="c-title" data-label="Titre">{{title}}</h2></div>
+<script>
+  (function () {
+    // enter
+    const tl = gsap.timeline({ paused: true });
+    tl.to({}, { duration: {{@duration}} }, 0);
+    window.__timelines["{{@id}}"] = tl;
+  })();
+</script>
+</template></body></html>`,
+      },
+    ],
+  ]);
+  const slide = (id: string, title: string, accent?: string) => ({ id, title, block: "card", duration: 1, props: { title, ...(accent ? { accent } : {}) } });
+  const carousel = { width: 1080, height: 1350, frames: 2 };
+
+  it("asks for one scene per slide, without sound, overlays or custom scene, whatever the durations", () => {
+    expect(parseStoryboard(storyboard([slide("s1", "Un"), slide("s2", "Deux")]), [card], carousel).errors).toEqual([]);
+    const errors = parseStoryboard(
+      JSON.stringify({
+        version: 1,
+        title: "C",
+        audio: { voice: false, music: "lofi" },
+        scenes: [slide("s1", "Un"), { id: "s2", title: "X", block: "custom", duration: 1, props: { description: "x" } }, slide("s3", "Trois")],
+        overlays: [{ id: "o1", block: "card", from: "s1", to: "s1", props: {} }],
+      }),
+      [card],
+      carousel,
+    ).errors.join("\n");
+    expect(errors).toMatch(/Ce carrousel a 2 slides : écris exactement 2 scènes/);
+    expect(errors).toMatch(/n'a pas de son/);
+    expect(errors).toMatch(/n'a pas de calque/);
+    expect(errors).toMatch(/pas de scène custom dans une image ou un carrousel/);
+    expect(blocksCatalog([card], carousel)).not.toContain("### custom");
+  });
+
+  it("scopes a block's CSS to its slide", () => {
+    expect(scopeCss("#root { a: 1; }\n/* x */\n.t, .u { b: 2; }\n@media (x) { #root[data-x] .t { c: 3; } }", "scene-s1")).toBe(
+      "#scene-s1 { a: 1; }\n#scene-s1 .t, #scene-s1 .u { b: 2; }\n@media (x) {\n#scene-s1[data-x] .t { c: 3; }\n}\n",
+    );
+  });
+
+  it("lays every slide inline, settled, for the canvas editor", () => {
+    const parsed = parseStoryboard(storyboard([slide("s1", "Un"), slide("s2", "Deux", "#0000FF")]), [card], carousel).storyboard as Storyboard;
+    const out = assembleStills({ storyboard: parsed, blocks: cards, width: 1080, height: 1350 });
+    expect(out.files).toEqual({});
+    expect(out.duration).toBe(2);
+    expect(sceneMidpoints(out.timings)).toEqual([0.5, 1.5]);
+    expect(out.indexHtml).toContain('<section id="el-s2" class="clip slide" data-start="1" data-duration="1" data-track-index="1" data-label="2. Deux">');
+    expect(out.indexHtml).toContain("#scene-s2 { background: #0000FF; }");
+    expect(out.indexHtml).toContain('<div id="scene-s2" data-x="1"><h2 id="scene-s2-title"');
+    // Set to 80 % of the block's default length, never registered: only the root's timeline is.
+    expect(out.indexHtml).toContain('tl.to({}, { duration: 4 }, 0); tl.time(3.2); })();');
+    expect(out.indexHtml).not.toContain("// enter");
+    expect(out.indexHtml.match(/window\.__timelines\[/g)).toHaveLength(1);
+    expect(slidesOf(out.indexHtml).map((slide) => slide.label)).toEqual(["1. Un", "2. Deux"]);
+    expect(layersOf(out.indexHtml, slidesOf(out.indexHtml)[1].key).map((layer) => layer.label)).toEqual(["Titre"]);
+  });
+});
+
 describe("usesBlocks", () => {
   it("covers a video from an idea, one-shot or template, not one made from footage", () => {
     expect(usesBlocks({ type: "video", kind: "template", brief: { engine: "blocks" } })).toBe(true);
     expect(usesBlocks({ type: "video", kind: "oneshot", brief: { engine: "blocks", footage: "a.mp4" } })).toBe(false);
     expect(usesBlocks({ type: "video", kind: "oneshot", brief: {} })).toBe(false);
+    expect(usesBlocks({ type: "carousel", kind: "oneshot", brief: { engine: "blocks" } })).toBe(true);
   });
 });
 

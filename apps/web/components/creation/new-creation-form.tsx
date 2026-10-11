@@ -74,7 +74,7 @@ const KINDS: { value: CreationKind; label: string; description: string; icon: Lu
 
 type Engine = "agent" | "blocks";
 
-/** How the video is made after the brief; the blocks engine covers a video from an idea, one-shot or template. */
+/** How the création is made after the brief; the blocks engine covers anything but a video made from footage. */
 const ENGINES: { value: Engine; label: string; description: string; icon: LucideIcon }[] = [
   {
     value: "agent",
@@ -89,6 +89,26 @@ const ENGINES: { value: Engine; label: string; description: string; icon: Lucide
     icon: BlocksIcon,
   },
 ];
+
+function EngineChoice({ engine, onChange }: { engine: Engine; onChange: (engine: Engine) => void }) {
+  return (
+    <>
+      <StepHeading title="Comment la fabriquer ?" description="Après le brief, la composition peut être écrite par l'agent ou assemblée à partir de blocs." />
+      <div role="radiogroup" className="grid gap-4 sm:grid-cols-2">
+        {ENGINES.map((option) => (
+          <ChoiceCard
+            key={option.value}
+            selected={engine === option.value}
+            onClick={() => onChange(option.value)}
+            icon={option.icon}
+            label={option.label}
+            description={option.description}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
 
 /** What the user can already say about a variable; Claude turns it into a HyperFrames declaration. */
 type SuggestedVariable = { label: string; type: string; example: string };
@@ -344,7 +364,7 @@ export function NewCreationForm({
   const required = video ? REQUIRED_FILE[start] : undefined;
   const choices = WORKFLOWS.filter((w) => w.start === start);
   const chosen = choices.find((w) => w.value === workflow);
-  const blocksAvailable = video && start === "idea";
+  const blocksAvailable = !video || start === "idea";
   const projectLabel = projectId === "new" ? projectName : projects.find((p) => p.id === projectId)?.name;
 
   const ready: Record<Step, boolean> = {
@@ -533,26 +553,7 @@ export function NewCreationForm({
                     <ChoiceCard key={w.value} selected={workflow === w.value} onClick={() => setWorkflow(w.value)} icon={w.icon} label={w.label} description={w.description} />
                   ))}
                 </div>
-                {blocksAvailable && (
-                  <>
-                    <StepHeading
-                      title="Comment la fabriquer ?"
-                      description="Après le brief, le storyboard et la composition peuvent être écrits par l'agent ou assemblés à partir de blocs."
-                    />
-                    <div role="radiogroup" className="grid gap-4 sm:grid-cols-2">
-                      {ENGINES.map((option) => (
-                        <ChoiceCard
-                          key={option.value}
-                          selected={engine === option.value}
-                          onClick={() => setEngine(option.value)}
-                          icon={option.icon}
-                          label={option.label}
-                          description={option.description}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
+                {blocksAvailable && <EngineChoice engine={engine} onChange={setEngine} />}
               </>
             )}
 
@@ -697,6 +698,7 @@ export function NewCreationForm({
                     </Field>
                   )}
                 </FieldGroup>
+                {!video && <EngineChoice engine={engine} onChange={setEngine} />}
               </>
             )}
 

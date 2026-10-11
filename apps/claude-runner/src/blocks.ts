@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import {
+  assembleStills,
   assembleVideo,
   blockManifestSchema,
   blocksCatalog,
@@ -100,6 +101,42 @@ export async function availableAssets(videoDir: string): Promise<string[]> {
 }
 
 export function storyboardSystemPrompt(manifests: readonly BlockManifest[], format: StoryboardFormat): string {
+  const rules = format.frames ? stillRules(format.frames) : videoRules(format);
+  return [
+    ...rules,
+    "",
+    `Cadre : ${format.width}×${format.height} px.`,
+    "",
+    "# Catalogue des blocs",
+    "",
+    blocksCatalog(manifests, format),
+    ...(format.variables?.length ? ["", templateSection(format.variables)] : []),
+  ].join("\n");
+}
+
+/** A carousel (`frames` slides) or an image (1): one block per slide, no time, no sound. */
+function stillRules(frames: number): string[] {
+  const image = frames === 1;
+  return [
+    image
+      ? "Tu es le directeur artistique d'un studio de contenus pour les réseaux sociaux. Tu composes une image fixe en choisissant un bloc dans un catalogue et en remplissant ses props."
+      : `Tu es le directeur artistique d'un studio de contenus pour les réseaux sociaux. Tu écris un carrousel de ${frames} slides en choisissant un bloc par slide dans un catalogue et en remplissant leurs props.`,
+    "Tu réponds uniquement par un objet JSON conforme au schéma, sans texte autour.",
+    "",
+    "Règles :",
+    image
+      ? "- Exactement une scène : l'image. Choisis le bloc qui porte le message le plus fort."
+      : `- Exactement ${frames} scènes, une par slide, dans l'ordre. La première accroche (hook-kinetic ou title-subtitle), la dernière appelle à l'action (cta-end), une idée par slide entre les deux.`,
+    "- Varie les blocs : pas deux fois de suite le même bloc, sauf raison claire.",
+    "- Respecte la longueur maximale de chaque texte : un texte trop long est refusé. Écris court, concret, en français naturel, sans emoji.",
+    "- Une image ne peut venir que de la liste des fichiers disponibles. Sans fichier adapté, n'utilise pas de bloc d'image.",
+    "- Garde une identité visuelle commune : mêmes couleurs d'accent et de texte d'une slide à l'autre, sauf raison claire. Les couleurs s'écrivent #RRGGBB.",
+    "- Pas de son ni de mouvement : `duration` vaut 1, `transition` vaut cut, `voiceover` est vide, `audio` vaut { \"voice\": false, \"music\": null } et `overlays` est une liste vide.",
+    "- Les ids de scène vont de s1 à sN dans l'ordre.",
+  ];
+}
+
+function videoRules(format: StoryboardFormat): string[] {
   return [
     "Tu es le réalisateur d'un studio de vidéos courtes (publicités, TikTok, Reels). Tu écris le storyboard d'une vidéo en choisissant des blocs dans un catalogue et en remplissant leurs props.",
     "Tu réponds uniquement par un objet JSON conforme au schéma, sans texte autour.",
@@ -117,14 +154,7 @@ export function storyboardSystemPrompt(manifests: readonly BlockManifest[], form
     "- `overlays` pose des calques par-dessus les scènes, de la scène `from` à la scène `to` (ids o1, o2…) : des sous-titres sur toute la vidéo quand il y a une voix off, un bandeau nom-fonction sur une scène. Liste vide si rien ne s'y prête.",
     `- Le bloc \`${CUSTOM_BLOCK}\` est une scène sur mesure, écrite à part par un agent : seulement quand aucun bloc ne convient.`,
     "- Les ids de scène vont de s1 à sN dans l'ordre. `transition` vaut cut, fade ou slide-up ; la première scène est en cut.",
-    "",
-    `Cadre : ${format.width}×${format.height} px.`,
-    "",
-    "# Catalogue des blocs",
-    "",
-    blocksCatalog(manifests, format),
-    ...(format.variables?.length ? ["", templateSection(format.variables)] : []),
-  ].join("\n");
+  ];
 }
 
 function templateSection(variables: NonNullable<StoryboardFormat["variables"]>): string {
@@ -290,7 +320,7 @@ async function readStoryboard(ctx: BlocksContext, manifests: readonly BlockManif
 async function saveStoryboard(ctx: BlocksContext, storyboard: Storyboard, manifests: readonly BlockManifest[], warnings: readonly string[]) {
   const dir = videoDir(ctx);
   await writeFile(join(dir, "STORYBOARD.json"), `${JSON.stringify(storyboard, null, 2)}\n`);
-  await writeFile(join(dir, "SCRIPT.md"), renderScriptMd(storyboard));
+  if (!ctx.format.frames) await writeFile(join(dir, "SCRIPT.md"), renderScriptMd(storyboard));
   await writeFile(join(dir, "STORYBOARD.md"), renderStoryboardMd(storyboard, manifests, warnings));
   await writeFile(join(dir, "storyboard.html"), renderStoryboardHtml(storyboard, manifests));
 }
@@ -475,7 +505,10 @@ async function buildStep(ctx: BlocksContext, manifests: BlockManifest[], blocks:
   if (!storyboard) return { ok: false, resultText: errors.join("\n") };
   const metaPath = join(dir, "audio_meta.json");
   const audio = (await exists(metaPath)) ? (JSON.parse(await readFile(metaPath, "utf8")) as AudioMeta) : null;
-  const assembled = assembleVideo({ storyboard, blocks, width: ctx.format.width, height: ctx.format.height, audio, variables: ctx.format.variables });
+  const { width, height, variables } = ctx.format;
+  const assembled = ctx.format.frames
+    ? assembleStills({ storyboard, blocks, width, height, variables })
+    : assembleVideo({ storyboard, blocks, width, height, audio, variables });
   // The scenes are regenerated from STORYBOARD.json: a scene removed from the storyboard must not linger.
   await rm(join(dir, "compositions", "scenes"), { recursive: true, force: true });
   await writeFile(join(dir, "index.html"), assembled.indexHtml);
@@ -536,8 +569,10 @@ export async function runBlocksStep(ctx: BlocksContext): Promise<BlocksStepResul
   if (ctx.step === "build") {
     let usage: TokenUsage | undefined;
     let staleVoice = false;
-    if (ctx.feedback) {
-      const current = (await readStoryboard(ctx, manifests)).storyboard;
+    // An image has no storyboard step: its build writes STORYBOARD.json first.
+    const missing = !(await exists(join(videoDir(ctx), "STORYBOARD.json")));
+    if (ctx.feedback || missing) {
+      const current = missing ? null : (await readStoryboard(ctx, manifests)).storyboard;
       const rewritten = await storyboardStep(ctx, manifests, current);
       if (!rewritten.ok) return rewritten;
       usage = rewritten.usage;
