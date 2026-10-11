@@ -1,0 +1,16 @@
+{
+  "id": "cta-end",
+  "name": "Appel à l'action final",
+  "description": "L'écran de fin : un titre court, un bouton d'action, un lien ou un compte en dessous et un logo facultatif en haut, sur la couleur d'accent.",
+  "useWhen": "Toujours en dernière scène d'une pub : ce que la personne doit faire maintenant (tester, s'abonner, réserver, cliquer sur le lien).",
+  "props": {
+    "headline": { "type": "text", "label": "Titre de fin", "maxLength": 40 },
+    "action": { "type": "text", "label": "Texte du bouton, un verbe à l'impératif", "maxLength": 24 },
+    "link": { "type": "text", "label": "Lien, site ou compte à afficher sous le bouton", "maxLength": 40, "required": false, "default": "" },
+    "logo": { "type": "image", "label": "Logo, chemin dans assets/ (facultatif)", "required": false, "default": "" },
+    "accent": { "type": "color", "label": "Couleur de fond (accent de la marque)", "required": false, "default": "#FF5A1F" },
+    "textColor": { "type": "color", "label": "Couleur du texte sur l'accent", "required": false, "default": "#FFFFFF" },
+    "buttonColor": { "type": "color", "label": "Couleur du bouton", "required": false, "default": "#141414" }
+  },
+  "duration": { "min": 2, "max": 6, "default": 3 }
+}

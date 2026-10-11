@@ -1,0 +1,14 @@
+{
+  "id": "hook-kinetic",
+  "name": "Accroche choc",
+  "description": "Une phrase en très gros caractères qui monte ligne par ligne, avec un mot ou une suite de mots en couleur d'accent sur une seconde ligne.",
+  "useWhen": "Première scène d'une pub ou d'un TikTok : la question ou la promesse qui arrête le défilement. Aussi pour une transition forte au milieu.",
+  "props": {
+    "text": { "type": "text", "label": "Phrase principale, courte et percutante", "maxLength": 48 },
+    "highlight": { "type": "text", "label": "Fin de phrase mise en avant en couleur d'accent", "maxLength": 32, "required": false, "default": "" },
+    "accent": { "type": "color", "label": "Couleur d'accent", "required": false, "default": "#FF5A1F" },
+    "background": { "type": "color", "label": "Couleur de fond", "required": false, "default": "#0E0E10" },
+    "textColor": { "type": "color", "label": "Couleur du texte", "required": false, "default": "#F5F3EE" }
+  },
+  "duration": { "min": 1.5, "max": 5, "default": 2.5 }
+}

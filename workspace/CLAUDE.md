@@ -118,6 +118,13 @@ https://hyperframes.heygen.com/llms.txt
   - `transcript.json` — whisper word-level transcript (if generated)
   - `renders/` — rendered MP4s (git-ignored)
 
+## Videos made with blocks
+
+A video whose `STORYBOARD.md` frontmatter says `engine: blocks` is assembled by the studio from
+`STORYBOARD.json` and the blocks of `blocks/<id>/` (`block.json` manifest + `block.html` template): its
+`index.html` and `compositions/scenes/*.html` are regenerated at every build. To change such a video for good,
+change `STORYBOARD.json` (props, order, durations); an edit of the HTML lasts until the next build.
+
 ## Linting — ALWAYS RUN AFTER CHANGES
 
 After creating or editing any `.html` composition, **always** run the full check before considering the task complete:

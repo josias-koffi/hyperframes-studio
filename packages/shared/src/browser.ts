@@ -6,5 +6,6 @@ export * from "./creations";
 export * from "./jobs";
 export * from "./opencode-events";
 export * from "./queues";
+export * from "./storyboard";
 export * from "./variables";
 export * from "./editor";

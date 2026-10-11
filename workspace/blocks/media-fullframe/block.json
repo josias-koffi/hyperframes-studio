@@ -1,0 +1,13 @@
+{
+  "id": "media-fullframe",
+  "name": "Image plein cadre",
+  "description": "Une image fournie par l'utilisateur en plein cadre, animée par un lent mouvement de caméra (zoom avant ou panoramique), avec une légende facultative en bas sur un dégradé sombre.",
+  "useWhen": "Pour montrer le produit, un lieu, une personne ou une capture fournis dans les assets. N'invente jamais de chemin : utilise seulement les fichiers listés comme disponibles.",
+  "props": {
+    "src": { "type": "image", "label": "Chemin de l'image, par exemple assets/uploads/produit.jpg" },
+    "motion": { "type": "enum", "label": "Mouvement de caméra", "options": ["push-in", "pan-left", "pan-right", "none"], "required": false, "default": "push-in" },
+    "caption": { "type": "text", "label": "Légende en bas de l'image", "maxLength": 60, "required": false, "default": "" },
+    "accent": { "type": "color", "label": "Couleur du filet de la légende", "required": false, "default": "#FF5A1F" }
+  },
+  "duration": { "min": 2, "max": 8, "default": 4 }
+}

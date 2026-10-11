@@ -42,6 +42,11 @@ export type RunnerConfig = {
   /** The OpenRouter key, used only by the proxy the agents call: they never see it. */
   openrouterApiKey: string | null;
   openrouterBaseUrl: string;
+  /**
+   * OpenRouter model of the blocks engine's structured calls when the job's owner runs Claude Code, whose models
+   * OpenRouter does not know by alias. An OpenCode job uses its own step model.
+   */
+  blocksModel: string | null;
 };
 
 export function resolveRunnerConfig(env: NodeJS.ProcessEnv = process.env): RunnerConfig {
@@ -66,5 +71,6 @@ export function resolveRunnerConfig(env: NodeJS.ProcessEnv = process.env): Runne
     agentTmpDir: env.AGENT_TMP_DIR?.trim() || join(tmpdir(), "studio-agent"),
     openrouterApiKey: env.OPENROUTER_API_KEY?.trim() || null,
     openrouterBaseUrl: env.OPENROUTER_BASE_URL?.trim() || "https://openrouter.ai/api/v1",
+    blocksModel: env.BLOCKS_MODEL?.trim() || null,
   };
 }

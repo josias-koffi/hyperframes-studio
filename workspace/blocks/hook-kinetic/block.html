@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: {{background}};
+          color: {{textColor}};
+          font-family: system-ui, sans-serif;
+        }
+        .hk-stack {
+          position: absolute;
+          left: 8%;
+          right: 8%;
+          top: 0;
+          bottom: 0;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 28px;
+        }
+        .hk-bar {
+          width: 160px;
+          height: 14px;
+          background: {{accent}};
+          transform-origin: left center;
+        }
+        .hk-mask {
+          overflow: hidden;
+        }
+        .hk-line {
+          display: block;
+          font-size: 124px;
+          line-height: 1.08;
+          padding-bottom: 0.08em;
+          font-weight: 900;
+          letter-spacing: -0.035em;
+          text-wrap: balance;
+        }
+        .hk-highlight {
+          color: {{accent}};
+        }
+      </style>
+
+      <div id="root" data-composition-id="{{@id}}" data-width="{{@width}}" data-height="{{@height}}">
+        <div class="hk-stack">
+          <div id="{{@id}}-bar" class="hk-bar" data-label="Barre d'accent"></div>
+          <div class="hk-mask">
+            <p id="{{@id}}-text" class="hk-line" data-label="Accroche">{{text}}</p>
+          </div>
+          <div id="{{@id}}-highlight-wrap" class="hk-mask">
+            <p id="{{@id}}-highlight" class="hk-line hk-highlight" data-label="Mise en avant">{{highlight}}</p>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+          tl.fromTo("#{{@id}}-bar", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power3.out" }, 0);
+          tl.fromTo("#{{@id}}-text", { yPercent: 110 }, { yPercent: 0, duration: 0.6, ease: "power4.out" }, 0.1);
+          tl.fromTo("#{{@id}}-highlight", { yPercent: 110 }, { yPercent: 0, duration: 0.6, ease: "power4.out" }, 0.35);
+          tl.fromTo("#{{@id}}-highlight-wrap", { scale: 1 }, { scale: 1.04, duration: {{@duration}}, ease: "none", transformOrigin: "left center" }, 0.95);
+          window.__timelines["{{@id}}"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

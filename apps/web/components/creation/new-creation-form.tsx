@@ -13,6 +13,8 @@ import {
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  BlocksIcon,
+  BotIcon,
   CheckIcon,
   FileVideoIcon,
   FolderKanbanIcon,
@@ -67,6 +69,24 @@ const KINDS: { value: CreationKind; label: string; description: string; icon: Lu
     label: "Template réutilisable",
     description: "À décliner : tu valides ses variables (textes, couleurs, images), puis tu génères des versions sans Claude.",
     icon: LayersIcon,
+  },
+];
+
+type Engine = "agent" | "blocks";
+
+/** How the video is made after the brief; the blocks engine only covers a one-shot video from an idea for now. */
+const ENGINES: { value: Engine; label: string; description: string; icon: LucideIcon }[] = [
+  {
+    value: "agent",
+    label: "Sur mesure",
+    description: "L'agent écrit chaque scène en code. Le plus libre, mais il demande un modèle fort (Claude).",
+    icon: BotIcon,
+  },
+  {
+    value: "blocks",
+    label: "Blocs prêts à l'emploi",
+    description: "Le modèle choisit des blocs validés et remplit leurs textes. Rapide, fiable, et un modèle bon marché suffit.",
+    icon: BlocksIcon,
   },
 ];
 
@@ -200,6 +220,7 @@ function CreationSummary({
   isNewProject,
   name,
   workflowLabel,
+  engineLabel,
   format,
   frame,
   cover,
@@ -212,6 +233,7 @@ function CreationSummary({
   isNewProject: boolean;
   name: string;
   workflowLabel?: string;
+  engineLabel?: string;
   format: string;
   /** Width / height of the output, null when it is the source video's. */
   frame: number | null;
@@ -245,6 +267,7 @@ function CreationSummary({
             {isNewProject && projectLabel && <span className="text-muted-foreground"> (nouveau)</span>}
           </SummaryRow>
           {type === "video" && <SummaryRow label="Style">{workflowLabel}</SummaryRow>}
+          {engineLabel && <SummaryRow label="Fabrication">{engineLabel}</SummaryRow>}
           <SummaryRow label="Format">{format}</SummaryRow>
           {variables && <SummaryRow label="Variables">{variables.join(", ")}</SummaryRow>}
         </dl>
@@ -292,6 +315,7 @@ export function NewCreationForm({
   const [suggestions, setSuggestions] = useState<SuggestedVariable[]>([]);
   const [start, setStart] = useState<StartPoint>("idea");
   const [workflow, setWorkflow] = useState<string | null>(null);
+  const [engine, setEngine] = useState<Engine>("agent");
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [audience, setAudience] = useState("");
@@ -320,6 +344,7 @@ export function NewCreationForm({
   const required = video ? REQUIRED_FILE[start] : undefined;
   const choices = WORKFLOWS.filter((w) => w.start === start);
   const chosen = choices.find((w) => w.value === workflow);
+  const blocksAvailable = video && start === "idea" && kind === "oneshot";
   const projectLabel = projectId === "new" ? projectName : projects.find((p) => p.id === projectId)?.name;
 
   const ready: Record<Step, boolean> = {
@@ -366,6 +391,7 @@ export function NewCreationForm({
       }
       const brief: Record<string, unknown> = { message, audience, language: "fr", notes };
       if (kind === "template" && filledSuggestions.length > 0) brief.variables = filledSuggestions;
+      if (blocksAvailable && engine === "blocks") brief.engine = "blocks";
       const footage = video && start === "footage";
       setProgress(`Création ${type === "image" ? "de l'image" : type === "carousel" ? "du carrousel" : "de la vidéo"}…`);
       const creation = await clientApi<Creation>(`/projects/${targetProject}/creations`, {
@@ -507,6 +533,26 @@ export function NewCreationForm({
                     <ChoiceCard key={w.value} selected={workflow === w.value} onClick={() => setWorkflow(w.value)} icon={w.icon} label={w.label} description={w.description} />
                   ))}
                 </div>
+                {blocksAvailable && (
+                  <>
+                    <StepHeading
+                      title="Comment la fabriquer ?"
+                      description="Après le brief, le storyboard et la composition peuvent être écrits par l'agent ou assemblés à partir de blocs."
+                    />
+                    <div role="radiogroup" className="grid gap-4 sm:grid-cols-2">
+                      {ENGINES.map((option) => (
+                        <ChoiceCard
+                          key={option.value}
+                          selected={engine === option.value}
+                          onClick={() => setEngine(option.value)}
+                          icon={option.icon}
+                          label={option.label}
+                          description={option.description}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
               </>
             )}
 
@@ -792,6 +838,7 @@ export function NewCreationForm({
           isNewProject={projectId === "new"}
           name={name}
           workflowLabel={chosen?.label}
+          engineLabel={blocksAvailable ? ENGINES.find((option) => option.value === engine)?.label : undefined}
           format={format}
           frame={footage ? null : ASPECTS[aspect].width / ASPECTS[aspect].height}
           cover={cover}

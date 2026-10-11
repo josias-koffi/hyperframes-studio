@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: {{accent}};
+          color: {{textColor}};
+          font-family: system-ui, sans-serif;
+        }
+        .cta-stack {
+          position: absolute;
+          left: 8%;
+          right: 8%;
+          top: 0;
+          bottom: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 56px;
+          text-align: center;
+        }
+        .cta-logo {
+          width: 220px;
+          height: 220px;
+          object-fit: contain;
+        }
+        .cta-logo[data-empty="true"] {
+          display: none;
+        }
+        .cta-headline {
+          font-size: 104px;
+          line-height: 1.04;
+          font-weight: 900;
+          letter-spacing: -0.035em;
+        }
+        .cta-button {
+          display: inline-block;
+          padding: 34px 64px;
+          border-radius: 999px;
+          background: {{buttonColor}};
+          color: #ffffff;
+          font-size: 52px;
+          font-weight: 800;
+        }
+        .cta-link {
+          font-size: 40px;
+          font-weight: 600;
+          opacity: 0.9;
+        }
+        .cta-link:empty {
+          display: none;
+        }
+      </style>
+
+      <div id="root" data-composition-id="{{@id}}" data-width="{{@width}}" data-height="{{@height}}">
+        <div class="cta-stack">
+          <img id="{{@id}}-logo" class="cta-logo" src="{{logo}}" alt="" data-label="Logo" />
+          <h2 id="{{@id}}-headline" class="cta-headline" data-label="Titre de fin">{{headline}}</h2>
+          <p id="{{@id}}-button" class="cta-button" data-label="Bouton">{{action}}</p>
+          <p id="{{@id}}-link" class="cta-link" data-label="Lien">{{link}}</p>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const logo = document.getElementById("{{@id}}-logo");
+          if (logo && !logo.getAttribute("src")) logo.setAttribute("data-empty", "true");
+          const tl = gsap.timeline({ paused: true });
+          tl.fromTo("#{{@id}}-logo", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 0);
+          tl.fromTo("#{{@id}}-headline", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "power4.out" }, 0.1);
+          tl.fromTo("#{{@id}}-button", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.8)" }, 0.45);
+          tl.fromTo("#{{@id}}-link", { opacity: 0 }, { opacity: 0.9, duration: 0.5, ease: "power2.out" }, 0.75);
+          tl.to("#{{@id}}-button", { scale: 1.05, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 3 }, 1.2);
+          window.__timelines["{{@id}}"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

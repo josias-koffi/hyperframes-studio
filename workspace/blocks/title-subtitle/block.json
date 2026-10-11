@@ -1,0 +1,15 @@
+{
+  "id": "title-subtitle",
+  "name": "Titre et sous-titre",
+  "description": "Un petit sur-titre en capitales, un grand titre et une phrase d'explication, qui entrent l'un après l'autre sur un fond uni.",
+  "useWhen": "Pour poser une idée, un bénéfice ou une étape avec une phrase d'explication. C'est le bloc de base du milieu de vidéo.",
+  "props": {
+    "kicker": { "type": "text", "label": "Sur-titre court (catégorie, étape, chiffre)", "maxLength": 28, "required": false, "default": "" },
+    "title": { "type": "text", "label": "Titre", "maxLength": 56 },
+    "subtitle": { "type": "text", "label": "Phrase d'explication", "maxLength": 110, "required": false, "default": "" },
+    "accent": { "type": "color", "label": "Couleur d'accent", "required": false, "default": "#FF5A1F" },
+    "background": { "type": "color", "label": "Couleur de fond", "required": false, "default": "#F4F1EA" },
+    "textColor": { "type": "color", "label": "Couleur du texte", "required": false, "default": "#141414" }
+  },
+  "duration": { "min": 2, "max": 8, "default": 4 }
+}

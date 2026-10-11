@@ -24,6 +24,19 @@ export function hasFootage({ type, brief }: CreationShape): boolean {
 }
 
 /**
+ * The blocks engine (`brief.engine: "blocks"`, a video without footage): the storyboard is a validated
+ * `STORYBOARD.json` written by a structured call, the media step runs `scripts/audio.mjs` directly and the build
+ * assembles the blocks by code. No agent turn after the brief, so a cheap model is enough.
+ */
+export function usesBlocks(creation: CreationShape): boolean {
+  // Templates keep the agent engine for now: their variables contract is not mapped onto block props yet.
+  return creation.type === "video" && creation.kind === "oneshot" && creation.brief?.engine === "blocks" && !hasFootage(creation);
+}
+
+/** Steps the blocks engine runs itself; the brief, and any edit asked from the editor, stay agent turns. */
+export const BLOCKS_STEPS: readonly GenerationStep[] = ["storyboard", "media", "build"];
+
+/**
  * Steps a création goes through: only a video made from uploaded footage analyses it, only a
  * template proposes variables, only a video has a soundtrack, and a single image goes straight
  * from the brief to the build.

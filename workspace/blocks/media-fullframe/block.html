@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: #0e0e10;
+          font-family: system-ui, sans-serif;
+        }
+        .mf-frame {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+        }
+        .mf-image {
+          position: absolute;
+          left: -4%;
+          top: -4%;
+          width: 108%;
+          height: 108%;
+          object-fit: cover;
+        }
+        .mf-shade {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 42%;
+          background: linear-gradient(to top, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0));
+        }
+        .mf-caption-box {
+          position: absolute;
+          left: 8%;
+          right: 8%;
+          bottom: 12%;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        .mf-rule {
+          width: 96px;
+          height: 8px;
+          border-radius: 4px;
+          background: {{accent}};
+          transform-origin: left center;
+        }
+        .mf-caption {
+          color: #ffffff;
+          font-size: 64px;
+          line-height: 1.12;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+        }
+        .mf-caption-box[data-empty="true"] {
+          display: none;
+        }
+      </style>
+
+      <div id="root" data-composition-id="{{@id}}" data-width="{{@width}}" data-height="{{@height}}">
+        <div class="mf-frame">
+          <img id="{{@id}}-image" class="mf-image" src="{{src}}" alt="" data-label="Image" />
+        </div>
+        <div id="{{@id}}-shade" class="mf-shade" data-label="Dégradé"></div>
+        <div id="{{@id}}-caption-box" class="mf-caption-box">
+          <div id="{{@id}}-rule" class="mf-rule" data-label="Filet"></div>
+          <p id="{{@id}}-caption" class="mf-caption" data-label="Légende">{{caption}}</p>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const motion = "{{motion}}";
+          const duration = {{@duration}};
+          const caption = document.getElementById("{{@id}}-caption");
+          const box = document.getElementById("{{@id}}-caption-box");
+          const shade = document.getElementById("{{@id}}-shade");
+          const empty = !caption || caption.textContent.trim() === "";
+          if (box) box.setAttribute("data-empty", empty ? "true" : "false");
+          if (shade && empty) shade.style.opacity = "0";
+          const tl = gsap.timeline({ paused: true });
+          const moves = {
+            "push-in": [{ scale: 1 }, { scale: 1.12 }],
+            "pan-left": [{ xPercent: 3 }, { xPercent: -3 }],
+            "pan-right": [{ xPercent: -3 }, { xPercent: 3 }],
+          };
+          const move = moves[motion];
+          if (move) tl.fromTo("#{{@id}}-image", move[0], Object.assign({ duration: duration, ease: "none" }, move[1]), 0);
+          if (!empty) {
+            tl.fromTo("#{{@id}}-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power3.out" }, 0.3);
+            tl.fromTo("#{{@id}}-caption", { opacity: 0, y: 32 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.4);
+          }
+          tl.to({}, { duration: duration }, 0);
+          window.__timelines["{{@id}}"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

@@ -1,9 +1,22 @@
+import { homedir } from "node:os";
 import { join } from "node:path";
 import { assets, createJobReporter, creations, projects, type Database, type Publish } from "@studio/db";
-import { CHECKPOINT_STEPS, isVariablesDiffEmpty, modelSlotFor, nextStep, type AgentBackend, type AgentChoice, type ClaudeJob } from "@studio/shared";
+import {
+  BLOCKS_STEPS,
+  CHECKPOINT_STEPS,
+  isVariablesDiffEmpty,
+  modelSlotFor,
+  nextStep,
+  usesBlocks,
+  type AgentBackend,
+  type AgentChoice,
+  type ClaudeJob,
+} from "@studio/shared";
 import type { Storage } from "@studio/storage";
 import { and, eq, isNull, or } from "drizzle-orm";
-import type { AgentRunner } from "./agents/types";
+import { agentEnv } from "./agent-env";
+import type { AgentRunner, AgentTurnResult } from "./agents/types";
+import { runBlocksStep } from "./blocks";
 import type { RunnerConfig } from "./config";
 import type { OpenrouterProxy } from "./openrouter-proxy";
 import { buildPrompt } from "./prompt";
@@ -26,6 +39,15 @@ export type ProcessDeps = {
 export function agentFor(job: ClaudeJob, config: RunnerConfig): AgentChoice {
   const model = job.ai?.models[modelSlotFor(job)];
   return job.ai && model ? { backend: job.ai.backend, model } : { backend: "claude-code", model: config.stepModels[job.step] };
+}
+
+/**
+ * The OpenRouter model of the blocks engine: the step model of an OpenCode job, else `BLOCKS_MODEL` (a Claude Code
+ * alias means nothing to OpenRouter).
+ */
+export function blocksModelFor(job: ClaudeJob, config: Pick<RunnerConfig, "blocksModel">): string | null {
+  const model = job.ai?.models[modelSlotFor(job)];
+  return job.ai?.backend === "opencode" && model ? model : config.blocksModel;
 }
 
 /**
@@ -75,41 +97,64 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
     }
 
     if (job.mode === "edit") await commitCheckpoint(config.workspaceDir, job.slug, `${job.slug}: édition manuelle`);
-    const agent = agentFor(job, config);
+    const campaign = [project.name, project.context.trim()].filter(Boolean).join("\n\n");
 
-    const prompt = await buildPrompt(config.promptsDir, {
-      step: job.step,
-      type: creation.type,
-      kind: creation.kind,
-      slug: job.slug,
-      workflow: creation.workflow,
-      brief: creation.brief,
-      width: creation.width,
-      height: creation.height,
-      durationSeconds: creation.durationSeconds,
-      slideCount: creation.slideCount,
-      campaign: [project.name, project.context.trim()].filter(Boolean).join("\n\n"),
-      feedback: job.feedback,
-    });
-    const runner = deps.runnerFor(agent.backend);
-    if (!runner) {
-      const text = `Le backend « ${agent.backend} » n'est pas disponible dans cet environnement.`;
-      await report.event({ kind: "log", level: "error", text });
-      await report.status("failed", { resultText: text, backend: agent.backend, model: agent.model });
-      return;
+    let agent: AgentChoice;
+    let result: AgentTurnResult;
+    if (usesBlocks(creation) && BLOCKS_STEPS.includes(job.step) && job.mode !== "edit") {
+      // The blocks engine: a structured call and code, no agent turn and no session.
+      agent = { backend: "opencode", model: blocksModelFor(job, config) ?? "aucun" };
+      const step = await runBlocksStep({
+        workspaceDir: config.workspaceDir,
+        slug: job.slug,
+        step: job.step,
+        format: { width: creation.width ?? 1080, height: creation.height ?? 1920, durationSeconds: creation.durationSeconds },
+        campaign,
+        feedback: job.feedback,
+        model: blocksModelFor(job, config),
+        openrouter: media ? { baseUrl: media.baseUrl, token: media.token } : null,
+        env: agentEnv({ home: homedir(), tmp: config.agentTmpDir }, {}),
+        timeoutMs: config.timeoutMs,
+        onEvent: (event) => report.event(event),
+      });
+      result = { ok: step.ok, sessionId: null, resultText: step.resultText, usage: step.usage };
+      if (!step.ok && step.resultText) await report.event({ kind: "log", level: "error", text: step.resultText });
+    } else {
+      agent = agentFor(job, config);
+      const prompt = await buildPrompt(config.promptsDir, {
+        step: job.step,
+        type: creation.type,
+        kind: creation.kind,
+        slug: job.slug,
+        workflow: creation.workflow,
+        brief: creation.brief,
+        width: creation.width,
+        height: creation.height,
+        durationSeconds: creation.durationSeconds,
+        slideCount: creation.slideCount,
+        campaign,
+        feedback: job.feedback,
+      });
+      const runner = deps.runnerFor(agent.backend);
+      if (!runner) {
+        const text = `Le backend « ${agent.backend} » n'est pas disponible dans cet environnement.`;
+        await report.event({ kind: "log", level: "error", text });
+        await report.status("failed", { resultText: text, backend: agent.backend, model: agent.model });
+        return;
+      }
+      // A session is only resumed by the backend that opened it; the prompts re-read the files on disk anyway.
+      const sameBackend = (creation.sessionBackend ?? "claude-code") === agent.backend;
+      result = await runner.run({
+        prompt,
+        sessionId: sameBackend ? (job.resumeSessionId ?? creation.claudeSessionId) : null,
+        model: agent.model,
+        cwd: config.workspaceDir,
+        timeoutMs: config.timeoutMs,
+        onEvent: (event) => report.event(event),
+      });
     }
-    // A session is only resumed by the backend that opened it; the prompts re-read the files on disk anyway.
-    const sameBackend = (creation.sessionBackend ?? "claude-code") === agent.backend;
-    const result = await runner.run({
-      prompt,
-      sessionId: sameBackend ? (job.resumeSessionId ?? creation.claudeSessionId) : null,
-      model: agent.model,
-      cwd: config.workspaceDir,
-      timeoutMs: config.timeoutMs,
-      onEvent: (event) => report.event(event),
-    });
     const mediaCost = (await media?.costUsd()) ?? 0;
-    if (mediaCost > 0) await report.event({ kind: "log", level: "info", text: `Coût des médias (voix, musique) : ${mediaCost.toFixed(4)} $` });
+    if (mediaCost > 0) await report.event({ kind: "log", level: "info", text: `Coût des appels OpenRouter du job (voix, musique, storyboard du moteur blocs) : ${mediaCost.toFixed(4)} $` });
     const usage = {
       backend: agent.backend,
       model: agent.model,
