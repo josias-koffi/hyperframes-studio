@@ -68,7 +68,7 @@ meta.spentUsd ??= 0;
 if (env.FAL_BUDGET_USD) meta.budgetUsd = Number(env.FAL_BUDGET_USD);
 const save = () => writeFileSync(metaPath, `${JSON.stringify(meta, null, 2)}\n`);
 
-// ---- Adaptateurs : chaque modèle fal a son propre schéma d'entrée (vérifiés sur la doc fal du 12/10/2026). ----
+// ---- Adaptateurs : chaque modèle fal a son propre schéma d'entrée (vérifiés sur l'OpenAPI de fal le 12/10/2026). ----
 
 const IMAGE_SIZE = { "9:16": "portrait_16_9", "16:9": "landscape_16_9", "1:1": "square_hd", "4:5": "portrait_4_3" };
 
@@ -80,11 +80,25 @@ function imageRequest(model, { prompt, reference }) {
   }
   if (/flux\/(schnell|dev)|flux-1\//.test(model))
     return { endpoint: model, input: { prompt, image_size: IMAGE_SIZE[aspect] ?? "portrait_16_9", num_images: 1, output_format: "png" } };
+  // Nano Banana et Seedream : l'image de référence passe par leur endpoint d'édition, en liste.
+  if (/nano-banana/.test(model)) {
+    const base = model.replace(/\/edit$/, "");
+    if (reference) return { endpoint: `${base}/edit`, input: { prompt, image_urls: [reference], aspect_ratio: aspect, num_images: 1, output_format: "png" } };
+    return { endpoint: base, input: { prompt, aspect_ratio: aspect, num_images: 1, output_format: "png" } };
+  }
+  if (/seedream\/v4/.test(model)) {
+    const base = model.replace(/\/(text-to-image|edit)$/, "");
+    const image_size = IMAGE_SIZE[aspect] ?? "portrait_16_9";
+    if (reference) return { endpoint: `${base}/edit`, input: { prompt, image_urls: [reference], image_size, num_images: 1 } };
+    return { endpoint: `${base}/text-to-image`, input: { prompt, image_size, num_images: 1 } };
+  }
   // Par défaut : les champs les plus courants des modèles d'image de fal.
   return { endpoint: model, input: { prompt, aspect_ratio: aspect, num_images: 1, ...(reference ? { image_url: reference } : {}) } };
 }
 
 const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+/** LTX ne connaît que 16:9 et 9:16 ; « auto » suit l'image clé. */
+const ltxAspect = () => (aspect === "16:9" || aspect === "9:16" ? aspect : "auto");
 /** Les modèles vidéo : durées acceptées (secondes), puis l'entrée de fal. */
 const VIDEO_ADAPTERS = [
   {
@@ -116,11 +130,39 @@ const VIDEO_ADAPTERS = [
   },
   {
     match: /seedance/,
-    durations: range(4, 12),
+    durations: range(4, 15),
     input: ({ prompt, image, duration, audio }) => ({ prompt, image_url: image, duration: String(duration), aspect_ratio: aspect, resolution: "720p", generate_audio: audio }),
   },
   {
-    // Par défaut (PixVerse, LTX, Wan…) : à vérifier sur la page du modèle avant de l'ajouter au catalogue.
+    // PixVerse V6 : durée en entier, le son a son propre nom, le cadre vient de l'image.
+    match: /pixverse\/v6\//,
+    durations: range(1, 15),
+    input: ({ prompt, image, duration, audio }) => ({ prompt, image_url: image, duration, resolution: "720p", generate_audio_switch: audio }),
+  },
+  {
+    // LTX-2.3 : 1080p au minimum, son généré par défaut ; la version fast va jusqu'à 20 s.
+    match: /ltx-2\.3\/image-to-video\/fast/,
+    durations: [6, 8, 10, 12, 14, 16, 18, 20],
+    input: ({ prompt, image, duration, audio }) => ({ prompt, image_url: image, duration, aspect_ratio: ltxAspect(), resolution: "1080p", generate_audio: audio }),
+  },
+  {
+    match: /ltx-2\.3\/image-to-video/,
+    durations: [6, 8, 10],
+    input: ({ prompt, image, duration, audio }) => ({ prompt, image_url: image, duration, aspect_ratio: ltxAspect(), resolution: "1080p", generate_audio: audio }),
+  },
+  {
+    // Wan 2.7 : pas de son généré, le cadre vient de l'image ; sans réécriture du prompt, pour garder le style commun.
+    match: /wan\/v2\.7\//,
+    durations: range(2, 15),
+    input: ({ prompt, image, duration }) => ({ prompt, image_url: image, duration, resolution: "720p", enable_prompt_expansion: false }),
+  },
+  {
+    match: /wan-3\.0/,
+    durations: range(2, 15),
+    input: ({ prompt, image, duration, audio }) => ({ prompt, start_image_url: image, duration, aspect_ratio: aspect, resolution: "720p", audio, enable_prompt_expansion: false }),
+  },
+  {
+    // Par défaut, pour un modèle absent de cette liste : les champs les plus courants, à vérifier sur la page du modèle.
     match: /./,
     durations: [5, 10],
     input: ({ prompt, image, duration, audio }) => ({ prompt, image_url: image, duration: String(duration), aspect_ratio: aspect, generate_audio: audio }),

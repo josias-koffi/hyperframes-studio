@@ -66,7 +66,7 @@ afterEach(() => {
   fal = null;
 });
 
-async function workspace(prices: Record<string, unknown> = {}) {
+async function workspace(prices: Record<string, unknown> = {}, env: string[] = []) {
   const dir = await mkdtemp(join(tmpdir(), "shots-"));
   const png = join(dir, "k.png");
   execFileSync("ffmpeg", ["-y", "-hide_banner", "-loglevel", "error", "-f", "lavfi", "-i", "color=c=red:s=32x32", "-frames:v", "1", png]);
@@ -93,6 +93,8 @@ async function workspace(prices: Record<string, unknown> = {}) {
         "fal-ai/veo3.1/fast/image-to-video": { unit: "second", usd: 0.2, usdWithAudio: 0.4 },
         ...prices,
       })}`,
+      // Later lines win: a test may change a model.
+      ...env,
     ].join("\n"),
   );
   const events: StudioEvent[] = [];
@@ -199,6 +201,41 @@ describe.skipIf(!hasFfmpeg)("keyframes and shots", () => {
       ["fal-ai", "A blue coffee cup. Camera: slow dolly-in. cinematic, 35mm"],
     ]);
     expect(JSON.parse(await readFile(join(video, "STORYBOARD.json"), "utf8")).scenes[0].shot.prompt).toBe("A blue coffee cup");
+  });
+
+  // s1 is 5 s without sound, s2 3 s with sound: what each family is sent (their fal OpenAPI schemas).
+  it.each([
+    ["fal-ai/pixverse/v6/image-to-video", [{ duration: 5, generate_audio_switch: false, resolution: "720p" }, { duration: 3, generate_audio_switch: true }]],
+    ["fal-ai/ltx-2.3/image-to-video", [{ duration: 6, generate_audio: false, aspect_ratio: "9:16", resolution: "1080p" }, { duration: 6, generate_audio: true }]],
+    ["fal-ai/ltx-2.3/image-to-video/fast", [{ duration: 6 }, { duration: 6 }]],
+    ["fal-ai/wan/v2.7/image-to-video", [{ duration: 5, enable_prompt_expansion: false, resolution: "720p" }, { duration: 3 }]],
+    ["alibaba/wan-3.0/image-to-video", [{ duration: 5, audio: false, aspect_ratio: "9:16" }, { duration: 3, audio: true }]],
+    ["bytedance/seedance-2.0/image-to-video", [{ duration: "5", generate_audio: false }, { duration: "4", generate_audio: true }]],
+    ["fal-ai/kling-video/o3/standard/image-to-video", [{ duration: "5", generate_audio: false }, { duration: "3", generate_audio: true }]],
+  ])("sends %s its own fields", async (model, expected) => {
+    const { ctx, calls } = await workspace({ [model]: { unit: "second", usd: 0.05 } }, [`VIDEO_DRAFT_MODEL=${model}`]);
+    await runBlocksStep(ctx("keyframes"));
+    expect(await runBlocksStep(ctx("shots"))).toMatchObject({ ok: true });
+    const sent = submits(calls).filter((call) => call.path === `/${model}`);
+    expect(sent.map((call) => call.body)).toEqual(expected.map((fields) => expect.objectContaining(fields)));
+    // The keyframe goes in the field the model reads.
+    const imageField = model.startsWith("alibaba/wan-3.0") ? "start_image_url" : "image_url";
+    expect(String(sent[0].body?.[imageField])).toMatch(/^data:image\/png;base64,/);
+    // A field of another family would be refused by fal's validation.
+    expect(Object.keys(sent[0].body ?? {})).not.toContain(model.includes("pixverse") ? "generate_audio" : "generate_audio_switch");
+  });
+
+  it("draws a keyframe with Nano Banana, through its edit endpoint when a reference may be sent", async () => {
+    const { video, ctx, calls } = await workspace({ "fal-ai/nano-banana": { unit: "image", usd: 0.04 } }, ["IMAGE_MODEL=fal-ai/nano-banana", "FAL_REFERENCES=1"]);
+    const withReference = { ...storyboard, scenes: [{ ...storyboard.scenes[0], shot: { ...storyboard.scenes[0].shot, reference: "assets/uploads/produit.png" } }, ...storyboard.scenes.slice(1)] };
+    await mkdir(join(video, "assets/uploads"), { recursive: true });
+    await copyFile(join(video, "../../k.png"), join(video, "assets/uploads/produit.png"));
+    await writeFile(join(video, "STORYBOARD.json"), JSON.stringify(withReference));
+    await runBlocksStep(ctx("keyframes"));
+    expect(submits(calls).map((call) => [call.path, Object.keys(call.body ?? {}).sort()])).toEqual([
+      ["/fal-ai/nano-banana/edit", ["aspect_ratio", "image_urls", "num_images", "output_format", "prompt"]],
+      ["/fal-ai/nano-banana", ["aspect_ratio", "num_images", "output_format", "prompt"]],
+    ]);
   });
 
   it("builds only once every shot has its video", async () => {

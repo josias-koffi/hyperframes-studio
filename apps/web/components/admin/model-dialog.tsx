@@ -30,6 +30,12 @@ const EMPTY: ModelDraft = { openrouterId: "", kind: "tts", label: "", descriptio
  * Adds a model to the catalog (prefilled from the OpenRouter import, or by hand for a TTS model, which OpenRouter's
  * list does not hold) or edits one. The id and the kind of an existing model do not change.
  */
+/** The fal families `scripts/shots.mjs` knows the fields of; another model gets the most common ones. */
+const FAL_FAMILIES: Record<"image" | "video", string> = {
+  image: "Reconnus : FLUX, FLUX Kontext, Nano Banana, Seedream v4. Un autre modèle reçoit les champs les plus courants : à essayer avant de le proposer.",
+  video: "Reconnus : Veo 3, Kling (v2, v3, o3), Seedance 2, PixVerse V6, LTX-2.3, Wan 2.7 et 3.0, en image vers vidéo. Un autre modèle reçoit les champs les plus courants : à essayer avant de le proposer.",
+};
+
 export function ModelDialog({
   open,
   onOpenChange,
@@ -123,6 +129,7 @@ export function ModelDialog({
                   value={form.openrouterId}
                   onChange={(event) => setForm({ ...form, openrouterId: event.target.value })}
                 />
+                {fal && !editing && <FieldDescription>{FAL_FAMILIES[form.kind as "image" | "video"]}</FieldDescription>}
               </Field>
               <Field>
                 <FieldLabel htmlFor="model-kind">Type</FieldLabel>
