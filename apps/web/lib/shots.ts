@@ -71,4 +71,5 @@ export function estimateOf(shots: readonly ShotView[], key: "keyframe" | "draft"
   );
 }
 
-export const usd = (value: number) => `${value.toFixed(2)} $`;
+/** Three decimals under ten cents: a keyframe costs a few tenths of a cent. */
+export const usd = (value: number) => `${value.toFixed(value > 0 && value < 0.1 ? 3 : 2)} $`;

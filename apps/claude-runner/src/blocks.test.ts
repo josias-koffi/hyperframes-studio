@@ -427,6 +427,17 @@ describe("visual check", () => {
     expect(JSON.parse(await readFile(join(dir, "videos/essai/STORYBOARD.json"), "utf8")).scenes[0].props.text).toBe("Tu perds du temps ?");
   });
 
+  it("keeps the build when the vision model times out", async () => {
+    const { dir, ctx } = await fakeWorkspace(valid);
+    await mkdir(join(dir, "videos/essai/snapshots"), { recursive: true });
+    await writeFile(join(dir, "videos/essai/snapshots/contact-sheet.jpg"), "jpeg");
+    const fetchImpl = (async () => {
+      throw new DOMException("The operation was aborted due to timeout", "TimeoutError");
+    }) as unknown as typeof fetch;
+    const result = await runBlocksStep(ctx("build", { fetchImpl, visualModel: "google/gemini-flash" }));
+    expect(result).toMatchObject({ ok: true, resultText: expect.stringContaining("Check passé") });
+  });
+
   it("does nothing without a vision model", async () => {
     const { ctx } = await fakeWorkspace(valid);
     const result = await runBlocksStep(ctx("build"));

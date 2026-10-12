@@ -120,7 +120,7 @@ describe.skipIf(!hasFfmpeg)("keyframes and shots", () => {
     const { video, ctx, meta, calls } = await workspace();
     const result = await runBlocksStep(ctx("keyframes"));
     expect(result).toMatchObject({ ok: true });
-    expect(result.resultText).toContain("Images clés : s1, s2");
+    expect(result.resultText).toBe("Images clés : s1, s2. Coût estimé : 0.006 $. Plans à générer ensuite : environ 0.80 $ en brouillon.");
     expect(result.costUsd).toBeCloseTo(0.006);
     expect(submits(calls).map((call) => [call.path, call.body])).toEqual([
       ["/fal-ai/flux/schnell", { prompt: "A coffee cup. cinematic, 35mm", image_size: "portrait_16_9", num_images: 1, output_format: "png" }],
@@ -129,6 +129,8 @@ describe.skipIf(!hasFfmpeg)("keyframes and shots", () => {
     expect(calls.filter((call) => call.method === "GET").every((call) => call.path.startsWith("/fal-ai/flux/schnell/requests/"))).toBe(true);
     expect((await stat(join(video, "assets/shots/s1.png"))).size).toBeGreaterThan(0);
     expect((await meta()).spentUsd).toBeCloseTo(0.006);
+    // One keyframe drawn again: approving still animates both shots.
+    expect((await runBlocksStep(ctx("keyframes", { only: ["s2"] }))).resultText).toContain("environ 0.80 $ en brouillon");
   });
 
   it("animates each keyframe with the draft model, then the chosen shots with the final model", async () => {
@@ -159,7 +161,7 @@ describe.skipIf(!hasFfmpeg)("keyframes and shots", () => {
     await runBlocksStep(ctx("keyframes"));
     const before = calls.length;
     const blocked = await runBlocksStep(ctx("shots", { budgetEur: 0.5 }));
-    expect(blocked).toMatchObject({ ok: false, resultText: expect.stringContaining("dépasserait son budget") });
+    expect(blocked).toMatchObject({ ok: false, resultText: expect.stringContaining("dépasserait son budget de 0.55 $ (0.50 €)") });
     expect(calls.length).toBe(before);
     expect(JSON.parse(await readFile(join(video, "shots_budget.json"), "utf8"))).toMatchObject({ step: "shots", only: ["s1", "s2"], pass: "draft", estimateUsd: 0.8 });
 

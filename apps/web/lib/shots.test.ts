@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { estimateOf, parseShots } from "./shots";
+import { estimateOf, parseShots, usd } from "./shots";
 
 const storyboard = JSON.stringify({
   scenes: [
@@ -34,5 +34,9 @@ describe("parseShots", () => {
     const { shots } = parseShots(storyboard, meta, null)!;
     expect(estimateOf(shots, "draft")).toEqual({ usd: 1, unpriced: false });
     expect(estimateOf(shots, "final")).toEqual({ usd: 2, unpriced: true });
+  });
+
+  it("shows a keyframe's price instead of 0.00 $", () => {
+    expect([usd(0.003), usd(0), usd(0.8), usd(1.712)]).toEqual(["0.003 $", "0.00 $", "0.80 $", "1.71 $"]);
   });
 });

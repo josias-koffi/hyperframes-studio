@@ -76,7 +76,7 @@ export function ShotsReview({
       title: "Dépasser le budget ?",
       text: cost.unpriced
         ? `Un modèle n'a pas de prix au catalogue : le coût de ${what} ne peut pas être estimé.`
-        : `${what} coûterait environ ${usd(cost.usd)} ; ${usd(data.spentUsd)} sont déjà dépensés sur un budget de ${usd(data.budgetUsd)}.`,
+        : `${what.charAt(0).toUpperCase()}${what.slice(1)} coûterait environ ${usd(cost.usd)} ; ${usd(data.spentUsd)} sont déjà dépensés sur un budget de ${usd(data.budgetUsd)}.`,
       run,
     });
   }

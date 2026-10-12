@@ -850,8 +850,13 @@ export function NewCreationForm({
                   )}
                   {backgrounds.length > 0 && (
                     <>
-                      <dt className="text-muted-foreground">Images de fond</dt>
-                      <dd>{backgrounds.map((f) => f.name).join(", ")}</dd>
+                      <dt className="text-muted-foreground">{realistic ? "Photos du produit" : "Images de fond"}</dt>
+                      <dd>
+                        {backgrounds.map((f) => f.name).join(", ")}
+                        {realistic && (
+                          <span className="block text-muted-foreground">{referenceConsent ? "Envoyées à fal comme références." : "Restent sur le poste."}</span>
+                        )}
+                      </dd>
                     </>
                   )}
                   {mainFile.length + extras.length > 0 && (

@@ -53,7 +53,11 @@ export default async function CreationOverviewPage({ params }: PageProps<"/proje
   const { creation, state, jobs, renders, iterations } = await loadCreation(id);
   const base = creationHref(creation);
   const suggested = suggestedVariables(creation.brief);
-  const fields = BRIEF_FIELDS.map(({ key, label }) => ({ key, label, value: briefText(creation.brief[key]) })).filter(({ value }) => value);
+  const fields = BRIEF_FIELDS.map(({ key, label }) => ({
+    key,
+    label: key === "backgrounds" && creation.type === "realistic" ? "Photos du produit" : label,
+    value: briefText(creation.brief[key]),
+  })).filter(({ value }) => value);
 
   return (
     <div className="flex flex-col gap-6">

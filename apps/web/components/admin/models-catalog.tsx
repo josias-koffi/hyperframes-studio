@@ -216,7 +216,7 @@ export function ModelsCatalog({ models }: { models: AiModel[] }) {
                 <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input className="bg-card pl-8" placeholder="Rechercher un modèle…" value={query} onChange={(event) => setQuery(event.target.value)} />
               </div>
-              <nav aria-label="Filtrer par type" className="flex gap-1 overflow-x-auto">
+              <nav aria-label="Filtrer par type" className="flex flex-wrap gap-1">
                 {(["all", ...AI_MODEL_KINDS] as const).map((value) => {
                   const count = value === "all" ? models.length : models.filter((model) => model.kind === value).length;
                   return (
