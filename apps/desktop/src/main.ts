@@ -3,8 +3,12 @@ import { randomBytes } from "node:crypto";
 import { createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync, type WriteStream } from "node:fs";
 import { createServer } from "node:net";
 import { dirname, join, resolve } from "node:path";
-import { app, BrowserWindow, dialog, shell } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 import { packagedLayout, repoLayout, servicePath, type Layout } from "./layout";
+
+/** The headers of the studio are 48 px high (h-12): the window's buttons are centred on them. */
+const TITLE_BAR_HEIGHT = 48;
+const SYMBOLS = { dark: "#e7e7ea", light: "#18181b" };
 
 /** Every service listens on the loopback only: nothing on the network reaches this machine's studio. */
 const HOST = "127.0.0.1";
@@ -19,7 +23,23 @@ if (!app.requestSingleInstanceLock()) app.quit();
 else void app.whenReady().then(start);
 
 async function start() {
-  const window = new BrowserWindow({ width: 1440, height: 900, title: "Framesmith", backgroundColor: "#0b0b0c" });
+  const window = new BrowserWindow({
+    width: 1440,
+    height: 900,
+    title: "Framesmith",
+    backgroundColor: "#0b0b0c",
+    // No title bar: the pages' headers move the window. macOS keeps its traffic lights, Windows and Linux get their
+    // buttons drawn over the top right corner, on a transparent background so the header shows through.
+    titleBarStyle: "hidden",
+    titleBarOverlay: { color: "#00000000", symbolColor: SYMBOLS.dark, height: TITLE_BAR_HEIGHT },
+    trafficLightPosition: { x: 16, y: 17 },
+    webPreferences: { preload: join(__dirname, "preload.js") },
+  });
+  // The studio has its own light and dark themes: its buttons follow the one the page shows.
+  ipcMain.on("title-bar:theme", (event, theme: unknown) => {
+    if (event.sender !== window.webContents || process.platform === "darwin") return;
+    window.setTitleBarOverlay({ symbolColor: theme === "light" ? SYMBOLS.light : SYMBOLS.dark });
+  });
   void window.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(SPLASH)}`);
   app.on("second-instance", () => window.focus());
 
@@ -188,5 +208,5 @@ async function stopServices() {
   );
 }
 
-const SPLASH = `<!doctype html><html><body style="margin:0;height:100vh;display:grid;place-items:center;background:#0b0b0c;color:#e7e7ea;font:15px system-ui">
+const SPLASH = `<!doctype html><html><body style="margin:0;app-region:drag;height:100vh;display:grid;place-items:center;background:#0b0b0c;color:#e7e7ea;font:15px system-ui">
 <div style="text-align:center"><div style="font-size:22px;font-weight:600;margin-bottom:8px">Framesmith</div><div style="opacity:.6">Démarrage du studio…</div></div></body></html>`;

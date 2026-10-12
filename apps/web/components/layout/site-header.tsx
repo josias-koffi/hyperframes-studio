@@ -1,10 +1,8 @@
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { HeaderBreadcrumb } from "./header-breadcrumb";
-import { RefreshButton } from "./refresh-button";
-import { ThemeToggle } from "./theme-toggle";
 
-/** Same bar as shadcn-admin-kit's layout: trigger, breadcrumb, then theme and refresh on the right. */
+/** Same bar as shadcn-admin-kit's layout: trigger and breadcrumb. Theme and refresh sit in the window bar above. */
 export function SiteHeader() {
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b">
@@ -12,10 +10,6 @@ export function SiteHeader() {
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
         <HeaderBreadcrumb />
-        <div className="ml-auto flex items-center gap-1">
-          <ThemeToggle />
-          <RefreshButton />
-        </div>
       </div>
     </header>
   );

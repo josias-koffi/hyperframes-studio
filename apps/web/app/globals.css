@@ -199,6 +199,56 @@
   }
 }
 
+/*
+ * Desktop app: the window has no title bar. Its headers move it, what can be clicked in them stays clickable, and
+ * they leave room for the window's buttons: on the right on Windows and Linux (the area the overlay leaves to the
+ * page), on the left on macOS (the traffic lights).
+ */
+[data-desktop] {
+  --titlebar-right: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw));
+}
+[data-desktop="darwin"] {
+  --titlebar-left: 72px;
+  --titlebar-right: 0px;
+}
+[data-desktop] header,
+[data-desktop] [data-slot="sidebar-header"],
+[data-desktop] [data-window-drag] {
+  app-region: drag;
+}
+[data-desktop] :is(header, [data-slot="sidebar-header"], [data-window-drag]) :is(a, button, input, select, textarea, [role="button"], [role="combobox"], [role="tab"]) {
+  app-region: no-drag;
+}
+/* macOS: the traffic lights sit above the logo. */
+[data-desktop="darwin"] [data-slot="sidebar-header"] {
+  padding-top: 2.5rem;
+}
+[data-desktop] header[data-window-header] {
+  padding-left: calc(0.5rem + var(--titlebar-left, 0px));
+  padding-right: calc(0.5rem + var(--titlebar-right, 0px));
+}
+
+/*
+ * Scrollbars like the ScrollArea's: a thin rounded thumb in the border colour on no track. The ::-webkit- rules hold
+ * because no scrollbar-color is set (it would make Chromium ignore them).
+ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 9999px;
+  background: var(--border) padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklch, var(--muted-foreground) 50%, transparent) padding-box;
+}
+
 /* Moving highlight on whatever is being generated. */
 @utility live-shimmer {
   background-image: linear-gradient(

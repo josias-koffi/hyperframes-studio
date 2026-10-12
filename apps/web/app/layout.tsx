@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
+import { DesktopWindow } from "@/components/layout/desktop-window";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       {/* Browser extensions (LanguageTool, ColorZilla) add attributes to html and body before hydration. */}
       <body className="min-h-full bg-background font-sans text-foreground" suppressHydrationWarning>
         <ThemeProvider>
+          <DesktopWindow />
           <TooltipProvider>{children}</TooltipProvider>
           <Toaster position="top-right" />
         </ThemeProvider>

@@ -130,7 +130,7 @@ function TopBar({ backHref }: { backHref: string }) {
   }
 
   return (
-    <header className="flex h-12 shrink-0 items-center gap-2 border-b px-2">
+    <header data-window-header className="flex h-12 shrink-0 items-center gap-2 border-b px-2">
       <Button variant="ghost" size="sm" asChild>
         <Link
           href={backHref}

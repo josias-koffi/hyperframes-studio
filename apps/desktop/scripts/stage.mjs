@@ -1,6 +1,6 @@
 // Lays out what electron-builder packs, under apps/desktop/build (run after `pnpm build`):
 //
-//   app/        the Electron main process alone (main.js, layout.js): it needs nothing but Electron and Node
+//   app/        the Electron main process alone (main.js, preload.js, layout.js): it needs nothing but Electron and Node
 //   runtime/    the core and the engine with their production dependencies (`pnpm deploy`, flat node_modules),
 //               and the app's default settings (defaults.env)
 //   web/        the front's standalone Next.js server
@@ -38,7 +38,7 @@ await mkdir(build, { recursive: true });
 step("app: the Electron main process");
 const pkg = JSON.parse(await readFile(join(desktop, "package.json"), "utf8"));
 await mkdir(join(build, "app"));
-for (const file of ["main.js", "layout.js"]) await cp(join(desktop, "dist", file), join(build, "app", file));
+for (const file of ["main.js", "preload.js", "layout.js"]) await cp(join(desktop, "dist", file), join(build, "app", file));
 await writeFile(
   join(build, "app", "package.json"),
   JSON.stringify(
