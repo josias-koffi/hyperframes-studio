@@ -5,7 +5,7 @@ import { and, asc, desc, eq, gte, isNotNull, sql } from "drizzle-orm";
 import { currentUser } from "../auth/request-context";
 import { DATABASE } from "../database/database.module";
 import type { CreateAiModel, OpenRouterSearch, UpdateAiModel, UserAiSettingsInput } from "./ai.schemas";
-import { fetchOpenRouterModels } from "./openrouter-catalog";
+import { fetchOpenRouterModels, fetchZdrModels } from "./openrouter-catalog";
 import { MissingModelError, resolveAi } from "./resolve-ai";
 
 const EMPTY: AiPreferences = { models: {}, media: {} };
@@ -49,23 +49,28 @@ export class AiService {
 
   /**
    * Reads again from OpenRouter what the catalog models can do and cost: models added before capabilities were
-   * stored, or whose provider changed them. A model OpenRouter no longer lists (a TTS added by hand) is left as is.
+   * stored, or whose provider changed them. A model OpenRouter does not list (a TTS added by hand) only gets its
+   * zero retention mark again (`/endpoints/zdr` lists TTS models too); fal's models are left as they are.
    */
   async refreshFromOpenRouter() {
     let models;
+    let zdr;
     try {
-      models = await fetchOpenRouterModels();
+      [models, zdr] = await Promise.all([fetchOpenRouterModels(), fetchZdrModels()]);
     } catch (error) {
       throw new BadRequestException(`Liste OpenRouter indisponible : ${error instanceof Error ? error.message : String(error)}`);
     }
     const byId = new Map(models.map((model) => [model.id, model]));
     let updated = 0;
     for (const row of await this.db.select().from(aiModels)) {
+      if ((FAL_MODEL_KINDS as readonly string[]).includes(row.kind)) continue;
       const model = byId.get(row.openrouterId);
-      if (!model) continue;
+      const values = model
+        ? { capabilities: model.capabilities, pricing: model.pricing, contextLength: model.contextLength }
+        : { capabilities: [...row.capabilities.filter((capability) => capability !== "zdr"), ...(zdr.has(row.openrouterId) ? (["zdr"] as const) : [])] };
       await this.db
         .update(aiModels)
-        .set({ capabilities: model.capabilities, pricing: model.pricing, contextLength: model.contextLength, updatedAt: new Date() })
+        .set({ ...values, updatedAt: new Date() })
         .where(eq(aiModels.id, row.id));
       updated++;
     }

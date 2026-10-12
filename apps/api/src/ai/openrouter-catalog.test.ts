@@ -21,6 +21,12 @@ describe("modelCapabilities", () => {
     expect(modelCapabilities({ architecture: { input_modalities: ["text"] }, supported_parameters: ["response_format"] })).toEqual(["structured"]);
     expect(modelCapabilities({})).toEqual([]);
   });
+
+  it("marks zero retention when OpenRouter lists an endpoint of the model that keeps no prompt", () => {
+    const zdr = new Set(["deepseek/deepseek-v4.1-flash"]);
+    expect(modelCapabilities({ id: "deepseek/deepseek-v4.1-flash", supported_parameters: ["tools"] }, zdr)).toEqual(["tools", "zdr"]);
+    expect(modelCapabilities({ id: "google/lyria-3-clip-preview" }, zdr)).toEqual([]);
+  });
 });
 
 describe("toOpenRouterModel", () => {

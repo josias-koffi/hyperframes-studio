@@ -18,6 +18,7 @@ export const CAPABILITY_META: Record<ModelCapability, { label: string; hint: str
   vision: { label: "Vision", hint: "Lit les images : analyse des rushs, contrôle visuel." },
   tools: { label: "Outils", hint: "Appelle des outils : peut travailler en agent." },
   structured: { label: "JSON", hint: "Répond dans un schéma JSON imposé." },
+  zdr: { label: "Rétention zéro", hint: "Un fournisseur sur OpenRouter ne garde aucun prompt : le studio l'impose pour ce modèle." },
 };
 
 export const MODEL_KIND_META: Record<AiModelKind, { label: string; plural: string }> = {

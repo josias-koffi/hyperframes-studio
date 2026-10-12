@@ -51,8 +51,34 @@ describe("openrouter proxy", () => {
       body: '{"model":"m","stream":true}',
     });
     expect(await response.text()).toBe(sse);
-    expect(upstream.calls).toEqual([{ url: "https://openrouter.test/api/v1/chat/completions", authorization: "Bearer sk-or-real", body: '{"model":"m","stream":true}' }]);
+    expect(upstream.calls.filter((call) => call.url.endsWith("/chat/completions"))).toEqual([
+      { url: "https://openrouter.test/api/v1/chat/completions", authorization: "Bearer sk-or-real", body: '{"model":"m","stream":true,"provider":{"data_collection":"deny"}}' },
+    ]);
     expect(await grant.costUsd()).toBe(0.002);
+  });
+
+  it("refuses training on every call, and asks for zero retention where the model has it", async () => {
+    const upstream = fakeUpstream({
+      "/endpoints/zdr": () => Response.json({ data: [{ model_id: "deepseek/deepseek-v4.1-flash" }, { model_id: "mistralai/voxtral-mini-tts-2603" }] }),
+      "/chat/completions": () => Response.json({ choices: [] }),
+      "/audio/speech": () => new Response(new Uint8Array([1])),
+    });
+    const base = await startProxy(upstream);
+    const grant = proxy!.grant();
+    const send = async (path: string, body: unknown) =>
+      (await fetch(`${base}${path}`, { method: "POST", headers: { authorization: `Bearer ${grant.token}`, "content-type": "application/json" }, body: JSON.stringify(body) })).arrayBuffer();
+    // The caller's own preferences stay, never its data policy.
+    await send("/chat/completions", { model: "deepseek/deepseek-v4.1-flash:nitro", provider: { order: ["fireworks"], data_collection: "allow", zdr: false } });
+    await send("/chat/completions", { model: "google/lyria-3-clip-preview", modalities: ["text", "audio"] });
+    await send("/audio/speech", { model: "mistralai/voxtral-mini-tts-2603", input: "Bonjour" });
+    const sent = upstream.calls.filter((call) => !call.url.endsWith("/endpoints/zdr")).map((call) => (JSON.parse(call.body) as { provider: unknown }).provider);
+    expect(sent).toEqual([
+      { order: ["fireworks"], data_collection: "deny", zdr: true },
+      { data_collection: "deny" },
+      { data_collection: "deny", zdr: true },
+    ]);
+    // The list is read once for all the calls, with the platform key.
+    expect(upstream.calls.filter((call) => call.url.endsWith("/endpoints/zdr"))).toEqual([{ url: "https://openrouter.test/api/v1/endpoints/zdr", authorization: "Bearer sk-or-real", body: "" }]);
   });
 
   it("looks up the cost of a binary answer from its generation id", async () => {

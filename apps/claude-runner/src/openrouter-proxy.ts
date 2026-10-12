@@ -34,6 +34,8 @@ export type OpenrouterProxy = {
 type Grant = { track: boolean; cost: number; pending: Set<Promise<void>> };
 
 const JSON_LIMIT = 5 * 1024 * 1024;
+/** How long the list of OpenRouter's Zero Data Retention models is kept before it is read again. */
+const ZDR_TTL_MS = 6 * 60 * 60 * 1000;
 const HOP_BY_HOP = new Set(["connection", "keep-alive", "transfer-encoding", "content-encoding", "content-length", "upgrade"]);
 
 function readBody(request: IncomingMessage, limit: number): Promise<Buffer> {
@@ -86,6 +88,7 @@ export function createOpenrouterProxy({
   upstream,
   apiKey,
   fal = null,
+  privacy = true,
   fetchImpl = fetch,
   lookupDelaysMs = [1_000, 3_000, 10_000],
   log = (text: string) => console.warn(`[openrouter-proxy] ${text}`),
@@ -94,6 +97,12 @@ export function createOpenrouterProxy({
   apiKey: string;
   /** fal's queue (`https://queue.fal.run`) and the key the proxy puts in place of the job's token. */
   fal?: { upstream: string; apiKey: string } | null;
+  /**
+   * Every OpenRouter call refuses the providers that may train on prompts (`data_collection: "deny"`), and asks for
+   * zero retention (`zdr`) when the model has such an endpoint: forced on the model, a call to one without would fail
+   * (Lyria has none). False: the calls go as they are (tests of other features).
+   */
+  privacy?: boolean;
   fetchImpl?: typeof fetch;
   /** Waits before each `/generation` lookup: its stats appear a moment after the response. */
   lookupDelaysMs?: number[];
@@ -102,6 +111,49 @@ export function createOpenrouterProxy({
   const grants = new Map<string, Grant>();
   const base = upstream.replace(/\/$/, "");
   let baseUrl = "";
+
+  let zdr: { at: number; models: Promise<Set<string>> } | null = null;
+  const withoutZdr = new Set<string>();
+
+  /** OpenRouter's models with a Zero Data Retention endpoint; an empty list while OpenRouter does not answer. */
+  function zdrModels(): Promise<Set<string>> {
+    if (zdr && Date.now() - zdr.at < ZDR_TTL_MS) return zdr.models;
+    const models = fetchImpl(`${base}/endpoints/zdr`, { headers: { authorization: `Bearer ${apiKey}` } })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const body = (await response.json()) as { data?: { model_id?: unknown }[] };
+        return new Set((body.data ?? []).flatMap((endpoint) => (typeof endpoint.model_id === "string" ? [endpoint.model_id] : [])));
+      })
+      .catch((error: unknown) => {
+        log(`zero retention list unavailable (${error instanceof Error ? error.message : String(error)}): training refused only`);
+        zdr = null;
+        return new Set<string>();
+      });
+    zdr = { at: Date.now(), models };
+    return models;
+  }
+
+  /** The body with the studio's data policy in `provider`, over whatever the caller put there. */
+  async function withPrivacy(body: Buffer): Promise<Buffer> {
+    let payload: unknown;
+    try {
+      payload = JSON.parse(body.toString());
+    } catch {
+      return body;
+    }
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) return body;
+    const request = payload as { model?: unknown; provider?: unknown };
+    const model = typeof request.model === "string" ? request.model : "";
+    // A variant (`:nitro`, `:floor`) has the endpoints of its model.
+    const zeroRetention = (await zdrModels()).has(model.replace(/:[^/]*$/, ""));
+    if (!zeroRetention && model && !withoutZdr.has(model)) {
+      withoutZdr.add(model);
+      log(`${model} has no zero retention endpoint: training refused only`);
+    }
+    const provider = request.provider && typeof request.provider === "object" ? request.provider : {};
+    request.provider = { ...provider, data_collection: "deny", ...(zeroRetention ? { zdr: true } : {}) };
+    return Buffer.from(JSON.stringify(request));
+  }
 
   /** A binary answer (`/audio/speech`) says nothing of its cost: OpenRouter's stats of the generation do. */
   async function lookupCost(generationId: string): Promise<number | null> {
@@ -130,7 +182,8 @@ export function createOpenrouterProxy({
       return fail(response, 403, `Appel non autorisé par le studio : ${request.method} ${path}`);
     }
 
-    const body = await readBody(request, 64 * 1024 * 1024);
+    const raw = await readBody(request, 64 * 1024 * 1024);
+    const body = privacy ? await withPrivacy(raw) : raw;
     const upstreamResponse = await fetchImpl(`${base}${path}`, {
       method: "POST",
       headers: {

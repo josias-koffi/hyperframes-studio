@@ -25,7 +25,8 @@ export const MEDIA_PRICE_KEYS = { image: "perImage", video: "perSecond", videoWi
  * `supported_parameters`): `vision` reads images, `tools` calls tools (an agent), `structured` answers in a given
  * JSON schema (`response_format` or `structured_outputs`).
  */
-export const MODEL_CAPABILITIES = ["vision", "tools", "structured"] as const;
+/** `zdr`: OpenRouter has an endpoint of the model that keeps no prompt (Zero Data Retention); the studio's proxy then asks for it. */
+export const MODEL_CAPABILITIES = ["vision", "tools", "structured", "zdr"] as const;
 export type ModelCapability = (typeof MODEL_CAPABILITIES)[number];
 
 /** The backend and model of one job, resolved by the API when it is enqueued. */

@@ -28,6 +28,10 @@ type Props = {
 };
 
 /** The model chosen per step, per editor change and for the audio, saved in one go. */
+/** What the studio's proxy imposes on every OpenRouter call (voice and music included). */
+const OPENROUTER_PRIVACY =
+  "OpenRouter (États-Unis) n'envoie tes demandes qu'à des fournisseurs qui n'entraînent pas leurs modèles dessus, et à un fournisseur qui ne garde rien quand le modèle en a un (badge « Rétention zéro » du catalogue).";
+
 export function PreferencesForm({ mode, models, value, fallback, backend }: Props) {
   const router = useRouter();
   const [prefs, setPrefs] = useState<AiPreferences>(value);
@@ -146,8 +150,8 @@ export function PreferencesForm({ mode, models, value, fallback, backend }: Prop
           onClaudeCode
             ? "Avec Claude Code, chaque étape garde ses modèles Claude : ces choix servent quand tu repasses sur OpenCode."
             : mode === "defaults"
-              ? "Le modèle de chaque étape pour tous les utilisateurs qui n'ont rien choisi. Le build sert de défaut général."
-              : "Le modèle qui travaille à chaque étape. Laisse « par défaut » pour suivre les choix de la plateforme."
+              ? `Le modèle de chaque étape pour tous les utilisateurs qui n'ont rien choisi. Le build sert de défaut général. ${OPENROUTER_PRIVACY}`
+              : `Le modèle qui travaille à chaque étape. Laisse « par défaut » pour suivre les choix de la plateforme. ${OPENROUTER_PRIVACY}`
         }
       >
         {byKind.agent.length === 0 ? (
