@@ -10,4 +10,8 @@ describe("agentEnv", () => {
     );
     expect(env).toEqual({ PATH: "/usr/bin", TTS_PEAK_DB: "-1", HOME: "/home/me", TMPDIR: "/tmp/studio-agent", OPENROUTER_API_KEY: "sk-studio-x" });
   });
+
+  it("hands the Chrome GPU mode to the HyperFrames commands", () => {
+    expect(agentEnv({ home: "/h", tmp: "/t" }, {}, { PRODUCER_BROWSER_GPU_MODE: "software" })).toMatchObject({ PRODUCER_BROWSER_GPU_MODE: "software" });
+  });
 });

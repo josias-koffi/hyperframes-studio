@@ -1,5 +1,18 @@
-/** Variables of the studio an agent may see: nothing that opens the database, the storage or a provider. */
-const PASSED_THROUGH = ["PATH", "LANG", "LC_ALL", "TZ", "TTS_PEAK_DB", "HYPERFRAMES_BROWSER_PATH", "HYPERFRAMES_NO_TELEMETRY"] as const;
+/**
+ * Variables of the studio an agent may see: nothing that opens the database, the storage or a provider.
+ * `PRODUCER_BROWSER_GPU_MODE` reaches `check` and `snapshot` too: on a GPU whose captures fail, Chrome crashes on a
+ * video unless it runs in software.
+ */
+const PASSED_THROUGH = [
+  "PATH",
+  "LANG",
+  "LC_ALL",
+  "TZ",
+  "TTS_PEAK_DB",
+  "HYPERFRAMES_BROWSER_PATH",
+  "HYPERFRAMES_NO_TELEMETRY",
+  "PRODUCER_BROWSER_GPU_MODE",
+] as const;
 
 /** The environment of an agent process: the person's home, a private tmp, and what `extra` hands it. */
 export function agentEnv(
