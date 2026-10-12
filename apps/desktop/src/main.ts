@@ -50,7 +50,9 @@ async function startServices() {
   mkdirSync(data, { recursive: true });
   log = createWriteStream(logPath(), { flags: "a" });
   const { layout, cwd } = layoutOf(data);
+  // The person's settings first: loading a file never overrides a variable already set, so the defaults fill the rest.
   if (existsSync(layout.envFile)) process.loadEnvFile(layout.envFile);
+  if (layout.defaultsEnvFile && existsSync(layout.defaultsEnvFile)) process.loadEnvFile(layout.defaultsEnvFile);
 
   const [webPort, apiPort, enginePort] = await Promise.all([freePort(), freePort(), freePort()]);
   const web = `http://${HOST}:${webPort}`;

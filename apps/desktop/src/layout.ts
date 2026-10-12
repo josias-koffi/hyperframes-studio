@@ -5,6 +5,8 @@ import { delimiter, join } from "node:path";
 export type Layout = {
   /** Optional settings (OpenRouter key, models), read before the services start. */
   envFile: string;
+  /** Settings shipped with the installed app (`apps/desktop/defaults.env`), under the person's own; null from the repository. */
+  defaultsEnvFile: string | null;
   core: string;
   engine: string;
   /** The front's standalone Next.js server. */
@@ -30,6 +32,7 @@ export function packagedLayout(resources: string, userData: string, platform: No
   const ffmpegDir = join(resources, "ffmpeg");
   return {
     envFile: join(userData, ".env"),
+    defaultsEnvFile: join(runtime, "defaults.env"),
     core: join(runtime, "dist", "core.js"),
     engine: join(modules, "@studio", "hf-studio", "dist", "main.js"),
     web: join(resources, "web", "apps", "web", "server.js"),
@@ -47,6 +50,7 @@ export function packagedLayout(resources: string, userData: string, platform: No
 export function repoLayout(repo: string, opencodePackage: string): Layout {
   return {
     envFile: join(repo, ".env"),
+    defaultsEnvFile: null,
     core: join(repo, "apps", "desktop", "dist", "core.js"),
     engine: join(repo, "apps", "hf-studio", "dist", "main.js"),
     web: join(repo, "apps", "web", ".next", "standalone", "apps", "web", "server.js"),

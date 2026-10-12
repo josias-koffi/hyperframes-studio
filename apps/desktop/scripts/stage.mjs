@@ -1,7 +1,8 @@
 // Lays out what electron-builder packs, under apps/desktop/build (run after `pnpm build`):
 //
 //   app/        the Electron main process alone (main.js, layout.js): it needs nothing but Electron and Node
-//   runtime/    the core and the engine with their production dependencies (`pnpm deploy`, flat node_modules)
+//   runtime/    the core and the engine with their production dependencies (`pnpm deploy`, flat node_modules),
+//               and the app's default settings (defaults.env)
 //   web/        the front's standalone Next.js server
 //   workspace/  prompts/   the HyperFrames workspace skeleton and the step prompts
 //   node/       Node (node, npm, npx) for the agents' commands and the HyperFrames CLI
@@ -72,6 +73,8 @@ for (const name of await readdir(join(build, "runtime", "node_modules", "@studio
     await rm(join(build, "runtime", "node_modules", "@studio", name, entry), { recursive: true, force: true });
   }
 }
+// The installed app's default settings, under the person's own .env (apps/desktop/src/layout.ts).
+await cp(join(desktop, "defaults.env"), join(build, "runtime", "defaults.env"));
 // The platform packages of OpenCode: `opencode-ai` already holds a copy of this platform's binary.
 for (const name of await readdir(join(build, "runtime", "node_modules"))) {
   if (name.startsWith("opencode-") && name !== "opencode-ai") await rm(join(build, "runtime", "node_modules", name), { recursive: true, force: true });

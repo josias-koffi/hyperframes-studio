@@ -6,6 +6,7 @@ describe("packagedLayout", () => {
     const layout = packagedLayout("/opt/Framesmith/resources", "/home/a/.config/Framesmith", "linux");
     expect(layout).toMatchObject({
       envFile: "/home/a/.config/Framesmith/.env",
+      defaultsEnvFile: "/opt/Framesmith/resources/runtime/defaults.env",
       core: "/opt/Framesmith/resources/runtime/dist/core.js",
       web: "/opt/Framesmith/resources/web/apps/web/server.js",
       binDirs: ["/opt/Framesmith/resources/node/bin", "/opt/Framesmith/resources/ffmpeg"],
@@ -24,7 +25,7 @@ describe("packagedLayout", () => {
 describe("repoLayout", () => {
   it("keeps the machine's tools and the repository's .env", () => {
     const layout = repoLayout("/repo", "/repo/node_modules/opencode-ai");
-    expect(layout).toMatchObject({ envFile: "/repo/.env", binDirs: [], hyperframes: null, ffmpeg: null });
+    expect(layout).toMatchObject({ envFile: "/repo/.env", defaultsEnvFile: null, binDirs: [], hyperframes: null, ffmpeg: null });
     expect(layout.web).toBe("/repo/apps/web/.next/standalone/apps/web/server.js");
   });
 });
