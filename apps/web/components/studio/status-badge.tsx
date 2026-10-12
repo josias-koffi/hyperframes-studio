@@ -31,7 +31,7 @@ const PHASES: Record<CreationPhase, { status: JobStatus; label: string }> = {
   done: { status: "succeeded", label: "Prête" },
 };
 
-const READY: Record<CreationType, string> = { video: "Vidéo prête", carousel: "Carrousel prêt", image: "Image prête" };
+const READY: Record<CreationType, string> = { video: "Vidéo prête", realistic: "Vidéo prête", carousel: "Carrousel prêt", image: "Image prête" };
 
 /** A création's phase, worded for what the user has to do. */
 export function PhaseBadge({ phase, type, className }: { phase: CreationPhase; type?: CreationType; className?: string }) {

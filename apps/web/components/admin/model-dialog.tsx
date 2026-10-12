@@ -1,6 +1,6 @@
 "use client";
 
-import { AI_MODEL_KINDS, MODEL_CAPABILITIES, type AiModelKind, type ModelCapability } from "@studio/shared/browser";
+import { AI_MODEL_KINDS, FAL_MODEL_KINDS, MEDIA_PRICE_KEYS, MODEL_CAPABILITIES, type AiModelKind, type ModelCapability } from "@studio/shared/browser";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { CAPABILITY_META, MODEL_KIND_META } from "@/components/ai/labels";
@@ -50,6 +50,20 @@ export function ModelDialog({
   const [voices, setVoices] = useState(initial.voices.join(", "));
   const [pending, startTransition] = useTransition();
   const editing = Boolean(model);
+  const fal = FAL_MODEL_KINDS.includes(form.kind);
+  const priceFields =
+    form.kind === "image"
+      ? [{ key: MEDIA_PRICE_KEYS.image, label: "Prix par image ($)", placeholder: "0.003" }]
+      : [
+          { key: MEDIA_PRICE_KEYS.video, label: "Prix par seconde ($)", placeholder: "0.06" },
+          { key: MEDIA_PRICE_KEYS.videoWithAudio, label: "Par seconde avec son ($, facultatif)", placeholder: "0.40" },
+        ];
+  const setPrice = (key: string, value: string) => {
+    const pricing = { ...form.pricing };
+    if (value.trim()) pricing[key] = value.trim();
+    else delete pricing[key];
+    setForm({ ...form, pricing });
+  };
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -62,7 +76,13 @@ export function ModelDialog({
         if (model) {
           await clientApi(`/admin/ai-models/${model.id}`, {
             method: "PATCH",
-            body: JSON.stringify({ label: form.label, description: form.description, voices: voiceList, capabilities: form.capabilities }),
+            body: JSON.stringify({
+              label: form.label,
+              description: form.description,
+              voices: voiceList,
+              capabilities: form.capabilities,
+              ...(fal ? { pricing: form.pricing ?? {} } : {}),
+            }),
           });
         } else {
           await clientApi("/admin/ai-models", { method: "POST", body: JSON.stringify({ ...form, voices: voiceList }) });
@@ -83,19 +103,23 @@ export function ModelDialog({
           <DialogHeader>
             <DialogTitle>{editing ? "Modifier le modèle" : "Ajouter un modèle"}</DialogTitle>
             <DialogDescription>
-              {editing ? "Le nom et la description s'affichent dans les choix des utilisateurs." : "Identifiant tel qu'OpenRouter le connaît : éditeur/modèle."}
+              {editing
+                ? "Le nom et la description s'affichent dans les choix des utilisateurs."
+                : fal
+                  ? "Endpoint fal tel qu'il figure sur la page du modèle, et son prix : fal ne le donne pas à l'appel."
+                  : "Identifiant tel qu'OpenRouter le connaît : éditeur/modèle."}
             </DialogDescription>
           </DialogHeader>
           <FieldGroup>
             <div className="grid gap-4 sm:grid-cols-[1fr_10rem]">
               <Field>
-                <FieldLabel htmlFor="model-id">Identifiant OpenRouter</FieldLabel>
+                <FieldLabel htmlFor="model-id">{fal ? "Endpoint fal" : "Identifiant OpenRouter"}</FieldLabel>
                 <Input
                   id="model-id"
                   required
                   disabled={editing}
                   className="font-mono text-sm"
-                  placeholder="mistralai/voxtral-mini-tts-2603"
+                  placeholder={form.kind === "image" ? "fal-ai/flux/schnell" : form.kind === "video" ? "fal-ai/kling-video/v3/pro/image-to-video" : "mistralai/voxtral-mini-tts-2603"}
                   value={form.openrouterId}
                   onChange={(event) => setForm({ ...form, openrouterId: event.target.value })}
                 />
@@ -150,6 +174,29 @@ export function ModelDialog({
                   ))}
                 </div>
                 <FieldDescription>Lues sur OpenRouter à l&apos;import. Seul un modèle avec vision peut analyser les rushs ou faire le contrôle visuel.</FieldDescription>
+              </Field>
+            )}
+            {fal && (
+              <Field>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {priceFields.map((field) => (
+                    <div key={field.key} className="space-y-2">
+                      <FieldLabel htmlFor={`price-${field.key}`}>{field.label}</FieldLabel>
+                      <Input
+                        id={`price-${field.key}`}
+                        inputMode="decimal"
+                        className="font-mono text-sm"
+                        placeholder={field.placeholder}
+                        value={form.pricing?.[field.key] ?? ""}
+                        onChange={(event) => setPrice(field.key, event.target.value)}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <FieldDescription>
+                  Relevé sur la page du modèle chez fal, modifiable à tout moment. Le studio estime le coût des plans et applique le budget avec ce
+                  prix ; sans prix, chaque génération demande une confirmation.
+                </FieldDescription>
               </Field>
             )}
             {form.kind === "tts" && (

@@ -22,6 +22,8 @@ export const STEP_SEGMENTS: Record<PipelineStep, string> = {
   footage: "footage",
   variables: "variables",
   storyboard: "storyboard",
+  keyframes: "keyframes",
+  shots: "shots",
   media: "media",
   build: "build",
   export: "exports",

@@ -18,6 +18,7 @@ import {
   type LoadedBlock,
   type Storyboard,
 } from "./storyboard";
+import { applyShots, shotVideoPath } from "./storyboard";
 import { usesBlocks } from "./jobs";
 import { layersOf, slidesOf } from "./editor";
 import { applyVisualCorrections } from "./visual-review";
@@ -478,5 +479,61 @@ describe("applyVisualCorrections", () => {
 
   it("returns no storyboard when nothing changed", () => {
     expect(applyVisualCorrections(parsed, [issue("s1", null)], manifests, contract).storyboard).toBeNull();
+  });
+});
+
+describe("realistic shots", () => {
+  const clip: BlockManifest = blockManifestSchema.parse({
+    id: "clip",
+    name: "Plan",
+    description: "Une vidéo.",
+    useWhen: "Pour un plan.",
+    props: { src: { type: "video", label: "Vidéo" }, caption: { type: "text", label: "Légende", required: false, default: "", maxLength: 40 } },
+    duration: { min: 2, max: 10, default: 5 },
+  });
+  const all = [hook, media, clip];
+  const realistic = { width: 1080, height: 1920, durationSeconds: 15, realistic: true };
+  const shot = { prompt: "Close-up of a coffee cup, steam rising", camera: "slow dolly-in", audio: false };
+  const board = (scenes: unknown[], style: string | undefined = "cinematic, 35mm") =>
+    JSON.stringify({ version: 1, title: "Pub", style, audio: { voice: false, music: null }, scenes });
+
+  it("fill the video prop of a shot scene with the generated file", () => {
+    const { storyboard, errors } = parseStoryboard(
+      board([
+        { id: "s1", title: "Tasse", block: "clip", duration: 5, props: { caption: "Ton café" }, shot },
+        { id: "s2", title: "Produit", block: "clip", duration: 5, props: {}, shot: { ...shot, reference: "assets/uploads/produit.png", audio: true } },
+        { id: "s3", title: "Fin", block: "hook", duration: 4, props: { text: "Essaie-le" } },
+      ]),
+      all,
+      realistic,
+    );
+    expect(errors).toEqual([]);
+    expect(storyboard!.scenes[0].props.src).toBe(shotVideoPath("s1"));
+    expect(storyboard!.style).toBe("cinematic, 35mm");
+  });
+
+  it("refuse a shot outside a realistic video, on a block without video, without style or with a bad reference", () => {
+    const one = (scene: Record<string, unknown>, style?: string) => parseStoryboard(board([{ id: "s1", title: "T", duration: 5, props: {}, ...scene }], style), all, realistic).errors;
+    expect(parseStoryboard(board([{ id: "s1", title: "T", block: "clip", duration: 5, props: {}, shot }]), all, { ...realistic, realistic: false }).errors.join()).toContain("vidéo réaliste");
+    expect(one({ block: "hook", props: { text: "x" }, shot }).join()).toContain("bloc vidéo (clip)");
+    expect(one({ block: "clip", shot }, "").join()).toContain("style");
+    expect(one({ block: "clip", shot: { ...shot, reference: "assets/uploads/clip.mp4" } }).join()).toContain("shot.reference");
+    expect(one({ block: "clip", props: { src: "assets/uploads/photo.png" } }).join()).toContain("doit être une vidéo");
+  });
+
+  it("keep a shot's sound only when asked, and hide the video blocks outside a realistic video", () => {
+    const html = '<template><div id="root" data-composition-id="{{@id}}"><video src="{{src}}" {{@videoAudio}}></video></div></template>';
+    const filled = (videoAudio: boolean) => fillBlock({ manifest: clip, html }, { src: "assets/shots/s1.mp4" }, { id: "x", duration: 5, width: 1080, height: 1920, videoAudio });
+    expect(filled(false)).toContain("muted");
+    expect(filled(true)).toContain('data-has-audio="true"');
+    expect(blocksCatalog(all, format)).not.toContain("### clip");
+    expect(blocksCatalog(all, realistic)).toContain("### clip");
+    expect(JSON.stringify(storyboardJsonSchema(all))).not.toContain('"clip"');
+    expect(storyboardJsonSchema(all, { realistic: true }).required).toContain("style");
+  });
+
+  it("leave a storyboard without shot as it is", () => {
+    const plain: Storyboard = { version: 1, title: "T", audio: { voice: false, music: null }, scenes: [], overlays: [] };
+    expect(applyShots(plain, all)).toBe(plain);
   });
 });

@@ -10,6 +10,7 @@ import {
   type CreationType,
   type GenerationStep,
   type MediaChoice,
+  type MediaPrice,
   type VariablesDiff,
   workspaceGit,
 } from "@studio/shared";
@@ -49,14 +50,16 @@ export function renderWorkspaceEnv(env: NodeJS.ProcessEnv): string {
 }
 
 /**
- * What `scripts/audio.mjs` reads over the root `.env`: the audio models chosen by the owner of the video, and the
- * proxy token of the job. Rewritten before every step, so a changed setting applies to the next run of the script.
+ * What `scripts/audio.mjs` and `scripts/shots.mjs` read over the root `.env`: the media models chosen by the owner of
+ * the video, the catalog prices of the fal ones, and the proxy token of the job (for OpenRouter and for fal).
+ * Rewritten before every step, so a changed setting applies to the next run of a script.
  */
 export async function writeStudioEnv(
   workspaceDir: string,
   slug: string,
   media: MediaChoice | undefined,
-  openrouter?: { baseUrl: string; token: string },
+  openrouter?: { baseUrl: string; token: string; falBaseUrl?: string | null },
+  fal: { prices?: Record<string, MediaPrice>; references?: boolean; budgetUsd?: number } = {},
 ): Promise<void> {
   const values = {
     TTS_MODEL: media?.ttsModel,
@@ -64,6 +67,14 @@ export async function writeStudioEnv(
     MUSIC_MODEL: media?.musicModel,
     OPENROUTER_BASE_URL: openrouter?.baseUrl,
     OPENROUTER_API_KEY: openrouter?.token,
+    IMAGE_MODEL: media?.imageModel,
+    VIDEO_DRAFT_MODEL: media?.videoDraftModel,
+    VIDEO_FINAL_MODEL: media?.videoFinalModel,
+    FAL_BASE_URL: openrouter?.falBaseUrl ?? undefined,
+    FAL_KEY: openrouter?.falBaseUrl ? openrouter.token : undefined,
+    FAL_PRICES: fal.prices && Object.keys(fal.prices).length ? JSON.stringify(fal.prices) : undefined,
+    FAL_REFERENCES: fal.references ? "1" : undefined,
+    FAL_BUDGET_USD: fal.budgetUsd?.toFixed(2),
   };
   const lines = Object.entries(values)
     .filter(([, value]) => value)
@@ -137,7 +148,7 @@ export function stepOutputs(type: CreationType, step: GenerationStep): readonly 
       return ["VARIABLES.json"];
     case "storyboard":
       // A carousel has no voice over, so no script.
-      return type === "video" ? ["SCRIPT.md", "STORYBOARD.md", "storyboard.html"] : ["STORYBOARD.md", "storyboard.html"];
+      return type === "video" || type === "realistic" ? ["SCRIPT.md", "STORYBOARD.md", "storyboard.html"] : ["STORYBOARD.md", "storyboard.html"];
     default:
       return [];
   }

@@ -20,7 +20,7 @@ import { currentUserId } from "../auth/request-context";
 import { DATABASE } from "../database/database.module";
 import { STORAGE } from "../storage/storage.module";
 import { readCreationVariables, writeCreationVariables } from "./creation-variables";
-import { creationValues, uniqueSlug, type CreateCreation, type RenderRequestBody, type UpdateCreation } from "./creations.schemas";
+import { creationValues, uniqueSlug, type ApproveBody, type CreateCreation, type RenderRequestBody, type ShotsRequest, type UpdateCreation } from "./creations.schemas";
 import { JobsService } from "./jobs.service";
 
 export type Creation = typeof creations.$inferSelect;
@@ -234,7 +234,7 @@ export class CreationsService {
    * Checkpoint approved: the next step starts. After the build, a one-shot création gets its deliverable
    * (video, image or carousel); a template gets its first iteration, rendered with the declared defaults.
    */
-  async approve(id: string) {
+  async approve(id: string, { confirmBudget }: ApproveBody = {}) {
     const creation = await this.get(id);
     const reviewed = await this.reviewedJob(id);
     if (reviewed.step === "variables") {
@@ -247,7 +247,32 @@ export class CreationsService {
     const next = reviewed.step ? nextStep(reviewed.step, creation) : null;
     if (!next) return creation.kind === "template" ? this.firstIteration(creation) : this.render(id, {});
     await this.setCreation(id, { currentStep: next });
-    return this.jobs.enqueueClaude({ creationId: id, slug: creation.slug, step: next });
+    return this.jobs.enqueueClaude({ creationId: id, slug: creation.slug, step: next, ...(confirmBudget ? { confirmBudget } : {}) });
+  }
+
+  /**
+   * Keyframes or shots generated again, from their review or after the budget stopped them: the step under review
+   * (or failed) runs again on the chosen scenes only. A comment rewrites their prompt first.
+   */
+  async regenerateShots(id: string, request: ShotsRequest) {
+    const creation = await this.get(id);
+    if (creation.type !== "realistic") throw new BadRequestException("Seule une vidéo réaliste génère des plans.");
+    const last = await this.lastClaudeJob(id);
+    const step = last?.step;
+    if (!last || (step !== "keyframes" && step !== "shots") || !["waiting_review", "failed"].includes(last.status))
+      throw new ConflictException("Les plans se régénèrent depuis la revue des images clés ou des plans.");
+    if (request.pass === "final" && step !== "shots") throw new BadRequestException("Le rendu final se lance depuis la revue des plans.");
+    if (request.pass === "final" && !request.only?.length) throw new BadRequestException("Choisis les plans à passer en rendu final.");
+    if (last.status === "waiting_review") await this.db.update(jobs).set({ status: "succeeded", updatedAt: new Date() }).where(eq(jobs.id, last.id));
+    return this.jobs.enqueueClaude({
+      creationId: id,
+      slug: creation.slug,
+      step,
+      ...(request.only ? { only: request.only } : {}),
+      ...(request.feedback ? { feedback: request.feedback } : {}),
+      ...(request.pass ? { pass: request.pass } : {}),
+      ...(request.confirmBudget ? { confirmBudget: true } : {}),
+    });
   }
 
   /** Checkpoint commented: the same session resumes on the same step with the feedback. */

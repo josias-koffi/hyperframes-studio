@@ -47,19 +47,20 @@ export function briefDocJsonSchema(): Record<string, unknown> {
 }
 
 /** Format line of the brief: what the création is, as the storyboard prompt needs it. */
-export type BriefFormat = { type: "video" | "carousel" | "image"; width: number; height: number; durationSeconds?: number | null; frames?: number | null };
+export type BriefFormat = { type: "video" | "carousel" | "image" | "realistic"; width: number; height: number; durationSeconds?: number | null; frames?: number | null };
 
 export function briefFormatLine({ type, width, height, durationSeconds, frames }: BriefFormat): string {
   const size = `${width}×${height}`;
   if (type === "image") return `image fixe ${size}`;
   if (type === "carousel") return `carrousel de ${frames ?? "?"} slides ${size}`;
+  if (type === "realistic") return `vidéo réaliste ${size}${durationSeconds ? `, ${durationSeconds} s` : ""}, plans générés par des modèles vidéo`;
   return `vidéo ${size}${durationSeconds ? `, ${durationSeconds} s` : ""}`;
 }
 
 const list = (items: readonly string[]) => (items.length ? items.map((item) => `- ${item}`).join("\n") : "(aucun)");
 
 export function renderBriefMd(doc: BriefDoc, format: BriefFormat): string {
-  const video = format.type === "video";
+  const video = format.type === "video" || format.type === "realistic";
   return [
     "---",
     "engine: blocks",

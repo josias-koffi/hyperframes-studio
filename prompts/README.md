@@ -33,3 +33,10 @@ modèle d'escalade. Les médias passent directement par `scripts/audio.mjs` et l
 `assembleVideo` (`packages/shared/src/storyboard.ts`) ; un `check` en échec renvoie sa sortie au modèle, qui corrige
 les props, et le second échec passe au modèle d'escalade. Seule une
 scène `custom` passe par un agent, avec un prompt écrit dans le code (`customScenePrompt`, même fichier que le runner).
+
+**Vidéo réaliste.** Le type `realistic` passe toujours par le moteur blocs, avec deux étapes de plus entre le
+storyboard et les médias : `keyframes` (une image par plan) et `shots` (une vidéo par plan), générées par
+`scripts/shots.mjs` sur la file d'attente de fal, à travers le proxy du runner (la clé fal reste dans le studio). Un
+retour sur ces étapes réécrit les prompts des plans par un appel structuré, puis ne régénère que les plans touchés.
+Au-delà du budget de la création (5 € par défaut, réglages IA), l'étape s'arrête et attend une confirmation.
+`prompts/partials/realistic.md` ne sert qu'aux retouches demandées depuis l'éditeur.

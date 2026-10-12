@@ -76,6 +76,42 @@ describe("openrouter proxy", () => {
   });
 });
 
+describe("fal route", () => {
+  it("forwards fal's queue calls with the fal key, and refuses them without one", async () => {
+    const upstream = fakeUpstream({
+      "queue.fal.test/fal-ai/flux/schnell/requests/r1/status": () => Response.json({ status: "COMPLETED" }),
+      "queue.fal.test/fal-ai/flux/schnell": () => Response.json({ request_id: "r1" }),
+    });
+    proxy = createOpenrouterProxy({
+      upstream: "https://openrouter.test/api/v1",
+      apiKey: "sk-or-real",
+      fal: { upstream: "https://queue.fal.test", apiKey: "fal-real" },
+      fetchImpl: upstream.fetchImpl,
+      log: () => undefined,
+    });
+    await proxy.start();
+    const grant = proxy.grant();
+    const headers = { authorization: `Key ${grant.token}`, "content-type": "application/json" };
+    const submit = await fetch(`${grant.falBaseUrl}/fal-ai/flux/schnell`, { method: "POST", headers, body: '{"prompt":"cup"}' });
+    expect(await submit.json()).toEqual({ request_id: "r1" });
+    const status = await fetch(`${grant.falBaseUrl}/fal-ai/flux/schnell/requests/r1/status?logs=1`, { headers });
+    expect(await status.json()).toEqual({ status: "COMPLETED" });
+    expect(upstream.calls.map(({ url, authorization }) => [url, authorization])).toEqual([
+      ["https://queue.fal.test/fal-ai/flux/schnell", "Key fal-real"],
+      ["https://queue.fal.test/fal-ai/flux/schnell/requests/r1/status?logs=1", "Key fal-real"],
+    ]);
+    expect((await fetch(`${grant.falBaseUrl}/fal-ai/x`, { method: "POST", headers: { authorization: "Key nope" }, body: "{}" })).status).toBe(401);
+    expect((await fetch(`${grant.falBaseUrl}/..%2Fsecret/x`, { method: "DELETE", headers })).status).toBe(403);
+  });
+
+  it("answers 503 when the studio has no fal key", async () => {
+    const base = await startProxy(fakeUpstream({}));
+    const grant = proxy!.grant();
+    expect(grant.falBaseUrl).toBeNull();
+    expect((await fetch(`${base.replace(/\/api\/v1$/, "")}/fal/fal-ai/x`, { method: "POST", headers: { authorization: `Key ${grant.token}` }, body: "{}" })).status).toBe(503);
+  });
+});
+
 describe("costFromBody", () => {
   it("reads usage.cost from JSON or from SSE data lines", () => {
     expect(costFromBody('{"usage":{"cost":0.01}}')).toBe(0.01);

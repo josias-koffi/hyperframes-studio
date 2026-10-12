@@ -31,9 +31,16 @@ export async function startClaudeRunner() {
     console.log(`[claude-runner] workspace skeleton synced into ${config.workspaceDir}`);
   }
 
-  const proxy = config.openrouterApiKey ? createOpenrouterProxy({ upstream: config.openrouterBaseUrl, apiKey: config.openrouterApiKey }) : null;
+  const proxy = config.openrouterApiKey
+    ? createOpenrouterProxy({
+        upstream: config.openrouterBaseUrl,
+        apiKey: config.openrouterApiKey,
+        fal: config.falApiKey ? { upstream: config.falQueueUrl, apiKey: config.falApiKey } : null,
+      })
+    : null;
   if (proxy) console.log(`[claude-runner] OpenRouter proxy on ${await proxy.start()}`);
   else console.warn("[claude-runner] OPENROUTER_API_KEY missing: OpenCode and the audio script cannot reach OpenRouter");
+  if (!config.falApiKey) console.warn("[claude-runner] FAL_KEY missing: realistic créations cannot generate their shots");
 
   const enqueueNext = async (next: Omit<ClaudeJob, "jobId">) => {
     const jobId = randomUUID();

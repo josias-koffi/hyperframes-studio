@@ -1,7 +1,7 @@
 "use client";
 
-import { MODEL_SLOTS, VISION_SLOTS, type AgentBackend, type AiPreferences, type ModelSlot } from "@studio/shared/browser";
-import { AudioLinesIcon, BotIcon, CpuIcon, MusicIcon, SaveIcon, TerminalSquareIcon } from "lucide-react";
+import { MODEL_SLOTS, REALISTIC_BUDGET_EUR, VISION_SLOTS, type AgentBackend, type AiPreferences, type ModelSlot } from "@studio/shared/browser";
+import { AudioLinesIcon, BotIcon, ClapperboardIcon, CpuIcon, MusicIcon, SaveIcon, TerminalSquareIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { clientApi, type AiModel } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { MODEL_SLOT_META, tokenPrice } from "./labels";
+import { mediaPriceLabel, MODEL_SLOT_META, tokenPrice } from "./labels";
 
 const INHERIT = "__inherit";
 
@@ -41,6 +41,8 @@ export function PreferencesForm({ mode, models, value, fallback, backend }: Prop
       agent: models.filter((model) => model.kind === "agent"),
       tts: models.filter((model) => model.kind === "tts"),
       music: models.filter((model) => model.kind === "music"),
+      image: models.filter((model) => model.kind === "image"),
+      video: models.filter((model) => model.kind === "video"),
     }),
     [models],
   );
@@ -69,7 +71,7 @@ export function PreferencesForm({ mode, models, value, fallback, backend }: Prop
     });
   }
 
-  function setMedia(key: keyof AiPreferences["media"], next: string | undefined) {
+  function setMedia(key: Exclude<keyof AiPreferences["media"], "budgetEur">, next: string | undefined) {
     setPrefs((current) => {
       const media = { ...current.media, [key]: next || undefined };
       // A voice belongs to its model: changing the model drops the voice.
@@ -271,6 +273,71 @@ export function PreferencesForm({ mode, models, value, fallback, backend }: Prop
                 ))}
               </SelectContent>
             </Select>
+          </Field>
+        </FieldGroup>
+      </SectionCard>
+
+      <SectionCard
+        title={
+          <span className="flex items-center gap-2">
+            <ClapperboardIcon className="size-4 text-primary" />
+            Vidéos réalistes
+          </span>
+        }
+        description="Les plans des vidéos réalistes sont générés par fal (Features & Labels, États-Unis, sans région européenne) avec la clé fal de ce poste : chaque utilisateur contracte directement avec fal. Une image de référence n'y part qu'avec ton accord, donné à la création."
+      >
+        <FieldGroup className="gap-0 divide-y">
+          {(
+            [
+              { key: "imageModel", kind: "image", label: "Images clés", hint: "Une image par plan, rapide et bon marché : elle fixe le cadre avant la vidéo." },
+              { key: "videoDraftModel", kind: "video", label: "Plans en brouillon", hint: "Le premier rendu de chaque plan : un modèle bon marché." },
+              { key: "videoFinalModel", kind: "video", label: "Plans en rendu final", hint: "Seulement pour les plans validés. Par défaut, celui du brouillon." },
+            ] as const
+          ).map(({ key, kind, label, hint }) => (
+            <Field key={key} className="py-3 first:pt-0 sm:flex-row sm:items-center sm:justify-between">
+              <FieldContent>
+                <FieldLabel htmlFor={`media-${key}`}>{label}</FieldLabel>
+                <FieldDescription>{hint}</FieldDescription>
+              </FieldContent>
+              <Select value={prefs.media[key] ?? INHERIT} onValueChange={(next) => setMedia(key, next === INHERIT ? undefined : next)}>
+                <SelectTrigger id={`media-${key}`} className="w-full sm:w-72 sm:shrink-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={INHERIT}>
+                    <span className="text-muted-foreground">Par défaut · {mode === "defaults" ? "aucun" : (labelOf(fallback?.media[key]) ?? "aucun")}</span>
+                  </SelectItem>
+                  {byKind[kind].map((model) => (
+                    <SelectItem key={model.id} value={model.openrouterId}>
+                      <span className="flex flex-col">
+                        <span>{model.label}</span>
+                        <span className="text-xs text-muted-foreground">{mediaPriceLabel(model) ?? "Prix non renseigné"}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          ))}
+          <Field className="pt-3 sm:flex-row sm:items-center sm:justify-between">
+            <FieldContent>
+              <FieldLabel htmlFor="media-budget">Budget par création (€)</FieldLabel>
+              <FieldDescription>Au-delà, la génération des plans s&apos;arrête et demande une confirmation. Le prix vient du catalogue : c&apos;est une estimation.</FieldDescription>
+            </FieldContent>
+            <Input
+              id="media-budget"
+              type="number"
+              min={0.5}
+              max={1000}
+              step={0.5}
+              className="w-full sm:w-72 sm:shrink-0"
+              placeholder={String(fallback?.media.budgetEur ?? REALISTIC_BUDGET_EUR)}
+              value={prefs.media.budgetEur ?? ""}
+              onChange={(event) => {
+                const next = Number.parseFloat(event.target.value);
+                setPrefs((current) => ({ ...current, media: { ...current.media, budgetEur: Number.isFinite(next) && next > 0 ? next : undefined } }));
+              }}
+            />
           </Field>
         </FieldGroup>
       </SectionCard>

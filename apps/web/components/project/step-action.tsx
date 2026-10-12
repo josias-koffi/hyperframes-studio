@@ -90,7 +90,7 @@ export function StepAction({ creation, state, stepHref }: { creation: Creation; 
   if (state.phase === "review") {
     const isBuild = creation.currentStep === "build";
     const isTemplate = creation.kind === "template";
-    const delivery = { video: "lancer le rendu MP4", carousel: "générer les slides et le PDF", image: "générer le PNG" }[creation.type];
+    const delivery = { video: "lancer le rendu MP4", realistic: "lancer le rendu MP4", carousel: "générer les slides et le PDF", image: "générer le PNG" }[creation.type];
     const afterApproval = isBuild ? (isTemplate ? "créer la première itération du template" : delivery) : "passer à l'étape suivante";
     return (
       <Card className="border-warning/40 shadow-raised">
@@ -190,9 +190,9 @@ export function StepAction({ creation, state, stepHref }: { creation: Creation; 
             <SparklesIcon className="size-5" />
           </span>
         }
-        title={{ video: "Vidéo générée", carousel: "Carrousel généré", image: "Image générée" }[creation.type]}
+        title={{ video: "Vidéo générée", realistic: "Vidéo générée", carousel: "Carrousel généré", image: "Image générée" }[creation.type]}
         text={`${
-          { video: "Le rendu MP4 part automatiquement.", carousel: "Les slides et le PDF partent automatiquement.", image: "Le PNG part automatiquement." }[creation.type]
+          { video: "Le rendu MP4 part automatiquement.", realistic: "Le rendu MP4 part automatiquement.", carousel: "Les slides et le PDF partent automatiquement.", image: "Le PNG part automatiquement." }[creation.type]
         } Pour retoucher ${noun} à la main, ouvre-${creation.type === "carousel" ? "le" : "la"} dans le Studio HyperFrames.`}
       >
         <Button variant="outline" asChild>

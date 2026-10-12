@@ -33,6 +33,19 @@ describe("writeStudioEnv", () => {
     await writeStudioEnv(dir, "demo", { ttsModel: "mistral/voxtral", ttsVoice: "fr_marie_neutral" });
     expect(await readFile(join(dir, "videos", "demo", ".studio.env"), "utf8")).toBe("TTS_MODEL=mistral/voxtral\nTTS_VOICE=fr_marie_neutral\n");
   });
+  it("hands the fal models, their prices and the job's fal token to scripts/shots.mjs, never the fal key", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "studio-env-"));
+    await writeStudioEnv(
+      dir,
+      "demo",
+      { imageModel: "fal-ai/flux/schnell", videoDraftModel: "fal-ai/ltx", budgetEur: 5 },
+      { baseUrl: "http://127.0.0.1:1/api/v1", token: "sk-studio-job", falBaseUrl: "http://127.0.0.1:1/fal" },
+      { prices: { "fal-ai/ltx": { unit: "second", usd: 0.08 } }, references: true },
+    );
+    const env = await readFile(join(dir, "videos", "demo", ".studio.env"), "utf8");
+    expect(env).toContain("IMAGE_MODEL=fal-ai/flux/schnell\nVIDEO_DRAFT_MODEL=fal-ai/ltx\nFAL_BASE_URL=http://127.0.0.1:1/fal\nFAL_KEY=sk-studio-job\n");
+    expect(env).toContain('FAL_PRICES={"fal-ai/ltx":{"unit":"second","usd":0.08}}\nFAL_REFERENCES=1\n');
+  });
 });
 
 describe("escalationAgentFor", () => {

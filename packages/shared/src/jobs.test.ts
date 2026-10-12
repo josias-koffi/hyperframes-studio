@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { aspectOf, carouselTimes, slugify } from "./creations";
-import { allowedFormats, claudeJobSchema, deliverableFor, nextStep, renderJobSchema, stepsFor } from "./jobs";
+import { modelSlotFor, MODEL_SLOTS } from "./ai-preferences";
+import { AGENT_STEPS, allowedFormats, claudeJobSchema, deliverableFor, GENERATION_STEPS, isShotStep, nextStep, renderJobSchema, stepsFor, usesBlocks } from "./jobs";
 
 describe("stepsFor", () => {
   it("only proposes variables for a template", () => {
@@ -24,6 +25,30 @@ describe("stepsFor", () => {
     expect(stepsFor({ type: "video", kind: "template", brief })).toEqual(["brief", "footage", "variables", "storyboard", "media", "build"]);
     expect(stepsFor({ type: "video", kind: "oneshot", brief: { footage: "" } })).not.toContain("footage");
     expect(stepsFor({ type: "image", kind: "oneshot", brief })).not.toContain("footage");
+  });
+});
+
+describe("realistic créations", () => {
+  it("generate keyframes then shots after the storyboard, on the blocks engine, never as a template", () => {
+    expect(stepsFor({ type: "realistic", kind: "oneshot" })).toEqual(["brief", "storyboard", "keyframes", "shots", "media", "build"]);
+    expect(stepsFor({ type: "realistic", kind: "template" })).not.toContain("variables");
+    expect(stepsFor({ type: "video", kind: "oneshot" })).not.toContain("keyframes");
+    expect(usesBlocks({ type: "realistic", kind: "oneshot" })).toBe(true);
+    expect(nextStep("storyboard", { type: "realistic", kind: "oneshot" })).toBe("keyframes");
+    expect(deliverableFor({ type: "realistic" })).toEqual({ format: "mp4" });
+  });
+
+  it("give every step but the shot steps a model slot, and a shot comment the storyboard's", () => {
+    expect(GENERATION_STEPS.filter((step) => !isShotStep(step))).toEqual([...AGENT_STEPS]);
+    expect(MODEL_SLOTS).not.toContain("keyframes");
+    expect(modelSlotFor({ step: "shots" })).toBe("storyboard");
+    expect(modelSlotFor({ step: "build", mode: "edit" })).toBe("edit");
+  });
+
+  it("carry the scenes to generate again, the pass and the budget confirmation", () => {
+    const base = { jobId: crypto.randomUUID(), creationId: crypto.randomUUID(), slug: "pub", step: "shots" };
+    expect(claudeJobSchema.parse({ ...base, only: ["s2"], pass: "final", confirmBudget: true })).toMatchObject({ only: ["s2"], pass: "final", confirmBudget: true });
+    expect(() => claudeJobSchema.parse({ ...base, only: ["../x"] })).toThrow();
   });
 });
 

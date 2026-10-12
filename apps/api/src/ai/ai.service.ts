@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { aiDefaults, aiModels, creations, jobs, projects, userAiSettings, users, type Database } from "@studio/db";
-import { AI_MODEL_KINDS, MODEL_SLOTS, VISION_SLOTS, type AiModelKind, type AiPreferences, type ResolvedAi } from "@studio/shared";
+import { AI_MODEL_KINDS, FAL_MODEL_KINDS, mediaPriceOf, MODEL_SLOTS, VISION_SLOTS, type AiModelKind, type AiPreferences, type MediaPrice, type ResolvedAi } from "@studio/shared";
 import { and, asc, desc, eq, gte, isNotNull, sql } from "drizzle-orm";
 import { currentUser } from "../auth/request-context";
 import { DATABASE } from "../database/database.module";
@@ -137,12 +137,18 @@ export class AiService {
       AI_MODEL_KINDS.map((kind) => [kind, new Set(enabledRows.filter((row) => row.kind === kind).map((row) => row.openrouterId))]),
     ) as Record<AiModelKind, Set<string>>;
     const vision = new Set(enabledRows.filter((row) => row.kind === "agent" && row.capabilities.includes("vision")).map((row) => row.openrouterId));
+    const prices: Record<string, MediaPrice> = {};
+    for (const row of enabledRows.filter((candidate) => FAL_MODEL_KINDS.includes(candidate.kind))) {
+      const price = mediaPriceOf(row.kind, row.pricing);
+      if (price) prices[row.openrouterId] = price;
+    }
     try {
       return resolveAi({
         user: own ? { preferences: own.preferences, agentBackend: own.agentBackend } : null,
         defaults,
         enabled,
         vision,
+        prices,
       });
     } catch (error) {
       if (error instanceof MissingModelError) throw new ConflictException(error.message);
@@ -166,6 +172,10 @@ export class AiService {
     const tts = ttsModel ? find("tts", ttsModel) : undefined;
     if (ttsModel && !tts) throw new BadRequestException(`Voix de synthèse « ${ttsModel} » non proposée.`);
     if (musicModel && !find("music", musicModel)) throw new BadRequestException(`Modèle de musique « ${musicModel} » non proposé.`);
+    const { imageModel, videoDraftModel, videoFinalModel } = preferences.media;
+    if (imageModel && !find("image", imageModel)) throw new BadRequestException(`Modèle d'image « ${imageModel} » non proposé.`);
+    for (const id of [videoDraftModel, videoFinalModel])
+      if (id && !find("video", id)) throw new BadRequestException(`Modèle vidéo « ${id} » non proposé.`);
     if (ttsVoice && tts && tts.voices.length > 0 && !tts.voices.includes(ttsVoice)) {
       throw new BadRequestException(`La voix « ${ttsVoice} » n'existe pas pour ${tts.label}.`);
     }

@@ -7,10 +7,23 @@ import { resolvedAiSchema } from "./agents";
  * waits for the user: approving moves to the next step, a comment resumes the
  * same session (`claude --resume`) on the same step.
  */
-export const GENERATION_STEPS = ["brief", "footage", "variables", "storyboard", "media", "build"] as const;
+export const GENERATION_STEPS = ["brief", "footage", "variables", "storyboard", "keyframes", "shots", "media", "build"] as const;
 export type GenerationStep = (typeof GENERATION_STEPS)[number];
 
-export const CHECKPOINT_STEPS: readonly GenerationStep[] = ["footage", "variables", "storyboard", "build"];
+/**
+ * The steps of a realistic création that generate its shots with fal (`scripts/shots.mjs`): an image per shot, then
+ * a video from each image. No agent model runs them.
+ */
+export const SHOT_STEPS = ["keyframes", "shots"] as const satisfies readonly GenerationStep[];
+export type ShotStep = (typeof SHOT_STEPS)[number];
+
+/** The steps an agent or a structured call runs: each has a model slot. */
+export const AGENT_STEPS = ["brief", "footage", "variables", "storyboard", "media", "build"] as const satisfies readonly Exclude<GenerationStep, ShotStep>[];
+export type AgentStep = (typeof AGENT_STEPS)[number];
+
+export const isShotStep = (step: GenerationStep): step is ShotStep => (SHOT_STEPS as readonly GenerationStep[]).includes(step);
+
+export const CHECKPOINT_STEPS: readonly GenerationStep[] = ["footage", "variables", "storyboard", "keyframes", "shots", "build"];
 
 export interface CreationShape {
   type: CreationType;
@@ -30,6 +43,8 @@ export function hasFootage({ type, brief }: CreationShape): boolean {
  * after the brief, so a cheap model is enough.
  */
 export function usesBlocks(creation: CreationShape): boolean {
+  // A realistic video is always assembled from blocks, its generated shots in a video block.
+  if (creation.type === "realistic") return true;
   // A template's variables are shown by block props (`scenes[].variables`); a still has one scene per slide.
   return creation.brief?.engine === "blocks" && !hasFootage(creation);
 }
@@ -38,19 +53,20 @@ export function usesBlocks(creation: CreationShape): boolean {
  * Steps the blocks engine runs itself: structured calls (brief, variables, storyboard) and code (media, build). Only
  * an edit asked from the editor, and a custom scene, stay agent turns.
  */
-export const BLOCKS_STEPS: readonly GenerationStep[] = ["brief", "variables", "storyboard", "media", "build"];
+export const BLOCKS_STEPS: readonly GenerationStep[] = ["brief", "variables", "storyboard", "keyframes", "shots", "media", "build"];
 
 /**
  * Steps a création goes through: only a video made from uploaded footage analyses it, only a
- * template proposes variables, only a video has a soundtrack, and a single image goes straight
- * from the brief to the build.
+ * template proposes variables, only a realistic video generates shots, only a video has a soundtrack,
+ * and a single image goes straight from the brief to the build.
  */
 export function stepsFor(creation: CreationShape): readonly GenerationStep[] {
   const { type, kind } = creation;
   return GENERATION_STEPS.filter((step) => {
     if (step === "footage") return hasFootage(creation);
-    if (step === "variables") return kind === "template";
-    if (step === "media") return type === "video";
+    if (step === "variables") return kind === "template" && type !== "realistic";
+    if (isShotStep(step)) return type === "realistic";
+    if (step === "media") return type === "video" || type === "realistic";
     if (step === "storyboard") return type !== "image";
     return true;
   });
@@ -60,6 +76,10 @@ export function nextStep(step: GenerationStep, creation: CreationShape): Generat
   const steps = stepsFor(creation);
   return steps[steps.indexOf(step) + 1] ?? null;
 }
+
+/** A shot is first drafted with a cheap video model; only the shots the user keeps get the final model. */
+export const SHOT_PASSES = ["draft", "final"] as const;
+export type ShotPass = (typeof SHOT_PASSES)[number];
 
 export const JOB_STATUSES = ["queued", "running", "waiting_review", "succeeded", "failed", "cancelled"] as const;
 export type JobStatus = (typeof JOB_STATUSES)[number];
@@ -92,6 +112,12 @@ export const claudeJobSchema = z.preprocess(
     mode: z.enum(["edit"]).optional(),
     /** The owner's resolved AI settings; jobs enqueued before them run on Claude Code with the runner's models. */
     ai: resolvedAiSchema.optional(),
+    /** Keyframes or shots: only these scenes are generated again (a regenerated shot, the final pass). */
+    only: z.array(z.string().regex(/^s[0-9]{1,2}$/)).min(1).max(20).optional(),
+    /** Shots: `final` generates the chosen shots again with the final video model, after the cheap draft. */
+    pass: z.enum(SHOT_PASSES).optional(),
+    /** Shots: the user accepted to go over the création's budget. */
+    confirmBudget: z.boolean().optional(),
   }),
 );
 export type ClaudeJob = z.infer<typeof claudeJobSchema>;
@@ -104,6 +130,7 @@ export const VIDEO_FORMATS: readonly RenderFormat[] = ["mp4", "webm", "mov", "gi
 
 export function allowedFormats(type: CreationType): readonly RenderFormat[] {
   if (type === "image") return ["png"];
+  if (type === "realistic") return ["mp4", "webm", "mov", "png"];
   if (type === "carousel") return ["pdf", "png"];
   return ["mp4", "webm", "mov", "gif", "png"];
 }

@@ -1,6 +1,6 @@
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
-import { GENERATION_STEPS, resolveFromRoot, resolveWorkspaceDir, type GenerationStep } from "@studio/shared";
+import { AGENT_STEPS, resolveFromRoot, resolveWorkspaceDir, type AgentStep } from "@studio/shared";
 
 /**
  * Steps that follow a recipe (write BRIEF.md and VARIABLES.json, run scripts/audio.mjs) run on Sonnet; the footage
@@ -10,7 +10,7 @@ import { GENERATION_STEPS, resolveFromRoot, resolveWorkspaceDir, type Generation
  */
 const RECIPE_STEP_MODEL = "sonnet";
 const DESIGN_STEP_MODEL = "opus";
-const RECIPE_STEPS: readonly GenerationStep[] = ["brief", "variables", "media"];
+const RECIPE_STEPS: readonly AgentStep[] = ["brief", "variables", "media"];
 
 export type RunnerConfig = {
   /** HyperFrames workspace (CLAUDE.md, scripts, videos/<slug>). The agents run from here. */
@@ -26,7 +26,7 @@ export type RunnerConfig = {
   skillsDir: string;
   model: string | null;
   /** Model of each step: `CLAUDE_MODEL_<STEP>`, else Sonnet for recipe steps, else `model`, else Opus. */
-  stepModels: Record<GenerationStep, string>;
+  stepModels: Record<AgentStep, string>;
   /** Claude Code model a build falls back to after two failed checks: `CLAUDE_MODEL_ESCALATION`, else Opus. */
   escalationAgentModel: string;
   /** Hard limit for one Claude step. */
@@ -53,6 +53,9 @@ export type RunnerConfig = {
   escalationModel: string | null;
   /** OpenRouter model with vision for the visual check of a build, for an owner on Claude Code. */
   visualModel: string | null;
+  /** The fal key, used only by the proxy `scripts/shots.mjs` calls (the realistic créations' shots). */
+  falApiKey: string | null;
+  falQueueUrl: string;
 };
 
 export function resolveRunnerConfig(env: NodeJS.ProcessEnv = process.env): RunnerConfig {
@@ -64,12 +67,12 @@ export function resolveRunnerConfig(env: NodeJS.ProcessEnv = process.env): Runne
     skillsDir: env.CLAUDE_SKILLS_DIR?.trim() || join(homedir(), ".claude", "skills"),
     model: env.CLAUDE_MODEL?.trim() || null,
     stepModels: Object.fromEntries(
-      GENERATION_STEPS.map((step) => [
+      AGENT_STEPS.map((step) => [
         step,
         env[`CLAUDE_MODEL_${step.toUpperCase()}`]?.trim() ||
           (RECIPE_STEPS.includes(step) ? RECIPE_STEP_MODEL : env.CLAUDE_MODEL?.trim() || DESIGN_STEP_MODEL),
       ]),
-    ) as Record<GenerationStep, string>,
+    ) as Record<AgentStep, string>,
     escalationAgentModel: env.CLAUDE_MODEL_ESCALATION?.trim() || DESIGN_STEP_MODEL,
     timeoutMs: Number.parseInt(env.CLAUDE_STEP_TIMEOUT_MS ?? "", 10) || 60 * 60 * 1000,
     opencodeBin: env.OPENCODE_BIN?.trim() || "opencode",
@@ -81,5 +84,7 @@ export function resolveRunnerConfig(env: NodeJS.ProcessEnv = process.env): Runne
     blocksModel: env.BLOCKS_MODEL?.trim() || null,
     escalationModel: env.ESCALATION_MODEL?.trim() || null,
     visualModel: env.VISUAL_MODEL?.trim() || null,
+    falApiKey: env.FAL_KEY?.trim() || null,
+    falQueueUrl: env.FAL_QUEUE_URL?.trim() || "https://queue.fal.run",
   };
 }

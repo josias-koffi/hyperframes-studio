@@ -5,7 +5,7 @@ import { BoxesIcon, CloudDownloadIcon, RefreshCwIcon, MoreHorizontalIcon, Pencil
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { CAPABILITY_META, MODEL_KIND_META, tokenPrice } from "@/components/ai/labels";
+import { CAPABILITY_META, mediaPriceLabel, MODEL_KIND_META, tokenPrice } from "@/components/ai/labels";
 import { createDataTableColumnHelper, DataTable } from "@/components/data-table/data-table";
 import {
   AlertDialog,
@@ -110,6 +110,8 @@ export function ModelsCatalog({ models }: { models: AiModel[] }) {
       cell: ({ row }) => {
         const model = row.original;
         if (model.kind === "tts") return <span className="text-sm text-muted-foreground">{model.voices.length ? `${model.voices.length} voix` : "Voix libre"}</span>;
+        if (model.kind === "image" || model.kind === "video")
+          return <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">{mediaPriceLabel(model) ?? "Prix à renseigner"}</span>;
         return <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">{tokenPrice(model) ?? "—"}</span>;
       },
     }),

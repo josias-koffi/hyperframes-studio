@@ -8,7 +8,10 @@ import {
   FilmIcon,
   GalleryHorizontalIcon,
   ImageIcon,
+  ImagePlayIcon,
   LayersIcon,
+  ClapperboardIcon,
+  CameraIcon,
   type LucideIcon,
   MonitorPlayIcon,
   MusicIcon,
@@ -27,6 +30,8 @@ export const STEP_LABELS: Record<GenerationStep, string> = {
   footage: "Analyse des rushs",
   variables: "Variables",
   storyboard: "Storyboard",
+  keyframes: "Images clés",
+  shots: "Plans",
   media: "Voix et musique",
   build: "Build",
 };
@@ -56,6 +61,18 @@ export const PIPELINE: Record<PipelineStep, { label: string; icon: LucideIcon; d
     icon: PresentationIcon,
     doing: "Claude construit le storyboard",
     hint: "Découpage en frames, texte à l'écran et intentions visuelles. Tu le valides avant la suite.",
+  },
+  keyframes: {
+    label: "Images clés",
+    icon: CameraIcon,
+    doing: "fal génère les images clés",
+    hint: "Une image par plan généré, qui fixe le cadre et la lumière. Régénère un plan ou corrige son prompt avant de passer à la vidéo, bien moins chère à refaire ici.",
+  },
+  shots: {
+    label: "Plans",
+    icon: ImagePlayIcon,
+    doing: "fal anime les plans",
+    hint: "Chaque image clé devient une vidéo, d'abord en brouillon bon marché. Valide les plans un par un, puis lance le rendu final des plans retenus.",
   },
   media: {
     label: "Voix et musique",
@@ -102,6 +119,14 @@ const STILL_STEPS: Record<Exclude<CreationType, "video">, Partial<Record<Pipelin
     build: { doing: "Claude compose l'image", hint: "Le visuel est composé et vérifié. Tu le valides sur sa capture." },
     export: { hint: "Le PNG part automatiquement après validation du build." },
   },
+  realistic: {
+    brief: { doing: "Le studio rédige le brief", hint: "Ta demande reformulée dans BRIEF.md : objectif, message clé, ton, son." },
+    storyboard: {
+      doing: "Le studio écrit le storyboard",
+      hint: "Les plans à générer (prompt, mouvement de caméra, style commun) et les scènes graphiques autour. Seuls les plans qui ont besoin de réalisme sont générés.",
+    },
+    build: { doing: "Le studio monte la vidéo", hint: "Les plans sont posés dans la composition avec textes, sous-titres et appel à l'action, puis vérifiés." },
+  },
 };
 
 export function stepMeta(step: PipelineStep, type: CreationType = "video"): StepMeta {
@@ -130,6 +155,13 @@ export const CREATION_TYPE_META: Record<CreationType, { label: string; plural: s
     icon: ImageIcon,
     description: "Un visuel fixe : post, bannière, affiche. Un PNG prêt à publier.",
   },
+  realistic: {
+    label: "Vidéo réaliste",
+    plural: "Vidéos réalistes",
+    noun: "la vidéo",
+    icon: ClapperboardIcon,
+    description: "Une pub courte filmée par des modèles vidéo (fal), habillée de textes, sous-titres et appel à l'action. Payante à la seconde.",
+  },
 };
 
 export const ASPECT_META: Record<Aspect, { label: string; box: string }> = {
@@ -144,7 +176,7 @@ export function formatSummary(creation: { type: CreationType; width: number | nu
   const aspect = aspectOf(creation.width, creation.height);
   const canvas = aspect ?? (creation.width && creation.height ? `${creation.width}×${creation.height}` : "cadre de la source");
   const parts: string[] = [CREATION_TYPE_META[creation.type].label, canvas];
-  if (creation.type === "video" && creation.durationSeconds) parts.push(`${creation.durationSeconds} s`);
+  if ((creation.type === "video" || creation.type === "realistic") && creation.durationSeconds) parts.push(`${creation.durationSeconds} s`);
   if (creation.type === "carousel" && creation.slideCount) parts.push(`${creation.slideCount} slides`);
   return parts.join(" · ");
 }

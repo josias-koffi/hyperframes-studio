@@ -27,6 +27,16 @@ describe("creationValues", () => {
   });
 });
 
+describe("realistic créations", () => {
+  it("are short one-shot videos made with blocks, 15 s by default", () => {
+    const ok = createCreationSchema.parse({ name: "Pub", type: "realistic", aspect: "9:16", brief: { idea: "café", referenceConsent: true } });
+    expect(creationValues(PROJECT, "pub", ok)).toMatchObject({ type: "realistic", durationSeconds: 15, brief: { idea: "café", referenceConsent: true, engine: "blocks" } });
+    expect(createCreationSchema.safeParse({ name: "Pub", type: "realistic", aspect: "9:16", durationSeconds: 60 }).success).toBe(false);
+    expect(createCreationSchema.safeParse({ name: "Pub", type: "realistic", aspect: "9:16", kind: "template" }).success).toBe(false);
+    expect(createCreationSchema.safeParse({ name: "Pub", type: "realistic", aspect: "4:5" }).success).toBe(false);
+  });
+});
+
 describe("uniqueSlug", () => {
   it("suffixes a taken folder name", () => {
     expect(uniqueSlug("promo", new Set())).toBe("promo");

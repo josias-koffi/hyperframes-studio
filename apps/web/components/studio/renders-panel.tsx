@@ -135,12 +135,17 @@ const ACTIONS: Record<CreationType, { label: string; icon: typeof FilmIcon; body
   ],
   carousel: [{ label: "Régénérer slides et PDF", icon: GalleryHorizontalIcon, body: { format: "pdf" }, primary: true }],
   image: [{ label: "Régénérer le PNG", icon: ImageIcon, body: { format: "png" }, primary: true }],
+  realistic: [
+    { label: "Images de post", icon: ImageIcon, body: { format: "png", frames: 3 } },
+    { label: "Rendu MP4", icon: FilmIcon, body: { format: "mp4" }, primary: true },
+  ],
 };
 
 const EMPTY_TEXT: Record<CreationType, string> = {
   video: "Le MP4 est rendu automatiquement quand tu valides le build.",
   carousel: "Les slides et le PDF sont générés automatiquement quand tu valides le build.",
   image: "Le PNG est généré automatiquement quand tu valides le build.",
+  realistic: "Le MP4 est rendu automatiquement quand tu valides le build.",
 };
 
 export function RendersPanel({

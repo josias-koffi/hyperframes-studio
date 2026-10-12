@@ -4,6 +4,8 @@ import {
   ASPECTS,
   ASPECTS_BY_TYPE,
   CREATION_TYPES,
+  REALISTIC_BUDGET_EUR,
+  REALISTIC_DURATION,
   SLIDE_COUNT,
   slugify,
   type Aspect,
@@ -36,6 +38,7 @@ import { ASPECT_META, CREATION_TYPE_META, WORKFLOWS, type StartPoint } from "@/c
 import { Button } from "@/components/ui/button";
 import { FileDropzone, FileThumb } from "@/components/creation/file-dropzone";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -61,6 +64,8 @@ const REQUIRED_FILE: Partial<Record<StartPoint, { accept: string; label: string 
 };
 
 const DURATIONS = [15, 30, 60, 90];
+/** A realistic video is short: every second is a generated shot, paid. */
+const REALISTIC_DURATIONS = [10, 15, 20, 30];
 
 const KINDS: { value: CreationKind; label: string; description: string; icon: LucideIcon }[] = [
   { value: "oneshot", label: "Création unique", description: "Faite une fois : du brief jusqu'à l'export.", icon: SparklesIcon },
@@ -139,6 +144,7 @@ const MESSAGE_PLACEHOLDER: Record<CreationType, string> = {
   video: "Ex. : Notre appli divise par deux le temps de saisie des notes de frais.",
   carousel: "Ex. : 5 erreurs qui font exploser vos notes de frais, et comment les éviter.",
   image: "Ex. : -30 % sur l'offre Pro jusqu'au 31 octobre.",
+  realistic: "Ex. : Notre café se prépare en 30 secondes, chaud pendant 3 heures.",
 };
 
 function ChoiceCard({
@@ -345,10 +351,13 @@ export function NewCreationForm({
   const [extras, setExtras] = useState<File[]>([]);
   const [aspect, setAspect] = useState<Aspect>(ASPECTS_BY_TYPE[initialType ?? "video"][0]);
   const [duration, setDuration] = useState(30);
+  const [realisticDuration, setRealisticDuration] = useState<number>(REALISTIC_DURATION.default);
+  const [referenceConsent, setReferenceConsent] = useState(false);
   const [slides, setSlides] = useState<number>(SLIDE_COUNT.default);
   const [progress, setProgress] = useState<string | null>(null);
 
   const video = type === "video";
+  const realistic = type === "realistic";
   // A source video keeps its own frame and length: no réglages. Only a video has a start point and a workflow.
   const steps: Step[] = [
     ...(initialProjectId ? [] : (["project"] as const)),
@@ -364,7 +373,8 @@ export function NewCreationForm({
   const required = video ? REQUIRED_FILE[start] : undefined;
   const choices = WORKFLOWS.filter((w) => w.start === start);
   const chosen = choices.find((w) => w.value === workflow);
-  const blocksAvailable = !video || start === "idea";
+  // A realistic video is always made with blocks: nothing to choose.
+  const blocksAvailable = !realistic && (!video || start === "idea");
   const projectLabel = projectId === "new" ? projectName : projects.find((p) => p.id === projectId)?.name;
 
   const ready: Record<Step, boolean> = {
@@ -384,6 +394,8 @@ export function NewCreationForm({
 
   function pickType(value: CreationType) {
     setType(value);
+    // A realistic video cannot be a template: its shots are generated once.
+    if (value === "realistic") setKind("oneshot");
     if (value === "video") setBackgrounds([]);
     if (!ASPECTS_BY_TYPE[value].includes(aspect)) setAspect(ASPECTS_BY_TYPE[value][0]);
   }
@@ -412,6 +424,7 @@ export function NewCreationForm({
       const brief: Record<string, unknown> = { message, audience, language: "fr", notes };
       if (kind === "template" && filledSuggestions.length > 0) brief.variables = filledSuggestions;
       if (blocksAvailable && engine === "blocks") brief.engine = "blocks";
+      if (realistic) brief.referenceConsent = referenceConsent;
       const footage = video && start === "footage";
       setProgress(`Création ${type === "image" ? "de l'image" : type === "carousel" ? "du carrousel" : "de la vidéo"}…`);
       const creation = await clientApi<Creation>(`/projects/${targetProject}/creations`, {
@@ -422,7 +435,7 @@ export function NewCreationForm({
           kind,
           workflow: video ? workflow : undefined,
           aspect: footage ? undefined : aspect,
-          durationSeconds: video && !footage ? duration : undefined,
+          durationSeconds: video && !footage ? duration : realistic ? realisticDuration : undefined,
           slideCount: type === "carousel" ? slides : undefined,
           brief,
         }),
@@ -452,7 +465,7 @@ export function NewCreationForm({
   const noun = type === "image" ? "l'image" : type === "carousel" ? "le carrousel" : "la vidéo";
   const format = footage
     ? "Cadre et durée de la vidéo source"
-    : [aspect, video && `${duration} s`, type === "carousel" && `${slides} slides`].filter(Boolean).join(" · ");
+    : [aspect, video && `${duration} s`, realistic && `${realisticDuration} s`, type === "carousel" && `${slides} slides`].filter(Boolean).join(" · ");
   const cover = footage ? mainFile[0] : backgrounds[0];
 
   return (
@@ -509,7 +522,7 @@ export function NewCreationForm({
             {step === "nature" && (
               <>
                 <StepHeading title="Que veux-tu créer ?" description="Le type décide des réglages et de ce que tu récupères à la fin." />
-                <div role="radiogroup" className="grid gap-4 sm:grid-cols-3">
+                <div role="radiogroup" className="grid gap-4 sm:grid-cols-2">
                   {CREATION_TYPES.map((t) => (
                     <ChoiceCard
                       key={t}
@@ -522,12 +535,22 @@ export function NewCreationForm({
                   ))}
                 </div>
                 <div className="border-t" />
-                <StepHeading title="Unique ou template ?" description="Ce choix est définitif : un template se décline, une création unique s'exporte." />
-                <div role="radiogroup" className="grid gap-4 sm:grid-cols-2">
-                  {KINDS.map((k) => (
-                    <ChoiceCard key={k.value} selected={kind === k.value} onClick={() => setKind(k.value)} icon={k.icon} label={k.label} description={k.description} />
-                  ))}
-                </div>
+                {realistic ? (
+                  <p className="text-sm text-muted-foreground">
+                    Une vidéo réaliste est une création unique : ses plans sont générés par des modèles vidéo de fal, payés à la seconde, puis
+                    habillés de textes et d&apos;un appel à l&apos;action. Les modèles et le budget par création ({REALISTIC_BUDGET_EUR} € par
+                    défaut) se règlent dans les réglages IA.
+                  </p>
+                ) : (
+                  <>
+                    <StepHeading title="Unique ou template ?" description="Ce choix est définitif : un template se décline, une création unique s'exporte." />
+                    <div role="radiogroup" className="grid gap-4 sm:grid-cols-2">
+                      {KINDS.map((k) => (
+                        <ChoiceCard key={k.value} selected={kind === k.value} onClick={() => setKind(k.value)} icon={k.icon} label={k.label} description={k.description} />
+                      ))}
+                    </div>
+                  </>
+                )}
               </>
             )}
 
@@ -611,7 +634,27 @@ export function NewCreationForm({
                         }
                       />
                     )}
-                    {!video && (
+                    {realistic && (
+                      <>
+                        <FileDropzone
+                          label="Photos du produit (facultatif)"
+                          accept="image/*"
+                          multiple
+                          files={backgrounds}
+                          onChange={setBackgrounds}
+                          hint="JPG, PNG, WebP — plusieurs à la fois"
+                          description="Une image clé peut partir d'une photo fournie pour reproduire le produit. Sans ton accord ci-dessous, elles ne quittent pas le poste."
+                        />
+                        <Field orientation="horizontal">
+                          <Checkbox id="reference-consent" checked={referenceConsent} onCheckedChange={(checked) => setReferenceConsent(checked === true)} />
+                          <FieldLabel htmlFor="reference-consent" className="font-normal">
+                            Envoyer ces photos à fal comme références : j&apos;ai les droits sur ces images et, si une personne y est
+                            reconnaissable, son accord.
+                          </FieldLabel>
+                        </Field>
+                      </>
+                    )}
+                    {!video && !realistic && (
                       <FileDropzone
                         label="Images de fond (facultatif)"
                         accept="image/*"
@@ -670,6 +713,25 @@ export function NewCreationForm({
                       <FieldDescription>Une cible : Claude ajuste au rythme du texte.</FieldDescription>
                     </Field>
                   )}
+                  {realistic && (
+                    <Field className="w-auto">
+                      <FieldLabel>Durée</FieldLabel>
+                      <ToggleGroup
+                        type="single"
+                        variant="outline"
+                        value={String(realisticDuration)}
+                        onValueChange={(v) => v && setRealisticDuration(Number(v))}
+                        className="bg-card"
+                      >
+                        {REALISTIC_DURATIONS.map((d) => (
+                          <ToggleGroupItem key={d} value={String(d)} className="px-4">
+                            {d} s
+                          </ToggleGroupItem>
+                        ))}
+                      </ToggleGroup>
+                      <FieldDescription>Seuls les plans qui ont besoin de réalisme sont générés ; le reste passe par des blocs.</FieldDescription>
+                    </Field>
+                  )}
                   {type === "carousel" && (
                     <Field className="w-auto">
                       <FieldLabel htmlFor="slides">Nombre de slides</FieldLabel>
@@ -698,7 +760,7 @@ export function NewCreationForm({
                     </Field>
                   )}
                 </FieldGroup>
-                {!video && <EngineChoice engine={engine} onChange={setEngine} />}
+                {!video && !realistic && <EngineChoice engine={engine} onChange={setEngine} />}
               </>
             )}
 

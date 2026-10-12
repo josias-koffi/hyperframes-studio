@@ -6,14 +6,20 @@ import { Readable } from "node:stream";
 /**
  * The OpenRouter key never reaches an agent: OpenCode and `scripts/audio.mjs` call this proxy with a token of
  * their own, and the proxy swaps it for the platform key. A job's token also adds up what its media calls cost
- * (voice, music), which no agent event reports.
+ * (voice, music), which no agent event reports. The fal key is kept the same way: `scripts/shots.mjs` calls
+ * `<proxy>/fal/<endpoint>` (fal's queue) with the job's token.
  */
 export const PROXY_PATHS = ["/chat/completions", "/audio/speech"] as const;
+
+/** fal's queue API: submit (POST), then status and result (GET) of a request. */
+export const FAL_PREFIX = "/fal/";
 
 export type ProxyGrant = {
   token: string;
   /** Base URL to give the agent, in place of `https://openrouter.ai/api/v1`. */
   baseUrl: string;
+  /** Base URL of fal's queue for `scripts/shots.mjs`, in place of `https://queue.fal.run`; null without a fal key. */
+  falBaseUrl: string | null;
   /** Cost (USD) of the calls made with this token, once the pending cost lookups have settled. */
   costUsd(): Promise<number>;
   revoke(): void;
@@ -79,12 +85,15 @@ function fail(response: ServerResponse, status: number, message: string) {
 export function createOpenrouterProxy({
   upstream,
   apiKey,
+  fal = null,
   fetchImpl = fetch,
   lookupDelaysMs = [1_000, 3_000, 10_000],
   log = (text: string) => console.warn(`[openrouter-proxy] ${text}`),
 }: {
   upstream: string;
   apiKey: string;
+  /** fal's queue (`https://queue.fal.run`) and the key the proxy puts in place of the job's token. */
+  fal?: { upstream: string; apiKey: string } | null;
   fetchImpl?: typeof fetch;
   /** Waits before each `/generation` lookup: its stats appear a moment after the response. */
   lookupDelaysMs?: number[];
@@ -109,10 +118,13 @@ export function createOpenrouterProxy({
   }
 
   async function handle(request: IncomingMessage, response: ServerResponse) {
-    const path = (request.url ?? "").split("?")[0].replace(/^\/api\/v1/, "");
-    const token = /^Bearer\s+(.+)$/i.exec(request.headers.authorization ?? "")?.[1]?.trim();
+    const [rawPath, query] = (request.url ?? "").split("?");
+    const path = rawPath.replace(/^\/api\/v1/, "");
+    // fal clients send `Key <token>`, OpenRouter's `Bearer <token>`.
+    const token = /^(?:Bearer|Key)\s+(.+)$/i.exec(request.headers.authorization ?? "")?.[1]?.trim();
     const grant = token ? grants.get(token) : undefined;
     if (!grant) return fail(response, 401, "Jeton du studio absent ou expiré.");
+    if (rawPath.startsWith(FAL_PREFIX)) return forwardFal(request, response, rawPath.slice(FAL_PREFIX.length), query);
     if (request.method !== "POST" || !(PROXY_PATHS as readonly string[]).includes(path)) {
       log(`refused ${request.method} ${path}`);
       return fail(response, 403, `Appel non autorisé par le studio : ${request.method} ${path}`);
@@ -164,6 +176,23 @@ export function createOpenrouterProxy({
     void lookup.finally(() => grant.pending.delete(lookup));
   }
 
+  /** A call to fal's queue, the job's token swapped for the fal key; fal reports no cost (`scripts/shots.mjs` estimates it). */
+  async function forwardFal(request: IncomingMessage, response: ServerResponse, rest: string, query: string | undefined) {
+    if (!fal) return fail(response, 503, "Clé fal absente : renseigne FAL_KEY pour générer des plans.");
+    if (!["GET", "POST"].includes(request.method ?? "") || !/^[\w.-]+(\/[\w.-]+)+$/.test(rest)) {
+      log(`refused fal ${request.method} ${rest}`);
+      return fail(response, 403, `Appel fal non autorisé par le studio : ${request.method} ${rest}`);
+    }
+    const body = request.method === "POST" ? await readBody(request, 64 * 1024 * 1024) : undefined;
+    const upstreamResponse = await fetchImpl(`${fal.upstream.replace(/\/$/, "")}/${rest}${query ? `?${query}` : ""}`, {
+      method: request.method,
+      headers: { authorization: `Key ${fal.apiKey}`, "content-type": request.headers["content-type"] ?? "application/json", accept: "application/json" },
+      body: body ? new Uint8Array(body) : undefined,
+    });
+    response.writeHead(upstreamResponse.status, { "content-type": upstreamResponse.headers.get("content-type") ?? "application/json" });
+    response.end(Buffer.from(await upstreamResponse.arrayBuffer()));
+  }
+
   const server = createServer((request, response) => {
     handle(request, response).catch((error: unknown) => {
       log(`proxy error: ${error instanceof Error ? error.message : String(error)}`);
@@ -189,6 +218,7 @@ export function createOpenrouterProxy({
       return {
         token,
         baseUrl,
+        falBaseUrl: fal ? `${baseUrl.replace(/\/api\/v1$/, "")}/fal` : null,
         async costUsd() {
           await Promise.all([...grant.pending]);
           return grant.cost;

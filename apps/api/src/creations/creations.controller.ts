@@ -10,7 +10,11 @@ import { DATABASE } from "../database/database.module";
 import { ZodPipe } from "../shared/zod.pipe";
 import { STORAGE } from "../storage/storage.module";
 import {
+  approveSchema,
   feedbackSchema,
+  shotsRequestSchema,
+  type ApproveBody,
+  type ShotsRequest,
   listCreationsQuerySchema,
   renderRequestSchema,
   updateCreationSchema,
@@ -36,6 +40,9 @@ const PREVIEW_TYPES: Record<string, string> = {
   ".css": "text/css",
   ".js": "text/javascript",
   ".mp3": "audio/mpeg",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
+  ".mov": "video/quicktime",
   ".wav": "audio/wav",
   ".ttf": "font/ttf",
   ".woff2": "font/woff2",
@@ -99,8 +106,14 @@ export class CreationsController {
   }
 
   @Post(":id/approve")
-  approve(@Param("id", ParseUUIDPipe) id: string) {
-    return this.creations.approve(id);
+  approve(@Param("id", ParseUUIDPipe) id: string, @Body(new ZodPipe(approveSchema)) body: ApproveBody) {
+    return this.creations.approve(id, body);
+  }
+
+  /** A realistic création's keyframes or shots, generated again from their review. */
+  @Post(":id/shots")
+  shots(@Param("id", ParseUUIDPipe) id: string, @Body(new ZodPipe(shotsRequestSchema)) body: ShotsRequest) {
+    return this.creations.regenerateShots(id, body);
   }
 
   @Post(":id/feedback")

@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { assembleVideo, fillBlock, parseStoryboard, type StudioEvent } from "@studio/shared";
 import { describe, expect, it } from "vitest";
-import { availableAssets, loadBlocks, runBlocksStep, writeStoryboard, type BlocksContext } from "./blocks";
+import { availableAssets, loadBlocks, runBlocksStep, storyboardSystemPrompt, writeStoryboard, type BlocksContext } from "./blocks";
 import { blocksModelFor } from "./process-job";
 
 /** The workspace skeleton shipped with the app, whose blocks are tested as they are. */
@@ -58,6 +58,7 @@ describe("the shipped blocks", () => {
       "quote",
       "stat-countup",
       "title-subtitle",
+      "video-fullframe",
     ]);
     // Every scene block once with its example, the overlays over the scenes they accept.
     const scenes = manifests
@@ -94,6 +95,17 @@ describe("the shipped blocks", () => {
     expect(out.safeBottoms).toEqual(Object.fromEntries(scenes.map((scene) => [scene.id, 576])));
     const media = scenes.find((scene) => scene.block === "media-fullframe")!;
     expect(out.files[`compositions/scenes/${media.id}.html`]).toContain("calc(576px + 32px)");
+  });
+});
+
+describe("the realistic storyboard prompt", () => {
+  it("offers the video block and its rules only to a realistic video", async () => {
+    const { manifests } = await loadBlocks(SKELETON);
+    const realistic = storyboardSystemPrompt(manifests, { width: 1080, height: 1920, durationSeconds: 15, realistic: true });
+    expect(realistic).toContain("### video-fullframe");
+    expect(realistic).toContain("Jamais de personne réelle nommée");
+    expect(realistic).toContain('"style"');
+    expect(storyboardSystemPrompt(manifests, { width: 1080, height: 1920, durationSeconds: 15 })).not.toContain("video-fullframe");
   });
 });
 

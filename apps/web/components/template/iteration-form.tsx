@@ -125,7 +125,7 @@ export function IterationForm({
         <div className="flex flex-wrap items-center gap-2">
           <Button disabled={pending !== null || errors.length > 0 || blockedReason !== null} onClick={() => run("video", { format })}>
             {pending === "video" ? <Spinner /> : type === "video" ? <FilmIcon /> : type === "carousel" ? <GalleryHorizontalIcon /> : <ImageIcon />}
-            {{ video: "Générer la vidéo", carousel: "Générer le carrousel", image: "Générer l'image" }[type]}
+            {{ video: "Générer la vidéo", realistic: "Générer la vidéo", carousel: "Générer le carrousel", image: "Générer l'image" }[type]}
           </Button>
           {type === "video" && (
             <Button variant="outline" disabled={pending !== null || errors.length > 0 || blockedReason !== null} onClick={() => run("image", { format: "png", frames: 1 })}>

@@ -1,7 +1,8 @@
 import { AGENT_BACKENDS, AI_MODEL_KINDS, MODEL_CAPABILITIES, aiPreferencesSchema } from "@studio/shared";
 import { z } from "zod";
 
-const openrouterId = z.string().trim().regex(/^[\w.-]+\/[\w.:~-]+$/, "Identifiant OpenRouter attendu : éditeur/modèle");
+/** An OpenRouter id (`vendor/model`), or a fal endpoint for the image and video models (`fal-ai/kling-video/v3/pro/image-to-video`). */
+const openrouterId = z.string().trim().regex(/^[\w.-]+(\/[\w.:~-]+)+$/, "Identifiant attendu : éditeur/modèle (OpenRouter) ou endpoint fal");
 const voice = z.string().trim().regex(/^[\w.-]{1,64}$/, "Voix invalide");
 
 export const userAiSettingsSchema = z.object({

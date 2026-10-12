@@ -1,0 +1,13 @@
+{
+  "id": "video-fullframe",
+  "name": "Plan vidéo plein cadre",
+  "description": "Une vidéo en plein cadre (un plan généré ou un rush fourni), avec une légende facultative en bas sur un dégradé sombre.",
+  "useWhen": "Pour chaque plan généré (shot) d'une vidéo réaliste, dont le studio remplit lui-même src, ou pour une vidéo fournie dans les assets.",
+  "props": {
+    "src": { "type": "video", "label": "Chemin de la vidéo, rempli par le studio pour un plan généré (assets/shots/<scène>.mp4)" },
+    "caption": { "type": "text", "label": "Légende en bas de l'image", "maxLength": 60, "required": false, "default": "" },
+    "accent": { "type": "color", "label": "Couleur du filet de la légende", "required": false, "default": "#FF5A1F" }
+  },
+  "duration": { "min": 2, "max": 10, "default": 5 },
+  "example": { "src": "assets/shots/s1.mp4", "caption": "Ton café, en 30 secondes" }
+}

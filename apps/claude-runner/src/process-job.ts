@@ -4,6 +4,9 @@ import { assets, createJobReporter, creations, projects, type Database, type Pub
 import {
   BLOCKS_STEPS,
   CHECKPOINT_STEPS,
+  isShotStep,
+  REALISTIC_BUDGET_EUR,
+  USD_PER_EUR,
   isVariablesDiffEmpty,
   modelSlotFor,
   nextStep,
@@ -41,7 +44,9 @@ export type ProcessDeps = {
 /** Jobs enqueued before backends were chosen per user ran on Claude Code with the runner's step models. */
 export function agentFor(job: ClaudeJob, config: Pick<RunnerConfig, "stepModels">): AgentChoice {
   const model = job.ai?.models[modelSlotFor(job)];
-  return job.ai && model ? { backend: job.ai.backend, model } : { backend: "claude-code", model: config.stepModels[job.step] };
+  // A comment on a keyframe or a shot rewrites the storyboard: the storyboard's model.
+  const step = isShotStep(job.step) ? "storyboard" : job.step;
+  return job.ai && model ? { backend: job.ai.backend, model } : { backend: "claude-code", model: config.stepModels[step] };
 }
 
 /**
@@ -176,7 +181,13 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
   try {
     await ensureVideoFolder(config.workspaceDir, job.slug, creation);
     await syncAssets(deps, project.id, creation.id, job.slug);
-    await writeStudioEnv(config.workspaceDir, job.slug, job.ai?.media, media ?? undefined);
+    // The supplied images go to fal as references only when the user said so when creating the realistic video.
+    const references = creation.brief.referenceConsent === true;
+    await writeStudioEnv(config.workspaceDir, job.slug, job.ai?.media, media ?? undefined, {
+      prices: job.ai?.prices,
+      references,
+      budgetUsd: creation.type === "realistic" ? (job.ai?.media.budgetEur ?? REALISTIC_BUDGET_EUR) * USD_PER_EUR : undefined,
+    });
 
     // A silent video has nothing to produce in the media step: no Claude turn, straight to the build.
     if (job.step === "media" && !job.feedback && (await storyboardAudio(config.workspaceDir, job.slug)) === "aucun") {
@@ -208,7 +219,9 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
           height: creation.height ?? 1920,
           durationSeconds: creation.durationSeconds,
           frames: creation.type === "carousel" ? (creation.slideCount ?? SLIDE_COUNT.default) : creation.type === "image" ? 1 : null,
+          realistic: creation.type === "realistic",
         },
+        shots: { only: job.only, pass: job.pass, confirmBudget: job.confirmBudget, budgetEur: job.ai?.media.budgetEur, references },
         campaign,
         creation: { type: creation.type, kind: creation.kind, brief: creation.brief },
         feedback: job.feedback,
@@ -267,6 +280,7 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
     }
     const mediaCost = (await media?.costUsd()) ?? 0;
     if (mediaCost > 0) await report.event({ kind: "log", level: "info", text: `Coût des appels OpenRouter du job (voix, musique, storyboard du moteur blocs) : ${mediaCost.toFixed(4)} $` });
+    if (isShotStep(job.step) && result.costUsd) await report.event({ kind: "log", level: "info", text: `Coût estimé des générations fal du job : ${result.costUsd.toFixed(4)} $` });
     const usage = {
       backend: agent.backend,
       model: agent.model,

@@ -5,6 +5,7 @@ import { stepJob, stepReached } from "@/lib/creation-state";
 
 const CAPTION = {
   video: "Une image au milieu de chaque frame.",
+  realistic: "Une image au milieu de chaque scène, plans générés compris.",
   carousel: "Une capture par slide, telle qu'elle sera exportée.",
   image: "La capture de l'image, telle qu'elle sera exportée.",
 } as const;

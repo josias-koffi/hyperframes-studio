@@ -3,6 +3,15 @@ import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import {
+  aspectOf,
+  IMAGE_EXTENSIONS,
+  REALISTIC_BUDGET_EUR,
+  USD_PER_EUR,
+  VIDEO_EXTENSIONS,
+  shotVideoPath,
+  videoProp,
+  type ShotPass,
+  type ShotStep,
   assembleStills,
   assembleVideo,
   blockManifestSchema,
@@ -84,6 +93,11 @@ export type BlocksContext = {
   fetchImpl?: typeof fetch;
   /** Writes a custom scene; without it, a storyboard with a custom scene cannot be built. */
   customScene?: CustomSceneAgent;
+  /**
+   * A realistic création's keyframes and shots: the scenes to generate again (all when absent), the pass, whether
+   * the user accepted to go over the budget (euros), and whether the supplied images may be sent to fal.
+   */
+  shots?: { only?: string[]; pass?: ShotPass; confirmBudget?: boolean; budgetEur?: number; references?: boolean };
 };
 
 /** Answers the model may give before one passes the schema and the block rules, without escalation. */
@@ -115,15 +129,18 @@ export async function loadBlocks(workspaceDir: string): Promise<{ manifests: Blo
   return { manifests, blocks };
 }
 
-/** Files the model may point at: everything under `assets/` but the audio the studio writes itself. */
-export async function availableAssets(videoDir: string): Promise<string[]> {
+/**
+ * Files the model may point at: everything under `assets/` but the audio and the shots the studio writes itself.
+ * The videos only for a realistic création, the one with a video block.
+ */
+export async function availableAssets(videoDir: string, { videos = false }: { videos?: boolean } = {}): Promise<string[]> {
   const found: string[] = [];
   async function walk(relative: string) {
     for (const entry of await readdir(join(videoDir, relative), { withFileTypes: true }).catch(() => [])) {
       const path = `${relative}/${entry.name}`;
       if (entry.isDirectory()) {
-        if (path !== "assets/audio") await walk(path);
-      } else if (/\.(png|jpe?g|webp|gif|svg|avif)$/i.test(entry.name)) found.push(path);
+        if (path !== "assets/audio" && path !== "assets/shots") await walk(path);
+      } else if (IMAGE_EXTENSIONS.test(entry.name) || (videos && VIDEO_EXTENSIONS.test(entry.name))) found.push(path);
     }
   }
   await walk("assets");
@@ -131,7 +148,7 @@ export async function availableAssets(videoDir: string): Promise<string[]> {
 }
 
 export function storyboardSystemPrompt(manifests: readonly BlockManifest[], format: StoryboardFormat): string {
-  const rules = format.frames ? stillRules(format.frames) : videoRules(format);
+  const rules = format.frames ? stillRules(format.frames) : format.realistic ? [...videoRules(format), ...realisticRules(manifests)] : videoRules(format);
   return [
     ...rules,
     "",
@@ -164,6 +181,27 @@ export function answerShape(format: StoryboardFormat): Record<string, unknown> {
       title: "Titre court",
       audio: { voice: false, music: null },
       scenes: [{ id: "s1", title: "Accroche", block: "hook-kinetic", duration: 1, props: { text: "…" }, voiceover: "", transition: "cut", ...variables }],
+      overlays: [],
+    };
+  if (format.realistic)
+    return {
+      version: 1,
+      title: "Titre court",
+      style: "cinematic, 35mm film, shallow depth of field, warm morning light",
+      audio: { voice: false, music: "warm acoustic, instrumental, 90 bpm" },
+      scenes: [
+        {
+          id: "s1",
+          title: "Tasse fumante",
+          block: "video-fullframe",
+          duration: 5,
+          props: { caption: "…" },
+          voiceover: "",
+          transition: "cut",
+          shot: { prompt: "Close-up of a ceramic coffee cup on a wooden table, steam rising", camera: "slow dolly-in", audio: false },
+        },
+        { id: "s2", title: "Fin", block: "cta-end", duration: 3, props: { headline: "…", action: "…" }, voiceover: "", transition: "fade" },
+      ],
       overlays: [],
     };
   return {
@@ -220,6 +258,24 @@ function videoRules(format: StoryboardFormat): string[] {
     "- Les ids de scène vont de s1 à sN dans l'ordre. `transition` vaut cut, fade ou slide-up ; la première scène est en cut.",
   ];
 }
+
+/** What a realistic création adds: generated shots, paid by the second, and what they may not show. */
+function realisticRules(manifests: readonly BlockManifest[]): string[] {
+  const blocks = manifests.filter((manifest) => manifest.kind === "scene" && videoProp(manifest)).map((manifest) => manifest.id);
+  return [
+    "",
+    "Vidéo réaliste :",
+    `- Les plans filmés sont générés par un modèle vidéo, payés à la seconde : ne génère que les plans qui ont besoin de réalisme (le produit en situation, un geste, un lieu), ${MAX_SHOTS_TEXT}. Le titre, les chiffres et l'appel à l'action passent par des blocs graphiques.`,
+    `- Un plan généré est une scène au bloc ${blocks.join(" ou ")} avec \`shot\` : \`prompt\` en anglais (sujet, action, lieu, lumière, en 1 à 3 phrases concrètes), \`camera\` en anglais (« slow dolly-in », « static », « handheld pan left »), \`audio\` à true seulement si le son du plan compte (vagues, café qui coule). Ne remplis pas \`props.src\` : le studio y met le plan.`,
+    "- `style` (anglais) décrit l'image commune à tous les plans (pellicule, optique, lumière, palette) : il est ajouté à chaque prompt.",
+    "- Un plan généré dure 3 à 8 s : ce que dure son action.",
+    "- `shot.reference` : seulement une image de la liste des fichiers disponibles qui montre le produit à reproduire ; sinon omets-le.",
+    "- Une vidéo fournie (assets/….mp4) se montre aussi avec ce bloc, sans `shot`, `props.src` vers le fichier.",
+    "- Jamais de personne réelle nommée (célébrité, personnalité, client), de marque, de logo ou de personnage dont la campagne n'a pas les droits, ni le visage d'une photo fournie : décris des personnes anonymes.",
+  ];
+}
+
+const MAX_SHOTS_TEXT = "3 ou 4 en général";
 
 function templateSection(variables: NonNullable<StoryboardFormat["variables"]>): string {
   return [
@@ -292,7 +348,7 @@ export async function writeStoryboard(
   const outcome = await structuredCall(ctx, {
     label: "Storyboard",
     name: "storyboard",
-    schema: storyboardJsonSchema(input.manifests),
+    schema: storyboardJsonSchema(input.manifests, { realistic: ctx.format.realistic }),
     model: input.model ?? ctx.model!,
     escalationModel: ctx.escalationModel,
     messages: [
@@ -311,12 +367,15 @@ export async function writeStoryboard(
 async function missingImages(ctx: BlocksContext, storyboard: Storyboard, manifests: readonly BlockManifest[], assets: readonly string[]): Promise<string[]> {
   const byId = new Map(manifests.map((manifest) => [manifest.id, manifest]));
   const errors: string[] = [];
+  const missing = (scene: Storyboard["scenes"][number], value: string) => errors.push(`scène ${scene.id} : « ${value} » n'est pas dans les fichiers disponibles.`);
   for (const scene of storyboard.scenes) {
     for (const [key, prop] of Object.entries(byId.get(scene.block)?.props ?? {})) {
       const value = scene.props[key];
-      if (prop.type === "image" && value && !assets.includes(value))
-        errors.push(`scène ${scene.id} : « ${value} » n'est pas dans les fichiers disponibles.`);
+      // A generated shot's file does not exist yet: the shots step writes it.
+      if (!value || (scene.shot && value === shotVideoPath(scene.id))) continue;
+      if ((prop.type === "image" || prop.type === "video") && !assets.includes(value)) missing(scene, value);
     }
+    if (scene.shot?.reference && !assets.includes(scene.shot.reference)) missing(scene, scene.shot.reference);
   }
   return errors;
 }
@@ -395,7 +454,7 @@ async function storyboardStep(
   const result = await writeStoryboard(ctx, {
     manifests,
     brief: await readFile(briefPath, "utf8"),
-    assets: await availableAssets(dir),
+    assets: await availableAssets(dir, { videos: ctx.format.realistic }),
     current,
   });
   // Called as the escalation itself (a build repaired by the escalation model), the whole call is the escalation.
@@ -739,7 +798,7 @@ function briefFormat(ctx: BlocksContext): BriefFormat {
 }
 
 export function briefSystemPrompt(type: CreationType): string {
-  const video = type === "video";
+  const video = type === "video" || type === "realistic";
   return [
     "Tu es chef de projet dans un studio de contenus pour les réseaux sociaux. Tu transformes la demande saisie dans le studio en un brief clair, que le réalisateur suivra pour écrire le storyboard.",
     "Tu réponds uniquement par un objet JSON conforme au schéma, sans texte autour.",
@@ -825,7 +884,7 @@ async function briefStep(ctx: BlocksContext): Promise<BlocksStepResult> {
   });
   if (!outcome.value) return { ok: false, resultText: `Brief refusé :\n- ${outcome.errors.join("\n- ")}`, usage: outcome.usage, escalation: outcome.escalation };
   // A still has no sound, whatever the model said.
-  const doc = format.type === "video" ? outcome.value : { ...outcome.value, audio: { voice: false, music: null } };
+  const doc = format.type === "video" || format.type === "realistic" ? outcome.value : { ...outcome.value, audio: { voice: false, music: null } };
   await writeFile(join(dir, "BRIEF.json"), `${JSON.stringify(doc, null, 2)}\n`);
   await writeFile(join(dir, "BRIEF.md"), renderBriefMd(doc, format));
   const summary = [doc.title, doc.keyMessage, doc.assumptions.length ? `${doc.assumptions.length} hypothèse(s) : ${doc.assumptions.join(" ; ")}` : "Aucune hypothèse."];
@@ -923,6 +982,88 @@ async function readContract(ctx: BlocksContext): Promise<StoryboardFormat["varia
   return parsed.data;
 }
 
+/** What `scripts/shots.mjs --estimate` prints: the cost of the chosen scenes (USD) and what was spent already. */
+type ShotEstimate = { keyframes: number; draft: number; final: number; spentUsd: number; unpriced: string[] };
+
+const BUDGET_FILE = "shots_budget.json";
+
+/**
+ * Keyframes or shots of a realistic création, generated by `scripts/shots.mjs` through fal. A comment first rewrites
+ * the storyboard (the shots' prompts) with the model; the shots it changed, and those asked for (`only`), are then
+ * generated again. Above the budget, the step stops and waits for the user's confirmation (`shots_budget.json`).
+ */
+async function shotStep(ctx: BlocksContext, manifests: BlockManifest[], step: ShotStep): Promise<BlocksStepResult> {
+  const dir = videoDir(ctx);
+  const read = await readStoryboard(ctx, manifests);
+  if (!read.storyboard) return { ok: false, resultText: read.errors.join("\n") };
+  let storyboard = read.storyboard;
+  const asked = ctx.shots?.only ?? [];
+  let usage: TokenUsage | undefined;
+  let escalation: Escalation | undefined;
+  /** Scenes whose keyframe must be made again before their shot: a prompt the comment changed. */
+  let redrawn: string[] = [];
+  let targets: string[];
+  if (ctx.feedback) {
+    const feedback = asked.length
+      ? `Ne modifie que ${asked.join(", ")} : leur plan généré (shot.prompt, shot.camera) et au besoin leur durée. ${ctx.feedback}`
+      : ctx.feedback;
+    const rewritten = await storyboardStep({ ...ctx, feedback }, manifests, storyboard);
+    if (!rewritten.ok) return rewritten;
+    usage = rewritten.usage;
+    escalation = rewritten.escalation;
+    const before = new Map(storyboard.scenes.map((scene) => [scene.id, JSON.stringify(scene.shot ?? null)]));
+    storyboard = (await readStoryboard(ctx, manifests)).storyboard!;
+    redrawn = storyboard.scenes.filter((scene) => scene.shot && before.get(scene.id) !== JSON.stringify(scene.shot)).map((scene) => scene.id);
+    targets = [...new Set([...asked, ...redrawn])];
+  } else {
+    targets = asked.length ? asked : storyboard.scenes.filter((scene) => scene.shot).map((scene) => scene.id);
+  }
+  targets = targets.filter((id) => storyboard.scenes.some((scene) => scene.id === id && scene.shot));
+  if (!targets.length) return { ok: true, resultText: storyboard.scenes.some((scene) => scene.shot) ? "Aucun plan à générer de nouveau." : "Le storyboard n'a aucun plan généré.", usage, escalation };
+
+  const pass: ShotPass = ctx.shots?.pass ?? "draft";
+  const script = ["scripts/shots.mjs", `videos/${ctx.slug}`];
+  const aspect = aspectOf(ctx.format.width, ctx.format.height) ?? "9:16";
+  // Above the budget, nothing is generated until the user confirms.
+  const estimateRun = await runCommand(ctx, "node", [...script, "--estimate", "--only", targets.join(",")], ctx.timeoutMs);
+  const estimate = JSON.parse(estimateRun.output.trim().split("\n").at(-1) ?? "{}") as Partial<ShotEstimate>;
+  if (estimateRun.code !== 0 || estimate.spentUsd === undefined) return { ok: false, resultText: `Estimation des plans impossible :\n${tail(estimateRun.output)}`, usage, escalation };
+  const keyframes = step === "keyframes" ? targets : redrawn.filter((id) => targets.includes(id));
+  const cost = step === "keyframes" ? (estimate.keyframes ?? 0) : (estimate[pass] ?? 0) + (keyframes.length ? ((estimate.keyframes ?? 0) * keyframes.length) / targets.length : 0);
+  const budgetUsd = (ctx.shots?.budgetEur ?? REALISTIC_BUDGET_EUR) * USD_PER_EUR;
+  const unpriced = estimate.unpriced ?? [];
+  const over = estimate.spentUsd + cost > budgetUsd;
+  if ((over || unpriced.length) && !ctx.shots?.confirmBudget) {
+    const blocked = { step, only: targets, pass, estimateUsd: Number(cost.toFixed(4)), spentUsd: estimate.spentUsd, budgetUsd: Number(budgetUsd.toFixed(2)), unpriced, at: new Date().toISOString() };
+    await writeFile(join(dir, BUDGET_FILE), `${JSON.stringify(blocked, null, 2)}\n`);
+    const why = unpriced.length
+      ? `Prix inconnu au catalogue pour ${unpriced.join(", ")} : le coût ne peut pas être estimé.`
+      : `Ces plans coûteraient environ ${cost.toFixed(2)} $ ; avec les ${estimate.spentUsd.toFixed(2)} $ déjà dépensés, la création dépasserait son budget de ${budgetUsd.toFixed(2)} $ (${(budgetUsd / USD_PER_EUR).toFixed(0)} €).`;
+    return { ok: false, resultText: `${why} Confirme le dépassement depuis la revue pour lancer la génération.`, usage, escalation };
+  }
+  await rm(join(dir, BUDGET_FILE), { force: true });
+
+  // A shot whose prompt changed needs a new keyframe first.
+  const runs: [string, string[]][] = step === "keyframes" ? [["keyframes", targets]] : [...(keyframes.length ? [["keyframes", keyframes] as [string, string[]]] : []), ["shots", targets]];
+  let costUsd = 0;
+  for (const [names, ids] of runs) {
+    const run = await runCommand(ctx, "node", [...script, "--steps", names, "--only", ids.join(","), "--pass", pass, "--aspect", aspect], ctx.timeoutMs);
+    costUsd += Number(/^fal-cost-usd: ([\d.]+)$/m.exec(run.output)?.[1] ?? 0);
+    if (run.code !== 0) return { ok: false, resultText: `scripts/shots.mjs a échoué (code ${run.code}) :\n${tail(run.output)}`, usage, costUsd, escalation };
+  }
+  const what = step === "keyframes" ? "Images clés" : pass === "final" ? "Plans en rendu final" : "Plans (brouillon)";
+  const next = step === "keyframes" ? ` Plans à générer ensuite : environ ${(estimate.draft ?? 0).toFixed(2)} $ en brouillon.` : "";
+  return { ok: true, resultText: `${what} : ${targets.join(", ")}. Coût estimé : ${costUsd.toFixed(2)} $.${next}`, usage, costUsd, escalation };
+}
+
+/** A realistic création is built only once every generated shot has its video. */
+async function missingShots(ctx: BlocksContext, storyboard: Storyboard): Promise<string[]> {
+  const missing: string[] = [];
+  for (const scene of storyboard.scenes.filter((candidate) => candidate.shot))
+    if (!(await exists(join(videoDir(ctx), shotVideoPath(scene.id))))) missing.push(scene.id);
+  return missing;
+}
+
 /**
  * A step of the blocks engine. A comment on the storyboard or on the build rewrites STORYBOARD.json with the model
  * (never the HTML), and a build comment then assembles again.
@@ -938,6 +1079,7 @@ export async function runBlocksStep(ctx: BlocksContext): Promise<BlocksStepResul
     const current = ctx.feedback ? (await readStoryboard(ctx, manifests)).storyboard : null;
     return storyboardStep(ctx, manifests, current);
   }
+  if (ctx.step === "keyframes" || ctx.step === "shots") return shotStep(ctx, manifests, ctx.step);
   if (ctx.step === "media") return mediaStep(ctx, manifests);
   if (ctx.step === "build") {
     let usage: TokenUsage | undefined;
@@ -954,6 +1096,11 @@ export async function runBlocksStep(ctx: BlocksContext): Promise<BlocksStepResul
       const after = (await readStoryboard(ctx, manifests)).storyboard;
       const spoken = (storyboard: Storyboard | null) => JSON.stringify(storyboard?.scenes.map((scene) => scene.voiceover) ?? []);
       staleVoice = spoken(current) !== spoken(after) && (await exists(join(videoDir(ctx), "audio_meta.json")));
+    }
+    if (ctx.format.realistic) {
+      const storyboard = (await readStoryboard(ctx, manifests)).storyboard;
+      const missingVideos = storyboard ? await missingShots(ctx, storyboard) : [];
+      if (missingVideos.length) return { ok: false, resultText: `Plans générés absents (${missingVideos.join(", ")}) : relance l'étape plans.`, usage, escalation };
     }
     const built = await buildStep(ctx, manifests, blocks);
     const warning = staleVoice ? "\nLa voix off a changé dans le storyboard : relance l'étape médias pour réenregistrer la voix." : "";
