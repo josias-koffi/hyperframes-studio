@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckIcon, MessageSquareTextIcon, RefreshCwIcon, SparklesIcon, TriangleAlertIcon, Volume2Icon } from "lucide-react";
+import { CheckIcon, MessageSquareTextIcon, RefreshCwIcon, ShieldAlertIcon, SparklesIcon, TriangleAlertIcon, Volume2Icon } from "lucide-react";
 import { useState } from "react";
 import { useCreationAction } from "@/components/project/step-action";
 import {
@@ -21,6 +21,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { estimateOf, usd, type ShotsData, type ShotView } from "@/lib/shots";
 
 type Step = "keyframes" | "shots";
+
+const VERDICTS = { real_person: "personne réelle", brand: "marque sans droits" } as const;
 
 /** A request that may go over the budget: sent as is, or after the user confirmed the overrun. */
 type Pending = { title: string; text: string; run: (confirmBudget: boolean) => Promise<boolean> } | null;
@@ -89,6 +91,9 @@ export function ShotsReview({
     );
   };
 
+  // Shots the guardrail refused: nothing went to fal; a comment rewrites their prompt.
+  const refused = failed && data.refused?.step === step ? data.refused.shots : [];
+  const refusal = (id: string) => refused.find((shot) => shot.id === id);
   const keptShots = data.shots.filter((shot) => kept.includes(shot.id));
   const draftAll = estimateOf(data.shots, "draft");
   const finalKept = estimateOf(keptShots, "final");
@@ -128,6 +133,20 @@ export function ShotsReview({
         </Card>
       )}
 
+      {refused.length > 0 && (
+        <Card className="border-destructive/40 shadow-raised">
+          <CardContent className="flex gap-4">
+            <ShieldAlertIcon className="size-5 shrink-0 text-destructive" />
+            <div className="flex-1 space-y-1 text-sm">
+              <p className="font-medium">Plans refusés avant la génération</p>
+              <p className="text-muted-foreground">
+                Une personne réelle reconnaissable ou une marque sans droits ne part pas chez fal. Décris dans le commentaire du plan ce qu&apos;il faut montrer à la place : des personnes anonymes, la marque de la campagne.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
         <Badge variant="outline">Dépensé : {usd(data.spentUsd)}</Badge>
         <Badge variant="outline">Budget : {usd(data.budgetUsd)}</Badge>
@@ -162,9 +181,15 @@ export function ShotsReview({
                   {shot.prompt}
                   {shot.camera && <em> · {shot.camera}</em>}
                 </CardDescription>
-                <Generated shot={shot} step={step} />
+                {refusal(shot.id) ? (
+                  <p className="text-xs text-destructive">
+                    Refusé ({VERDICTS[refusal(shot.id)!.verdict]}) : {refusal(shot.id)!.reason}
+                  </p>
+                ) : (
+                  <Generated shot={shot} step={step} />
+                )}
               </CardHeader>
-              {review && (
+              {(review || refusal(shot.id)) && (
                 <CardFooter className="flex-col items-stretch gap-2">
                   <Textarea
                     rows={2}
@@ -173,11 +198,11 @@ export function ShotsReview({
                     onChange={(event) => setComments((current) => ({ ...current, [shot.id]: event.target.value }))}
                   />
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <Button size="sm" variant="outline" disabled={pending} onClick={() => regenerate(shot)}>
+                    <Button size="sm" variant="outline" disabled={pending || (Boolean(refusal(shot.id)) && !comments[shot.id]?.trim())} onClick={() => regenerate(shot)}>
                       <RefreshCwIcon />
                       {comments[shot.id]?.trim() ? "Corriger et régénérer" : "Régénérer"}
                     </Button>
-                    {step === "shots" && (
+                    {step === "shots" && review && (
                       <label className="flex items-center gap-2 text-sm">
                         <Checkbox
                           checked={kept.includes(shot.id)}

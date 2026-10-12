@@ -10,10 +10,10 @@ export default async function ShotsPage({ params }: PageProps<"/projects/[id]/cr
   const { creationId: id } = await params;
   const data = await loadCreation(id);
   const reached = stepReached(data.creation, data.state, "shots");
-  const [storyboard, meta, budget] = reached
-    ? await Promise.all([serverFile(id, "STORYBOARD.json"), serverFile(id, "shots_meta.json"), serverFile(id, "shots_budget.json")])
-    : [null, null, null];
-  const shots = parseShots(storyboard, meta, budget);
+  const [storyboard, meta, budget, guard] = reached
+    ? await Promise.all([serverFile(id, "STORYBOARD.json"), serverFile(id, "shots_meta.json"), serverFile(id, "shots_budget.json"), serverFile(id, "shots_guard.json")])
+    : [null, null, null, null];
+  const shots = parseShots(storyboard, meta, budget, guard);
   const current = data.creation.currentStep === "shots";
 
   return (

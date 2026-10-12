@@ -10,4 +10,5 @@ export * from "./queues";
 export * from "./storyboard";
 export * from "./variables";
 export * from "./visual-review";
+export * from "./shot-guard";
 export * from "./editor";

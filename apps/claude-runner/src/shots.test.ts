@@ -60,6 +60,29 @@ async function fakeFal(png: Buffer) {
   return { calls, server, url: `http://127.0.0.1:${(server.address() as AddressInfo).port}` };
 }
 
+/**
+ * OpenRouter for the guardrail: every shot is ok unless `refused` names it (a real person); any other call (a
+ * storyboard rewritten from a comment) gets `other`.
+ */
+function fakeOpenrouter(refused: Record<string, string> = {}, other: () => unknown = () => ({})) {
+  const guarded: string[] = [];
+  const asked: string[] = [];
+  const fetchImpl = (async (_url: string, init: RequestInit) => {
+    const last = (JSON.parse(String(init.body)) as { messages: { content: string }[] }).messages.at(-1)!.content;
+    let content: unknown;
+    if (last.includes("# Plans à contrôler")) {
+      guarded.push(last);
+      const ids = [...last.matchAll(/^- (s\d+) :/gm)].map((match) => match[1]);
+      content = { shots: ids.map((id) => (refused[id] ? { id, verdict: "real_person", reason: refused[id] } : { id, verdict: "ok", reason: "" })) };
+    } else {
+      asked.push(last);
+      content = other();
+    }
+    return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(content) } }] }), { headers: { "content-type": "application/json" } });
+  }) as unknown as typeof fetch;
+  return { fetchImpl, guarded, asked };
+}
+
 let fal: Awaited<ReturnType<typeof fakeFal>> | null = null;
 afterEach(() => {
   fal?.server.close();
@@ -98,6 +121,7 @@ async function workspace(prices: Record<string, unknown> = {}, env: string[] = [
     ].join("\n"),
   );
   const events: StudioEvent[] = [];
+  const openrouter = fakeOpenrouter();
   const ctx = (step: BlocksContext["step"], shots: BlocksContext["shots"] = {}): BlocksContext => ({
     workspaceDir: dir,
     slug: "pub",
@@ -105,14 +129,15 @@ async function workspace(prices: Record<string, unknown> = {}, env: string[] = [
     format: { width: 1080, height: 1920, durationSeconds: 11, realistic: true },
     campaign: "Café",
     model: "deepseek/deepseek-v4",
-    openrouter: null,
+    openrouter: { baseUrl: "http://proxy.test/api/v1", token: "t" },
+    fetchImpl: openrouter.fetchImpl,
     env: { PATH: process.env.PATH ?? "" },
     timeoutMs: 60_000,
     onEvent: (event) => void events.push(event),
     shots: { budgetEur: 5, ...shots },
   });
   const meta = async () => JSON.parse(await readFile(join(video, "shots_meta.json"), "utf8")) as { spentUsd: number; scenes: Record<string, { shot?: { model: string; seconds: number; pass: string } }> };
-  return { dir, video, ctx, meta, calls: fal.calls };
+  return { dir, video, ctx, meta, calls: fal.calls, openrouter };
 }
 
 const submits = (calls: Call[]) => calls.filter((call) => call.method === "POST");
@@ -183,17 +208,12 @@ describe.skipIf(!hasFfmpeg)("keyframes and shots", () => {
     await runBlocksStep(ctx("shots"));
     const before = submits(calls).length;
     const changed = { ...storyboard, scenes: [{ ...storyboard.scenes[0], shot: { ...storyboard.scenes[0].shot, prompt: "A blue coffee cup" } }, ...storyboard.scenes.slice(1)] };
-    const asked: string[] = [];
-    const fetchImpl = (async (_url: string, init: RequestInit) => {
-      asked.push((JSON.parse(String(init.body)) as { messages: { content: string }[] }).messages.at(-1)!.content);
-      return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(changed) } }] }), { headers: { "content-type": "application/json" } });
-    }) as unknown as typeof fetch;
-    const result = await runBlocksStep({
-      ...ctx("shots", { only: ["s1"] }),
-      feedback: "Une tasse bleue.",
-      openrouter: { baseUrl: "http://proxy.test/api/v1", token: "t" },
-      fetchImpl,
-    });
+    const { fetchImpl, asked, guarded } = fakeOpenrouter({}, () => changed);
+    const result = await runBlocksStep({ ...ctx("shots", { only: ["s1"] }), feedback: "Une tasse bleue.", fetchImpl });
+    // Only the rewritten prompt is checked again.
+    expect(guarded).toHaveLength(1);
+    expect(guarded[0]).toContain("- s1 : A blue coffee cup");
+    expect(guarded[0]).not.toContain("- s2 :");
     expect(result).toMatchObject({ ok: true });
     expect(asked[0]).toContain("Ne modifie que s1");
     expect(submits(calls).slice(before).map((call) => [call.path.split("/")[1], call.body?.prompt])).toEqual([
@@ -236,6 +256,44 @@ describe.skipIf(!hasFfmpeg)("keyframes and shots", () => {
       ["/fal-ai/nano-banana/edit", ["aspect_ratio", "image_urls", "num_images", "output_format", "prompt"]],
       ["/fal-ai/nano-banana", ["aspect_ratio", "num_images", "output_format", "prompt"]],
     ]);
+  });
+
+  it("refuses a shot showing a real person before any fal call, then generates every shot once it is rewritten", async () => {
+    const { video, ctx, calls } = await workspace();
+    const refusing = fakeOpenrouter({ s2: "Le prompt nomme Zinédine Zidane." });
+    const refused = await runBlocksStep({ ...ctx("keyframes"), fetchImpl: refusing.fetchImpl });
+    expect(refused).toMatchObject({ ok: false, resultText: expect.stringContaining("- s2 (personne réelle) : Le prompt nomme Zinédine Zidane.") });
+    expect(calls).toEqual([]);
+    // The brief goes with the prompts: the campaign's own brand is allowed.
+    expect(refusing.guarded[0]).toContain("# Pub café");
+    expect(JSON.parse(await readFile(join(video, "shots_guard.json"), "utf8")).refused).toEqual({
+      step: "keyframes",
+      shots: [{ id: "s2", verdict: "real_person", reason: "Le prompt nomme Zinédine Zidane." }],
+    });
+
+    const rewritten = { ...storyboard, scenes: storyboard.scenes.map((scene) => (scene.id === "s2" ? { ...scene, shot: { ...scene.shot!, prompt: "A barista pouring beans" } } : scene)) };
+    const fixing = fakeOpenrouter({}, () => rewritten);
+    const fixed = await runBlocksStep({ ...ctx("keyframes", { only: ["s2"] }), feedback: "Un barista anonyme.", fetchImpl: fixing.fetchImpl });
+    expect(fixed).toMatchObject({ ok: true });
+    // s1, never drawn because the run stopped, is drawn with the corrected s2.
+    expect(submits(calls).map((call) => call.body?.prompt)).toEqual(["A coffee cup. cinematic, 35mm", "A barista pouring beans. cinematic, 35mm"]);
+    expect(JSON.parse(await readFile(join(video, "shots_guard.json"), "utf8")).refused).toBeNull();
+  });
+
+  it("asks once per prompt: an unchanged shot keeps its verdict", async () => {
+    const { ctx, openrouter } = await workspace();
+    await runBlocksStep(ctx("keyframes"));
+    await runBlocksStep(ctx("keyframes", { only: ["s1"] }));
+    await runBlocksStep(ctx("shots"));
+    expect(openrouter.guarded).toHaveLength(1);
+  });
+
+  it("sends nothing to fal when the prompts cannot be checked", async () => {
+    const { ctx, calls } = await workspace();
+    const failing = (async () => new Response("upstream down", { status: 502 })) as unknown as typeof fetch;
+    expect(await runBlocksStep({ ...ctx("keyframes"), fetchImpl: failing })).toMatchObject({ ok: false, resultText: expect.stringContaining("Contrôle des prompts impossible") });
+    expect(await runBlocksStep({ ...ctx("keyframes"), openrouter: null })).toMatchObject({ ok: false, resultText: expect.stringContaining("Contrôle des prompts impossible") });
+    expect(calls).toEqual([]);
   });
 
   it("builds only once every shot has its video", async () => {

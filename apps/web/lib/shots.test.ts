@@ -39,4 +39,10 @@ describe("parseShots", () => {
   it("shows a keyframe's price instead of 0.00 $", () => {
     expect([usd(0.003), usd(0), usd(0.8), usd(1.712)]).toEqual(["0.003 $", "0.00 $", "0.80 $", "1.71 $"]);
   });
+
+  it("reads the shots the guardrail refused, and none without the file", () => {
+    const guard = JSON.stringify({ verdicts: {}, refused: { step: "keyframes", shots: [{ id: "s3", verdict: "brand", reason: "Logo Nike." }] } });
+    expect(parseShots(storyboard, meta, null, guard)!.refused).toEqual({ step: "keyframes", shots: [{ id: "s3", verdict: "brand", reason: "Logo Nike." }] });
+    expect(parseShots(storyboard, meta, null)!.refused).toBeNull();
+  });
 });

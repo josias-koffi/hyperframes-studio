@@ -1,4 +1,4 @@
-import { REALISTIC_BUDGET_EUR, USD_PER_EUR, type ShotPass } from "@studio/shared/browser";
+import { REALISTIC_BUDGET_EUR, USD_PER_EUR, type RefusedShot, type ShotPass } from "@studio/shared/browser";
 
 /** What `scripts/shots.mjs` records of one generation (`shots_meta.json`). */
 type Generation = { model?: string; pass?: ShotPass; seconds?: number; costUsd?: number; status?: "ok" | "failed"; error?: string; at?: string };
@@ -21,7 +21,10 @@ export type ShotView = {
 /** A run the budget stopped (`shots_budget.json`), waiting for the user's confirmation. */
 export type BudgetBlock = { step: "keyframes" | "shots"; only: string[]; pass: ShotPass; estimateUsd: number; spentUsd: number; budgetUsd: number; unpriced: string[] };
 
-export type ShotsData = { shots: ShotView[]; spentUsd: number; budgetUsd: number; blocked: BudgetBlock | null };
+/** Shots the guardrail refused in the last run of a step (`shots_guard.json`): a real person, a brand without rights. */
+export type GuardBlock = { step: "keyframes" | "shots"; shots: RefusedShot[] };
+
+export type ShotsData = { shots: ShotView[]; spentUsd: number; budgetUsd: number; blocked: BudgetBlock | null; refused: GuardBlock | null };
 
 function json<T>(text: string | null): T | null {
   if (!text) return null;
@@ -33,7 +36,7 @@ function json<T>(text: string | null): T | null {
 }
 
 /** The shots of STORYBOARD.json with what shots_meta.json says of them; null before the storyboard exists. */
-export function parseShots(storyboardText: string | null, metaText: string | null, budgetText: string | null): ShotsData | null {
+export function parseShots(storyboardText: string | null, metaText: string | null, budgetText: string | null, guardText: string | null = null): ShotsData | null {
   const storyboard = json<{ scenes: { id: string; title: string; duration: number; shot?: { prompt: string; camera?: string; audio?: boolean } | null }[] }>(storyboardText);
   if (!storyboard) return null;
   const meta = json<{
@@ -60,6 +63,7 @@ export function parseShots(storyboardText: string | null, metaText: string | nul
     spentUsd: meta?.spentUsd ?? 0,
     budgetUsd: meta?.budgetUsd ?? REALISTIC_BUDGET_EUR * USD_PER_EUR,
     blocked: json<BudgetBlock>(budgetText),
+    refused: json<{ refused?: GuardBlock | null }>(guardText)?.refused ?? null,
   };
 }
 

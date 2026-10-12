@@ -8,6 +8,7 @@ import {
   REALISTIC_BUDGET_EUR,
   USD_PER_EUR,
   VIDEO_EXTENSIONS,
+  shotKeyframePath,
   shotVideoPath,
   videoProp,
   type ShotPass,
@@ -37,6 +38,10 @@ import {
   applyVisualCorrections,
   visualReviewJsonSchema,
   visualReviewSchema,
+  shotGuardJsonSchema,
+  shotGuardSchema,
+  type RefusedShot,
+  type ShotGuardVerdict,
   type AssembledVideo,
   type ReviewedIssue,
   type AudioMeta,
@@ -988,6 +993,83 @@ type ShotEstimate = { keyframes: number; draft: number; final: number; spentUsd:
 
 const BUDGET_FILE = "shots_budget.json";
 
+const GUARD_FILE = "shots_guard.json";
+const GUARD_LABELS: Record<RefusedShot["verdict"], string> = { real_person: "personne réelle", brand: "marque sans droits" };
+
+/** `shots_guard.json`: the verdicts already given (by prompt and brief), and the shots refused by the last run. */
+type GuardFile = { verdicts: Record<string, { verdict: ShotGuardVerdict; reason: string }>; refused: { step: ShotStep; shots: RefusedShot[] } | null };
+
+export function shotGuardSystemPrompt(): string {
+  return [
+    "Tu contrôles les plans d'une publicité avant qu'un modèle vidéo les génère. Pour chaque plan, donne un verdict :",
+    "- `real_person` : le plan montre une personne réelle reconnaissable : nommée (célébrité, personnalité, sportif, élu, client, collègue), désignée pour qu'on la reconnaisse (« l'acteur de… », un sosie), ou le visage d'une photo fournie.",
+    "- `brand` : il montre une marque, un logo, un produit ou un personnage protégé que la campagne n'a pas le droit d'utiliser. La marque et les produits de la campagne, décrits dans le brief, sont permis.",
+    "- `ok` sinon : des personnes anonymes (« a woman in her thirties »), des objets génériques, des lieux sont permis. Un style (« 35mm film ») n'est pas une personne.",
+    "Pour un refus, `reason` dit en une phrase courte, en français, ce qui pose problème ; pour `ok`, `reason` est vide. Réponds pour chaque plan de la liste, avec son id.",
+  ].join("\n");
+}
+
+/**
+ * Refuses, before any fal call, the shots whose prompt shows a real person or a brand without rights. A verdict is
+ * kept by prompt (and brief): an unchanged shot is not asked again. Without an answer, nothing goes to fal.
+ */
+async function guardShots(ctx: BlocksContext, storyboard: Storyboard, ids: readonly string[]): Promise<{ refused: RefusedShot[]; error?: string; usage?: TokenUsage }> {
+  const dir = videoDir(ctx);
+  const file: GuardFile = JSON.parse((await readFile(join(dir, GUARD_FILE), "utf8").catch(() => "null")) ?? "null") ?? { verdicts: {}, refused: null };
+  const brief = await readFile(join(dir, "BRIEF.md"), "utf8").catch(() => "");
+  const shots = storyboard.scenes.filter((scene) => scene.shot && ids.includes(scene.id));
+  const keyOf = (scene: (typeof shots)[number]) =>
+    createHash("sha256").update(JSON.stringify([scene.shot!.prompt, scene.shot!.camera, storyboard.style ?? "", brief])).digest("hex").slice(0, 32);
+  const unknown = shots.filter((scene) => !file.verdicts[keyOf(scene)]);
+  let usage: TokenUsage | undefined;
+  if (unknown.length) {
+    if (!ctx.model || !ctx.openrouter) return { refused: [], error: "aucun modèle OpenRouter pour contrôler les prompts" };
+    await ctx.onEvent({ kind: "log", level: "info", text: `Contrôle des prompts (personnes réelles, marques) : ${unknown.map((scene) => scene.id).join(", ")}.` });
+    const outcome = await structuredCall(ctx, {
+      label: "Contrôle des prompts",
+      name: "shot_guard",
+      schema: shotGuardJsonSchema(),
+      model: ctx.model,
+      escalationModel: ctx.escalationModel,
+      messages: [
+        { role: "system", content: shotGuardSystemPrompt() },
+        {
+          role: "user",
+          content: [
+            "# Brief de la campagne",
+            "",
+            brief.trim() || "(absent)",
+            "",
+            "# Plans à contrôler",
+            "",
+            ...(storyboard.style ? [`Style commun : ${storyboard.style}`, ""] : []),
+            ...unknown.map((scene) => `- ${scene.id} : ${scene.shot!.prompt}${scene.shot!.camera ? ` (caméra : ${scene.shot!.camera})` : ""}`),
+          ].join("\n"),
+        },
+      ],
+      check: async (content) => {
+        const parsed = parseJsonAnswer(content, shotGuardSchema);
+        const answered = new Set(parsed.value?.shots.map((shot) => shot.id) ?? []);
+        const missing = unknown.filter((scene) => !answered.has(scene.id)).map((scene) => scene.id);
+        return parsed.value && missing.length ? { value: null, errors: [`plans sans verdict : ${missing.join(", ")}`] } : parsed;
+      },
+    }).catch((error: unknown) => ({ value: null, errors: [error instanceof Error ? error.message : String(error)], usage: undefined }));
+    usage = outcome.usage;
+    if (!outcome.value) return { refused: [], error: outcome.errors.join(" ; "), usage };
+    for (const scene of unknown) {
+      const answer = outcome.value.shots.find((shot) => shot.id === scene.id)!;
+      file.verdicts[keyOf(scene)] = { verdict: answer.verdict, reason: answer.reason };
+    }
+  }
+  const refused = shots.flatMap((scene): RefusedShot[] => {
+    const { verdict, reason } = file.verdicts[keyOf(scene)];
+    return verdict === "ok" ? [] : [{ id: scene.id, verdict, reason }];
+  });
+  file.refused = refused.length ? { step: ctx.step as ShotStep, shots: refused } : null;
+  await writeFile(join(dir, GUARD_FILE), `${JSON.stringify(file, null, 2)}\n`);
+  return { refused, usage };
+}
+
 /** An amount in dollars: three decimals under ten cents, where a keyframe's price would read 0.00 $. */
 const usdText = (usd: number) => `${usd.toFixed(usd > 0 && usd < 0.1 ? 3 : 2)} $`;
 const eurText = (eur: number) => `${eur.toFixed(2).replace(/\.00$/, "")} €`;
@@ -1023,8 +1105,29 @@ async function shotStep(ctx: BlocksContext, manifests: BlockManifest[], step: Sh
   } else {
     targets = asked.length ? asked : storyboard.scenes.filter((scene) => scene.shot).map((scene) => scene.id);
   }
+  // A shot never generated (refused by the guardrail, a run that failed) is generated with the ones asked for; the
+  // final pass only takes the shots chosen for it.
+  const pending = await Promise.all(
+    storyboard.scenes
+      .filter((scene) => scene.shot && ctx.shots?.pass !== "final")
+      .map(async (scene) => ((await exists(join(dir, step === "keyframes" ? shotKeyframePath(scene.id) : shotVideoPath(scene.id)))) ? null : scene.id)),
+  );
+  targets = [...new Set([...targets, ...pending.filter((id): id is string => id !== null)])];
   targets = targets.filter((id) => storyboard.scenes.some((scene) => scene.id === id && scene.shot));
   if (!targets.length) return { ok: true, resultText: storyboard.scenes.some((scene) => scene.shot) ? "Aucun plan à générer de nouveau." : "Le storyboard n'a aucun plan généré.", usage, escalation };
+
+  const guard = await guardShots(ctx, storyboard, targets);
+  usage = addUsage(usage, guard.usage);
+  if (guard.error) return { ok: false, resultText: `Contrôle des prompts impossible, rien n'est parti chez fal : ${guard.error}`, usage, escalation };
+  if (guard.refused.length) {
+    const lines = guard.refused.map((shot) => `- ${shot.id} (${GUARD_LABELS[shot.verdict]}) : ${shot.reason}`);
+    return {
+      ok: false,
+      resultText: [`Plans refusés, rien n'est parti chez fal :`, ...lines, "Corrige leur prompt par un commentaire sur le plan : des personnes anonymes, la marque de la campagne."].join("\n"),
+      usage,
+      escalation,
+    };
+  }
 
   const pass: ShotPass = ctx.shots?.pass ?? "draft";
   const script = ["scripts/shots.mjs", `videos/${ctx.slug}`];
