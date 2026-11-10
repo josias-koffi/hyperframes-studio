@@ -12,6 +12,7 @@ const ENTRIES = [
   { ...base, id: "peep-debout", kind: "character", title: "Personne debout", tags: { fr: ["debout", "personne"], en: ["standing", "person"] }, file: "peeps/debout.svg", format: "svg", pack: "peeps" },
   { ...base, id: "icone-telephone", kind: "icon", title: "Téléphone", tags: { fr: ["téléphone", "appel"], en: ["phone", "call"] }, file: "icons/phone.svg", format: "svg", pack: "icons", license: "ISC" },
   { ...base, id: "emoji-fusee", kind: "object", title: "Fusée", tags: { fr: ["fusée", "lancement"], en: ["rocket", "launch"] }, file: "emoji/rocket.png", format: "png", pack: "emoji", dimensions: { width: 256, height: 256 } },
+  { ...base, id: "scene-appareils", kind: "component", title: "Appareils en éventail", tags: { fr: ["appareils"], en: ["devices"] }, file: "registry/components/splay/splay.html", format: "html", pack: "registry", license: "Apache-2.0" },
   { ...base, id: "drapeau-fr", kind: "flag", title: "Drapeau de la France", tags: { fr: ["france", "français"], en: ["france", "french", "fr"] }, file: "flags/fr.svg", format: "svg", pack: "flags" },
 ];
 
@@ -20,7 +21,9 @@ let workspace: string;
 beforeEach(() => {
   workspace = mkdtempSync(join(tmpdir(), "library-ws-"));
   const library = join(workspace, "library");
-  for (const dir of ["peeps", "icons", "emoji", "flags"]) mkdirSync(join(library, dir), { recursive: true });
+  for (const dir of ["peeps", "icons", "emoji", "flags", "registry/components/splay"]) mkdirSync(join(library, dir), { recursive: true });
+  writeFileSync(join(library, "registry/components/splay/splay.html"), "<template></template>");
+  writeFileSync(join(library, "registry/components/splay/registry-item.json"), "{}");
   writeFileSync(join(library, "catalog.json"), JSON.stringify({ version: 1, entries: ENTRIES }));
   writeFileSync(join(library, "peeps/assis.svg"), '<svg><path fill="#000"/><path fill="#fff"/></svg>');
   writeFileSync(join(library, "peeps/debout.svg"), "<svg><path/></svg>");
@@ -100,6 +103,15 @@ describe("library.mjs add", () => {
     library("add", "peep-debout", "videos/demo", "--color", "#123456");
     expect(readFileSync(join(workspace, "videos/demo/assets/library/peeps/debout-123456.svg"), "utf8")).toBe('<svg fill="#123456"><path/></svg>');
     expect(credits().assets.map((asset) => asset.file)).toEqual(["assets/library/icons/phone-ff6600.svg", "assets/library/peeps/debout-123456.svg"]);
+  });
+
+  it("puts a component of the registry where `hyperframes add` would, with its mount snippet and credit", () => {
+    const { out, status } = library("add", "scene-appareils", "videos/demo");
+    expect(status).toBe(0);
+    expect(readFileSync(join(workspace, "videos/demo/compositions/components/splay.html"), "utf8")).toBe("<template></template>");
+    expect(out).toContain('data-composition-src="compositions/components/splay.html"');
+    expect(out).toContain("library/registry/components/splay/registry-item.json");
+    expect(credits().assets).toEqual([expect.objectContaining({ file: "compositions/components/splay.html", license: "Apache-2.0" })]);
   });
 
   it("refuses to tint several colours or a bitmap", () => {

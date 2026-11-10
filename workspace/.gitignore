@@ -24,4 +24,5 @@ snapshots/
 .studio.env
 
 # Bibliothèque d'assets, remplacée par l'app à chaque nouvelle version ; une vidéo copie ses assets dans assets/library/
-/library/
+/library/*
+!/library/catalog.json

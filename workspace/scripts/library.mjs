@@ -9,10 +9,11 @@
 //
 // search  liste les assets les plus proches, du meilleur au moins bon, toujours dans le même ordre. Sans résultat, le
 //         dit : la bibliothèque n'a rien pour ça, note le manque avant de dessiner.
-// add     copie le fichier dans videos/<nom>/assets/library/<pack>/ et complète videos/<nom>/assets/library/CREDITS.json.
+// add     copie le fichier dans videos/<nom>/assets/library/<pack>/ (un composant du registre : dans
+//         videos/<nom>/compositions/components/) et complète videos/<nom>/assets/library/CREDITS.json.
 //         --color teint un SVG d'une seule couleur (icônes). Relancer la même commande ne duplique rien.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join, relative, resolve, sep } from "node:path";
+import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const LIBRARY = resolve(process.env.STUDIO_LIBRARY_DIR ?? join(dirname(fileURLToPath(import.meta.url)), "..", "library"));
@@ -156,7 +157,9 @@ function runAdd() {
   const source = join(LIBRARY, entry.file);
   if (!existsSync(source)) fail(`${id} : fichier absent de la bibliothèque (${entry.file})`);
   const name = colour ? entry.file.replace(/\.svg$/, `-${colour.slice(1).toLowerCase()}.svg`) : entry.file;
-  const target = join(videoDir, "assets", "library", name);
+  // A component of the registry goes where `hyperframes add` would put it: the mount snippet expects it there.
+  const component = entry.kind === "component";
+  const target = component ? join(videoDir, "compositions", "components", basename(name)) : join(videoDir, "assets", "library", name);
   mkdirSync(dirname(target), { recursive: true });
   if (colour) {
     const tinted = tint(readFileSync(source, "utf8"), colour.toLowerCase(), id);
@@ -167,6 +170,7 @@ function runAdd() {
 
   const file = relative(videoDir, target).split(sep).join("/");
   const creditsPath = join(videoDir, "assets", "library", "CREDITS.json");
+  mkdirSync(dirname(creditsPath), { recursive: true });
   const credits = existsSync(creditsPath) ? JSON.parse(readFileSync(creditsPath, "utf8")) : { version: 1, assets: [] };
   const credit = { file, id: entry.id, title: entry.title, pack: entry.pack, license: entry.license, author: entry.author, source: entry.source };
   credits.assets = [...credits.assets.filter((known) => known.file !== file), credit].sort((a, b) => (a.file < b.file ? -1 : a.file > b.file ? 1 : 0));
@@ -174,6 +178,17 @@ function runAdd() {
 
   if (rest.includes("--json")) {
     console.log(JSON.stringify({ file, id: entry.id }));
+    return;
+  }
+  if (component) {
+    const name = basename(file, ".html");
+    console.log(file);
+    console.log(`Monte-le depuis index.html (depuis une sous-composition de compositions/, le chemin devient ./components/${name}.html) :`);
+    console.log(
+      `<div class="clip" data-composition-id="${name}" data-composition-src="${file}" data-variable-values='{}' data-start="0" data-duration="5" data-track-index="0" style="position:absolute; inset:0; container-type:size;"></div>`,
+    );
+    const doc = [join(dirname(entry.file), "README.md"), join(dirname(entry.file), "registry-item.json")].find((path) => existsSync(join(LIBRARY, path)));
+    if (doc) console.log(`Variables et emplacements : library/${doc.split(sep).join("/")}. Crédit ajouté à assets/library/CREDITS.json.`);
     return;
   }
   const size = entry.dimensions ? ` (${entry.dimensions.width}×${entry.dimensions.height} px, ne l'affiche pas plus grand)` : "";

@@ -1,4 +1,113 @@
 {
   "version": 1,
-  "entries": []
+  "entries": [
+    {
+      "kind": "component",
+      "format": "html",
+      "pack": "hyperframes-registry",
+      "license": "Apache-2.0",
+      "author": "HeyGen (HyperFrames)",
+      "id": "browser-device-stage",
+      "title": "Écran d'app dans un navigateur, une fenêtre ou un téléphone",
+      "tags": {
+        "fr": [
+          "navigateur",
+          "site",
+          "application",
+          "écran",
+          "téléphone",
+          "fenêtre",
+          "démo",
+          "produit",
+          "capture"
+        ],
+        "en": [
+          "browser",
+          "website",
+          "app",
+          "screen",
+          "phone",
+          "window",
+          "demo",
+          "product",
+          "device",
+          "mockup"
+        ]
+      },
+      "useWhen": "Pour présenter une app ou un site dans un cadre de navigateur, de fenêtre ou de téléphone sans marque, avec une capture (ou un squelette d'app par défaut) et un changement d'écran optionnel. Composant à monter par data-composition-src ; mode d'emploi : library/hyperframes-registry/components/browser-device-stage/README.md.",
+      "avoidFor": "Une vidéo dans l'écran (elle ne serait pas calée) : utilise une sous-composition vidéo. Un ordinateur portable ou une tablette : bloc device-mockup.",
+      "file": "hyperframes-registry/components/browser-device-stage/browser-device-stage.html",
+      "source": "https://github.com/heygen-com/hyperframes/tree/0b531bc7a4635b8ede475522f21bfc451f0c6320/registry/components/browser-device-stage"
+    },
+    {
+      "kind": "component",
+      "format": "html",
+      "pack": "hyperframes-registry",
+      "license": "Apache-2.0",
+      "author": "HeyGen (HyperFrames)",
+      "id": "parallax-device-dive",
+      "title": "Plongée dans l'écran d'un téléphone",
+      "tags": {
+        "fr": [
+          "téléphone",
+          "smartphone",
+          "app",
+          "plongée",
+          "zoom",
+          "transition",
+          "caméra",
+          "interface"
+        ],
+        "en": [
+          "phone",
+          "smartphone",
+          "app",
+          "dive",
+          "zoom",
+          "transition",
+          "camera",
+          "parallax",
+          "ui"
+        ]
+      },
+      "useWhen": "Pour entrer dans une app : un téléphone monte, puis la caméra traverse son écran et l'interface remplit le cadre. Composant à monter par data-composition-src ; variables accent (green, blue, violet) et app_title, voir registry-item.json à côté du fichier.",
+      "avoidFor": "Montrer une capture d'écran réelle : l'interface est dessinée par le composant. Ses petits textes gris sont sous le contraste 4,5:1 : check l'avertit.",
+      "file": "hyperframes-registry/components/parallax-device-dive/parallax-device-dive.html",
+      "source": "https://github.com/heygen-com/hyperframes/tree/0b531bc7a4635b8ede475522f21bfc451f0c6320/registry/components/parallax-device-dive"
+    },
+    {
+      "kind": "component",
+      "format": "html",
+      "pack": "hyperframes-registry",
+      "license": "Apache-2.0",
+      "author": "HeyGen (HyperFrames)",
+      "id": "multi-device-splay",
+      "title": "Téléphone, tablette et ordinateur en éventail",
+      "tags": {
+        "fr": [
+          "téléphone",
+          "tablette",
+          "ordinateur",
+          "appareils",
+          "multi-plateforme",
+          "éventail",
+          "produit"
+        ],
+        "en": [
+          "phone",
+          "tablet",
+          "desktop",
+          "devices",
+          "multi-device",
+          "cross-platform",
+          "splay",
+          "product"
+        ]
+      },
+      "useWhen": "Pour dire « sur tous vos appareils » : un téléphone, une tablette et un ordinateur partent d'une pile et s'ouvrent en éventail, puis flottent. Composant à monter par data-composition-src ; variable accent (green, blue, violet), voir registry-item.json à côté du fichier.",
+      "avoidFor": "Montrer de vraies captures : les écrans sont dessinés par le composant. Un cadre portrait (9:16, 4:5) : conçu pour le paysage, la tablette et l'ordinateur sortent du cadre.",
+      "file": "hyperframes-registry/components/multi-device-splay/multi-device-splay.html",
+      "source": "https://github.com/heygen-com/hyperframes/tree/0b531bc7a4635b8ede475522f21bfc451f0c6320/registry/components/multi-device-splay"
+    }
+  ]
 }

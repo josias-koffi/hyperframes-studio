@@ -1,4 +1,53 @@
 {
   "version": 1,
-  "sources": []
+  "sources": [
+    {
+      "pack": "hyperframes-registry",
+      "type": "files",
+      "license": "Apache-2.0",
+      "licenseFile": "LICENSE",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/heygen-com/hyperframes/0b531bc7a4635b8ede475522f21bfc451f0c6320/LICENSE",
+          "path": "LICENSE",
+          "sha256": "4259155fb06f127687ee7b0a8a3682d45132db0f2da26cbc0b7a2d1e796436b8"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/heygen-com/hyperframes/0b531bc7a4635b8ede475522f21bfc451f0c6320/registry/components/browser-device-stage/browser-device-stage.html",
+          "path": "components/browser-device-stage/browser-device-stage.html",
+          "sha256": "59b20814d38bf58ec1c6c7727ed954e89e9f38a7392eddf6d266ce586bad6764"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/heygen-com/hyperframes/0b531bc7a4635b8ede475522f21bfc451f0c6320/registry/components/browser-device-stage/README.md",
+          "path": "components/browser-device-stage/README.md",
+          "sha256": "ed3585b7d534f5ec5634abe33d1f52bfd157a8d18d46b6b72fc0ee7d1ac50384"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/heygen-com/hyperframes/0b531bc7a4635b8ede475522f21bfc451f0c6320/registry/components/browser-device-stage/registry-item.json",
+          "path": "components/browser-device-stage/registry-item.json",
+          "sha256": "1fe166f10005e59380400b8bb799364343d73b10bb2a94923c8fe47473c3bcd2"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/heygen-com/hyperframes/0b531bc7a4635b8ede475522f21bfc451f0c6320/registry/components/parallax-device-dive/parallax-device-dive.html",
+          "path": "components/parallax-device-dive/parallax-device-dive.html",
+          "sha256": "45cdb2196398c2b0b76fde7c65a73d1da86075aee2c3399ecf808e78f3216b35"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/heygen-com/hyperframes/0b531bc7a4635b8ede475522f21bfc451f0c6320/registry/components/parallax-device-dive/registry-item.json",
+          "path": "components/parallax-device-dive/registry-item.json",
+          "sha256": "0621ea55116a0a2891235cae2ff506b4a3f966c55cebc413240eac7941692aaf"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/heygen-com/hyperframes/0b531bc7a4635b8ede475522f21bfc451f0c6320/registry/components/multi-device-splay/multi-device-splay.html",
+          "path": "components/multi-device-splay/multi-device-splay.html",
+          "sha256": "9b9f7081592f2d750b5bae5d19cefe39ea40c881f68e0da5863ac8b75e0e2ca1"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/heygen-com/hyperframes/0b531bc7a4635b8ede475522f21bfc451f0c6320/registry/components/multi-device-splay/registry-item.json",
+          "path": "components/multi-device-splay/registry-item.json",
+          "sha256": "5627ac6e29dadb77ca9a2cbf36da3e372450b7fc789a0352028a3fce059e7404"
+        }
+      ]
+    }
+  ]
 }
