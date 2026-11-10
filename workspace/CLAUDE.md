@@ -43,6 +43,10 @@ Nothing fits: try `/hyperframes-registry`, and draw only after both searches cam
 of `library/` by hand (`add` keeps `assets/library/CREDITS.json`), never edit `library/` (the app replaces it), and
 never show a bitmap larger than the size the search gives.
 
+Sound effects (`--kind sound`, SFX Kit) go on something that happens on screen, never on an element's entrance or
+exit nor on a transition, and there is no whoosh. Each is its own `<audio>`: `data-start` = the moment minus its sync
+point, `data-volume` as the search gives it under a voiceover, and an entry in `sfx` of the video's `audio_meta.json`.
+
 ## Skills — USE THESE FIRST
 
 **Always invoke the relevant skill before writing or modifying compositions.** Skills encode framework-specific patterns (e.g., `window.__timelines` registration, `data-*` attribute semantics, shader-compatible CSS rules) that are NOT in generic web docs. Skipping them produces broken compositions.

@@ -37,6 +37,7 @@ import {
   renderStoryboardHtml,
   renderStoryboardMd,
   sceneMidpoints,
+  soundCues,
   storyboardJsonSchema,
   applyVisualCorrections,
   visualReviewJsonSchema,
@@ -56,6 +57,8 @@ import {
   type GenerationStep,
   type LibraryEntry,
   type LoadedBlock,
+  type PlacedSound,
+  type SoundMoment,
   type StoryboardFormat,
   type Storyboard,
   type StudioEvent,
@@ -241,6 +244,66 @@ async function resolveLibraryRefs(
   for (const overlay of storyboard.overlays) overlays.push({ ...overlay, props: await resolveProps(overlay.props, overlay.block, `calque ${overlay.id}`) });
   if (files.size) await ctx.onEvent({ kind: "log", level: "info", text: `Bibliothèque : ${[...files.keys()].join(", ")} ajouté(s) dans assets/library/.` });
   return { storyboard: { ...storyboard, scenes, overlays }, errors, changed };
+}
+
+/** A sound of the library, with what places it (`sound` of the catalog entry). */
+type LibrarySound = LibraryEntry & { sound: { duration: number; syncAt: number; underVoiceoverDb: number; fitsSeconds?: [number, number] } };
+
+/** Among the sounds a moment allows, the one whose length fits the action; the first one when the action has none. */
+function chooseSound(candidates: readonly LibrarySound[], span: number | null): LibrarySound | undefined {
+  if (span === null || candidates.length < 2) return candidates[0];
+  const middle = (sound: LibrarySound) => (sound.sound.fitsSeconds ? (sound.sound.fitsSeconds[0] + sound.sound.fitsSeconds[1]) / 2 : sound.sound.duration);
+  const fitting = candidates.find((sound) => sound.sound.fitsSeconds && sound.sound.fitsSeconds[0] <= span && span <= sound.sound.fitsSeconds[1]);
+  return fitting ?? [...candidates].sort((a, b) => Math.abs(middle(a) - span) - Math.abs(middle(b) - span))[0];
+}
+
+/**
+ * The sounds of the blocks' moments, copied into the video by `library.mjs add` (credited) and placed so their sync
+ * point meets the moment: start = moment − sync.at. Under a voice over, each comes down by its own
+ * `underVoiceoverDb`. Without a library (or a sound it lacks), the video is built silent there.
+ */
+export async function placeSounds(ctx: BlocksContext, moments: readonly SoundMoment[]): Promise<PlacedSound[]> {
+  if (moments.length === 0 || !(await exists(join(ctx.workspaceDir, "scripts", "library.mjs")))) return [];
+  let known: Map<string, LibrarySound>;
+  try {
+    const ids = [...new Set(moments.flatMap((moment) => moment.sounds))];
+    const entries = (await libraryCommand(ctx, ["get", ...ids])) as LibraryEntry[];
+    known = new Map(entries.filter((entry): entry is LibrarySound => Boolean(entry.sound)).map((entry) => [entry.id, entry]));
+  } catch (error) {
+    await ctx.onEvent({ kind: "log", level: "error", text: `Bruitages indisponibles : ${error instanceof Error ? error.message : String(error)}` });
+    return [];
+  }
+  const files = new Map<string, string>();
+  const placed: PlacedSound[] = [];
+  for (const moment of moments) {
+    const sound = chooseSound(moment.sounds.flatMap((id) => known.get(id) ?? []), moment.span);
+    if (!sound) continue;
+    if (!files.has(sound.id)) {
+      try {
+        files.set(sound.id, ((await libraryCommand(ctx, ["add", sound.id, `videos/${ctx.slug}`])) as { file: string }).file);
+      } catch (error) {
+        await ctx.onEvent({ kind: "log", level: "error", text: `Bruitage ${sound.id} non ajouté : ${error instanceof Error ? error.message : String(error)}` });
+        continue;
+      }
+    }
+    placed.push({
+      id: sound.id,
+      scene: moment.scene,
+      path: files.get(sound.id)!,
+      start: Math.round((moment.moment - sound.sound.syncAt) * 1000) / 1000,
+      duration_s: sound.sound.duration,
+      volume: moment.voice ? Math.round(10 ** (sound.sound.underVoiceoverDb / 20) * 1000) / 1000 : 1,
+    });
+  }
+  return placed;
+}
+
+/** `audio_meta.json` records the sound effects the build placed, next to the voice and the music of the media step. */
+async function recordSounds(dir: string, sounds: readonly PlacedSound[]): Promise<void> {
+  const path = join(dir, "audio_meta.json");
+  const meta = (await exists(path)) ? (JSON.parse(await readFile(path, "utf8")) as Record<string, unknown>) : null;
+  if (!meta && sounds.length === 0) return;
+  await writeFile(path, `${JSON.stringify({ ...(meta ?? { voices: [] }), sfx: sounds }, null, 2)}\n`);
 }
 
 export function storyboardSystemPrompt(manifests: readonly BlockManifest[], format: StoryboardFormat): string {
@@ -712,9 +775,12 @@ async function assembleAndCheck(ctx: BlocksContext, manifests: BlockManifest[], 
   const metaPath = join(dir, "audio_meta.json");
   const audio = (await exists(metaPath)) ? (JSON.parse(await readFile(metaPath, "utf8")) as AudioMeta) : null;
   const { width, height, variables } = ctx.format;
+  // A still has no sound; a video gets the sounds of its blocks' moments.
+  const sfx = ctx.format.frames ? [] : await placeSounds(ctx, soundCues({ storyboard, blocks, audio }));
   const assembled = ctx.format.frames
     ? assembleStills({ storyboard, blocks, width, height, variables })
-    : assembleVideo({ storyboard, blocks, width, height, audio, variables });
+    : assembleVideo({ storyboard, blocks, width, height, audio, sfx, variables });
+  if (!ctx.format.frames) await recordSounds(dir, assembled.sfx);
   // The scenes are regenerated from STORYBOARD.json: a scene removed from the storyboard must not linger.
   await rm(join(dir, "compositions", "scenes"), { recursive: true, force: true });
   await writeFile(join(dir, "index.html"), assembled.indexHtml);

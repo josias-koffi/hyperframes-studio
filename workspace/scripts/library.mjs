@@ -102,6 +102,10 @@ function search(entries, query, kind, formats) {
 function describe(entry) {
   const size = entry.dimensions ? `, ${entry.dimensions.width}×${entry.dimensions.height} px` : "";
   const lines = [`${entry.id}  [${entry.kind}]  ${entry.title}`, `    fichier : ${entry.file} (${entry.format}${size}) · ${entry.license}, ${entry.author}`, `    pour : ${entry.useWhen}`];
+  if (entry.sound) {
+    const { duration, syncAt, meets, underVoiceoverDb } = entry.sound;
+    lines.push(`    son : ${duration} s, synchro à ${syncAt} s (${meets}) : data-start = moment − ${syncAt} ; sous une voix off, ${underVoiceoverDb} dB (data-volume ${Math.round(10 ** (underVoiceoverDb / 20) * 100) / 100})`);
+  }
   if (entry.avoidFor) lines.push(`    éviter : ${entry.avoidFor}`);
   return lines.join("\n");
 }

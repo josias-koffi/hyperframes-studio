@@ -35,6 +35,22 @@ export const blockPropSchema = z.object({
 });
 export type BlockProp = z.infer<typeof blockPropSchema>;
 
+/**
+ * A sound on a moment of a block: the sync point of the sound meets `at` seconds from the scene's start. `sounds` are
+ * library ids (SFX Kit). With `each`, one moment per non-empty prop, `step` apart (the block's own spacing, the
+ * smaller of `stepMax` and `stepShare` × duration ÷ count), the i-th one taking the i-th sound. With `span`, the
+ * action lasts the smaller of `max` and `share` × duration, and the sound whose length fits it is taken. With
+ * `numberProp`, only when that prop is a number the block counts up.
+ */
+export const soundCueSchema = z.object({
+  sounds: z.array(z.string().regex(/^sfx-[a-z0-9-]+$/)).min(1),
+  at: z.number().nonnegative(),
+  each: z.object({ props: z.array(z.string()).min(1), stepMax: z.number().positive(), stepShare: z.number().positive().max(1) }).optional(),
+  span: z.object({ max: z.number().positive(), share: z.number().positive().max(1) }).optional(),
+  numberProp: z.string().optional(),
+});
+export type SoundCue = z.infer<typeof soundCueSchema>;
+
 export const blockManifestSchema = z.object({
   id: slugIdSchema,
   name: z.string().min(1),
@@ -60,6 +76,8 @@ export const blockManifestSchema = z.object({
   onlyOver: z.array(slugIdSchema).optional(),
   /** Props of a good use of the block: shown to the model, and filled in the tests of every shipped block. */
   example: z.record(z.string(), z.string()).optional(),
+  /** The sounds the block's own moments call for (`soundCues`): never one on an entrance or an exit, never a whoosh. */
+  sfx: z.array(soundCueSchema).optional(),
 });
 export type BlockManifest = z.infer<typeof blockManifestSchema>;
 
@@ -642,6 +660,9 @@ export type AudioMeta = {
   voices?: { frame: number; path: string; duration_s: number; words?: { text: string; start: number; end: number }[] }[];
 };
 
+/** A sound placed on the root timeline, and as `audio_meta.json` records it in `sfx`. */
+export type PlacedSound = { id: string; scene: string; path: string; start: number; duration_s: number; volume: number };
+
 /** A spoken word, in seconds from the start of the overlay that shows it (`{{@words}}`). */
 export type BlockWord = { text: string; start: number; end: number };
 
@@ -654,6 +675,8 @@ export type AssembledVideo = {
   files: Record<string, string>;
   /** Start and length of each scene, after the voice has stretched it. */
   timings: { id: string; start: number; duration: number }[];
+  /** The sound effects on the root timeline (`sfx` of `assembleVideo`), kept within the video. */
+  sfx: PlacedSound[];
   /** Length of each scene's sub-composition: its own, plus the transition into the next scene. */
   slots: Record<string, number>;
   /** Pixels each scene keeps free of text at the bottom, under the captions. */
@@ -727,28 +750,9 @@ function bindVariables(block: LoadedBlock, variables: Readonly<Record<string, st
  * transitions on the root timeline. A scene lasts at least as long as its voice. A custom scene is not built here:
  * the root points at `customScenePath`, written by an agent.
  */
-export function assembleVideo({
-  storyboard,
-  blocks,
-  width,
-  height,
-  audio,
-  variables,
-  gsapSrc = "https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js",
-}: {
-  storyboard: Storyboard;
-  blocks: ReadonlyMap<string, LoadedBlock>;
-  width: number;
-  height: number;
-  audio?: AudioMeta | null;
-  /** A template's contract, declared on the root `<html>` as the composition's variables. */
-  variables?: readonly CompositionVariable[] | null;
-  gsapSrc?: string;
-}): AssembledVideo {
+/** Start and length of each scene: at least its voice, plus a short tail. */
+export function sceneTimings(storyboard: Storyboard, audio?: AudioMeta | null): AssembledVideo["timings"] {
   const voices = new Map((audio?.voices ?? []).map((voice) => [voice.frame, voice]));
-  const files: Record<string, string> = {};
-  const slots: Record<string, number> = {};
-  const safeBottoms: Record<string, number> = {};
   const timings: AssembledVideo["timings"] = [];
   let cursor = 0;
   storyboard.scenes.forEach((scene, index) => {
@@ -757,7 +761,70 @@ export function assembleVideo({
     timings.push({ id: scene.id, start: r3(cursor), duration });
     cursor += duration;
   });
-  const total = r3(cursor);
+  return timings;
+}
+
+/** A moment of the video that calls for a sound, from a block's `sfx`: the sound is chosen among `sounds`. */
+export type SoundMoment = { scene: string; sounds: string[]; moment: number; span: number | null; voice: boolean };
+
+/**
+ * The moments of the video's blocks that call for a sound, in seconds from its start, with the scene times
+ * `assembleVideo` gives them (a scene's block runs over its slot: its length plus the transition into the next).
+ */
+export function soundCues({ storyboard, blocks, audio }: { storyboard: Storyboard; blocks: ReadonlyMap<string, LoadedBlock>; audio?: AudioMeta | null }): SoundMoment[] {
+  const timings = sceneTimings(storyboard, audio);
+  const voiced = new Set((audio?.voices ?? []).map((voice) => voice.frame));
+  const moments: SoundMoment[] = [];
+  storyboard.scenes.forEach((scene, index) => {
+    const cues = blocks.get(scene.block)?.manifest.sfx ?? [];
+    const next = storyboard.scenes[index + 1];
+    const slot = timings[index].duration + (next && next.transition !== "cut" ? TRANSITION_SECONDS : 0);
+    const voice = voiced.has(index + 1);
+    for (const cue of cues) {
+      if (cue.numberProp && !/^\d+([.,]\d+)?$/.test((scene.props[cue.numberProp] ?? "").replace(/[\s\u00a0\u202f]/g, ""))) continue;
+      const span = cue.span ? Math.min(cue.span.max, slot * cue.span.share) : null;
+      if (!cue.each) {
+        moments.push({ scene: scene.id, sounds: cue.sounds, moment: r3(timings[index].start + cue.at), span, voice });
+        continue;
+      }
+      const count = cue.each.props.filter((prop) => (scene.props[prop] ?? "").trim()).length;
+      const step = Math.min(cue.each.stepMax, (slot * cue.each.stepShare) / Math.max(1, count));
+      for (let i = 0; i < count; i++) {
+        const sound = cue.sounds[Math.min(i, cue.sounds.length - 1)];
+        moments.push({ scene: scene.id, sounds: [sound], moment: r3(timings[index].start + cue.at + i * step), span, voice });
+      }
+    }
+  });
+  return moments;
+}
+
+export function assembleVideo({
+  storyboard,
+  blocks,
+  width,
+  height,
+  audio,
+  sfx = [],
+  variables,
+  gsapSrc = "https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js",
+}: {
+  storyboard: Storyboard;
+  blocks: ReadonlyMap<string, LoadedBlock>;
+  width: number;
+  height: number;
+  audio?: AudioMeta | null;
+  /** Sound effects already placed (`soundCues`, then the library): only those within the video are kept. */
+  sfx?: readonly PlacedSound[];
+  /** A template's contract, declared on the root `<html>` as the composition's variables. */
+  variables?: readonly CompositionVariable[] | null;
+  gsapSrc?: string;
+}): AssembledVideo {
+  const voices = new Map((audio?.voices ?? []).map((voice) => [voice.frame, voice]));
+  const files: Record<string, string> = {};
+  const slots: Record<string, number> = {};
+  const safeBottoms: Record<string, number> = {};
+  const timings = sceneTimings(storyboard, audio);
+  const total = r3(timings.reduce((sum, timing) => sum + timing.duration, 0));
 
   const order = new Map(storyboard.scenes.map((scene, index) => [scene.id, index]));
   const span = (overlay: StoryboardOverlay) => [order.get(overlay.from) ?? 0, order.get(overlay.to) ?? -1] as const;
@@ -835,6 +902,16 @@ export function assembleVideo({
     );
   });
 
+  // Three tracks, so that two sounds close together never sit on the same one.
+  const sounds = sfx
+    .filter((sound) => sound.start < total)
+    .map((sound) => ({ ...sound, start: r3(Math.max(0, sound.start)), duration_s: r3(Math.min(sound.duration_s, total - Math.max(0, sound.start))) }));
+  sounds.forEach((sound, index) =>
+    clips.push(
+      `      <audio id="el-sfx-${index + 1}" src="${escapeHtml(sound.path)}" data-start="${sound.start}" data-duration="${sound.duration_s}" data-track-index="${12 + (index % 3)}" data-volume="${sound.volume}"></audio>`,
+    ),
+  );
+
   if (audio?.bgm)
     clips.push(
       `      <audio id="el-bgm" src="${escapeHtml(audio.bgm.path)}" data-start="0" data-duration="${total}" data-track-index="11" data-volume="${audio.bgm.volume ?? 0.18}" data-fade-out="1.5"></audio>`,
@@ -870,7 +947,7 @@ ${tweens.map((tween) => `      ${tween}`).join("\n")}
   </body>
 </html>
 `;
-  return { indexHtml, files, timings, slots, safeBottoms, duration: total };
+  return { indexHtml, files, timings, slots, safeBottoms, duration: total, sfx: sounds };
 }
 
 /**
@@ -1005,6 +1082,8 @@ ${slides.map((slide) => `      ${slide.script}`).join("\n")}
     slots: Object.fromEntries(timings.map((timing) => [timing.id, 1])),
     safeBottoms: Object.fromEntries(timings.map((timing) => [timing.id, 0])),
     duration: total,
+    // A still has no sound.
+    sfx: [],
   };
 }
 

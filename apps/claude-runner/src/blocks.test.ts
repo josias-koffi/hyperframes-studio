@@ -547,6 +547,38 @@ describe("the asset library in a blocks video", () => {
     expect(await readFile(join(dir, "videos/essai/compositions/scenes/s2.html"), "utf8")).toContain("assets/library/icons/phone.svg");
   });
 
+  it("places the sounds of the blocks' moments, so their sync point meets the moment, and records them", async () => {
+    const { dir, ctx } = await fakeWorkspace(valid);
+    await withLibrary(dir);
+    const chime = {
+      ...bell,
+      id: "sfx-notification-success-chime",
+      title: "Notification : Success chime",
+      file: "sfx/chime.wav",
+      sound: { duration: 0.963, syncAt: 0.05, meets: "instant", underVoiceoverDb: -3 },
+    };
+    await mkdir(join(dir, "library/sfx"), { recursive: true });
+    await writeFile(join(dir, "library/sfx/chime.wav"), "RIFF");
+    await writeFile(join(dir, "library/catalog.json"), JSON.stringify({ version: 1, entries: [phone, bell, chime] }));
+    expect(await runBlocksStep(ctx("build"))).toMatchObject({ ok: true });
+    // cta-end starts at 3 + 6 = 9 s and rings at 0.7 s: 9.7 − 0.05.
+    expect(await readFile(join(dir, "videos/essai/index.html"), "utf8")).toContain(
+      '<audio id="el-sfx-1" src="assets/library/sfx/chime.wav" data-start="9.65" data-duration="0.963" data-track-index="12" data-volume="1"></audio>',
+    );
+    const meta = JSON.parse(await readFile(join(dir, "videos/essai/audio_meta.json"), "utf8"));
+    expect(meta.sfx).toEqual([{ id: "sfx-notification-success-chime", scene: "s3", path: "assets/library/sfx/chime.wav", start: 9.65, duration_s: 0.963, volume: 1 }]);
+    const credits = JSON.parse(await readFile(join(dir, "videos/essai/assets/library/CREDITS.json"), "utf8"));
+    expect(credits.assets.map((asset: { id: string }) => asset.id)).toEqual(["sfx-notification-success-chime"]);
+  });
+
+  it("builds a silent video when the library has no sound for a moment", async () => {
+    const { dir, ctx } = await fakeWorkspace(valid);
+    await withLibrary(dir);
+    expect(await runBlocksStep(ctx("build"))).toMatchObject({ ok: true });
+    expect(await readFile(join(dir, "videos/essai/index.html"), "utf8")).not.toContain("el-sfx");
+    expect(await readFile(join(dir, "videos/essai/audio_meta.json"), "utf8").catch(() => null)).toBeNull();
+  });
+
   it("fails the build on an id the library does not have", async () => {
     const { dir, ctx } = await fakeWorkspace({ ...withPhone, scenes: [valid.scenes[0], { ...withPhone.scenes[1], props: { src: "library:disparu" } }, valid.scenes[2]] });
     await withLibrary(dir);

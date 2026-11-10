@@ -56,6 +56,13 @@ describe("libraryCatalogSchema", () => {
     expect(libraryCatalogSchema.safeParse(catalog({ ...png, dimensions: { width: 720, height: 972 } })).success).toBe(true);
   });
 
+  it("asks a sound for its placement", () => {
+    const sound = { kind: "sound", file: "open-peeps/tick.wav", format: "wav" };
+    expect(libraryCatalogSchema.safeParse(catalog(sound)).success).toBe(false);
+    const placed = { ...sound, sound: { duration: 0.3, syncAt: 0.01, meets: "instant", underVoiceoverDb: -6 } };
+    expect(libraryCatalogSchema.safeParse(catalog(placed)).success).toBe(true);
+  });
+
   it("refuses two entries with the same id", () => {
     expect(libraryCatalogSchema.safeParse({ version: 1, entries: [entry, entry] }).success).toBe(false);
   });

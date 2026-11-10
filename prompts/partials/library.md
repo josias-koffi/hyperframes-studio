@@ -14,3 +14,8 @@ HTML et leur licence est déjà vérifiée.
   teindre une icône d'une seule couleur), puis utilise le chemin affiché dans un `<img>`. Ne copie jamais un fichier
   de `library/` à la main : `add` tient les crédits de la vidéo (`assets/library/CREDITS.json`). N'affiche pas une
   image bitmap plus grande que la taille indiquée par la recherche.
+- Bruitages (`--kind sound`) : seulement sur un moment qui se passe à l'écran (un chiffre qui compte, un point de
+  liste qui se coche, un bouton validé, une notification), jamais sur l'entrée ou la sortie d'un élément ni sur une
+  transition, et aucun whoosh. Un `<audio>` à part par son, `data-start` = le moment − sa synchro, `data-volume`
+  indiqué par la recherche quand une voix off parle, et une entrée dans `sfx` de `{{dir}}/audio_meta.json`
+  (`id`, `path`, `start`, `duration_s`, `volume`).

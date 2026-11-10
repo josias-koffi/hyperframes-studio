@@ -602,6 +602,24 @@
         "LICENSE"
       ],
       "sha256": "54ba1371a0aafea188f02278c8ef72571df5e4a3f00f98849e70824121c7d2bc"
+    },
+    {
+      "pack": "sfx-kit",
+      "type": "github",
+      "repo": "wyzowl/sfx-kit",
+      "commit": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "license": "CC0-1.0",
+      "licenseFile": "LICENSE",
+      "include": [
+        "sounds/*/*.wav",
+        "!sounds/whooshes/*",
+        "!sounds/swishes-and-zips/*",
+        "!sounds/reverse-whooshes/*",
+        "sounds.json",
+        "GUIDE.md",
+        "LICENSE"
+      ],
+      "sha256": "f717ece46ef9b68d4b0259561375ba8a3e5f06c0a251ec3290bdd2c28c5936df"
     }
   ]
 }

@@ -13,5 +13,6 @@
     "textColor": { "type": "color", "label": "Couleur de la phrase", "required": false, "default": "#F5F3EE" }
   },
   "duration": { "min": 2, "max": 6, "default": 3.5 },
-  "example": { "value": "87", "suffix": "%", "label": "des clients publient leur première vidéo le jour même" }
+  "example": { "value": "87", "suffix": "%", "label": "des clients publient leur première vidéo le jour même" },
+  "sfx": [{ "sounds": ["sfx-data-countup-short", "sfx-data-countup-medium", "sfx-data-countup-long"], "at": 0.1, "span": { "max": 1.6, "share": 0.5 }, "numberProp": "value" }]
 }

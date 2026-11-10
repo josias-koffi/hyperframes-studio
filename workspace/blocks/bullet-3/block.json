@@ -13,5 +13,6 @@
     "textColor": { "type": "color", "label": "Couleur du texte", "required": false, "default": "#141414" }
   },
   "duration": { "min": 3, "max": 8, "default": 5 },
-  "example": { "title": "Pourquoi ça marche", "item1": "Prêt en cinq minutes", "item2": "Aucune compétence requise", "item3": "Résultat pro garanti" }
+  "example": { "title": "Pourquoi ça marche", "item1": "Prêt en cinq minutes", "item2": "Aucune compétence requise", "item3": "Résultat pro garanti" },
+  "sfx": [{ "sounds": ["sfx-tone-step-1", "sfx-tone-step-2", "sfx-tone-step-3"], "at": 0.6, "each": { "props": ["item1", "item2", "item3"], "stepMax": 0.7, "stepShare": 0.5 } }]
 }

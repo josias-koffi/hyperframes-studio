@@ -13,6 +13,7 @@ import {
   scopeCss,
   assembleStills,
   sceneMidpoints,
+  soundCues,
   storyboardJsonSchema,
   studioAudio,
   type BlockManifest,
@@ -545,5 +546,61 @@ describe("realistic shots", () => {
   it("leave a storyboard without shot as it is", () => {
     const plain: Storyboard = { version: 1, title: "T", audio: { voice: false, music: null }, scenes: [], overlays: [] };
     expect(applyShots(plain, all)).toBe(plain);
+  });
+});
+
+describe("sound effects", () => {
+  const list: BlockManifest = blockManifestSchema.parse({
+    id: "list",
+    name: "Liste",
+    description: "Trois points.",
+    useWhen: "Pour une liste.",
+    props: { a: { type: "text", label: "A" }, b: { type: "text", label: "B" }, c: { type: "text", label: "C", required: false, default: "" } },
+    duration: { min: 2, max: 8, default: 4 },
+    sfx: [{ sounds: ["sfx-step-1", "sfx-step-2", "sfx-step-3"], at: 0.5, each: { props: ["a", "b", "c"], stepMax: 0.7, stepShare: 0.5 } }],
+  });
+  const stat: BlockManifest = blockManifestSchema.parse({
+    id: "stat",
+    name: "Chiffre",
+    description: "Un nombre qui compte.",
+    useWhen: "Pour un chiffre.",
+    props: { value: { type: "text", label: "Nombre" } },
+    duration: { min: 2, max: 6, default: 3 },
+    sfx: [{ sounds: ["sfx-count-short", "sfx-count-long"], at: 0.1, span: { max: 1.6, share: 0.5 }, numberProp: "value" }],
+  });
+  const soundBlocks = new Map<string, LoadedBlock>([
+    ...blocks,
+    ["list", { manifest: list, html: '<template><div id="root" data-composition-id="{{@id}}">{{a}}{{b}}{{c}}</div></template>' }],
+    ["stat", { manifest: stat, html: '<template><div id="root" data-composition-id="{{@id}}">{{value}}</div></template>' }],
+  ]);
+  const parse = (scenes: unknown[]) => parseStoryboard(storyboard(scenes), [...manifests, list, stat], format).storyboard as Storyboard;
+
+  it("finds the moments of each block, one per item shown, spaced like the block spaces them", () => {
+    const parsed = parse([
+      { id: "s1", title: "Hook", block: "hook", duration: 2, props: { text: "Salut" } },
+      { id: "s2", title: "Liste", block: "list", duration: 4, props: { a: "Un", b: "Deux" } },
+      { id: "s3", title: "Chiffre", block: "stat", duration: 3, props: { value: "1 200" } },
+      { id: "s4", title: "Mot", block: "stat", duration: 3, props: { value: "beaucoup" } },
+    ]);
+    expect(soundCues({ storyboard: parsed, blocks: soundBlocks })).toEqual([
+      // Two items in 4 s: a step of min(0.7, 4 × 0.5 ÷ 2) = 0.7.
+      { scene: "s2", sounds: ["sfx-step-1"], moment: 2.5, span: null, voice: false },
+      { scene: "s2", sounds: ["sfx-step-2"], moment: 3.2, span: null, voice: false },
+      { scene: "s3", sounds: ["sfx-count-short", "sfx-count-long"], moment: 6.1, span: 1.5, voice: false },
+    ]);
+  });
+
+  it("puts the placed sounds on the root timeline, within the video, three tracks apart", () => {
+    const parsed = parse([{ id: "s1", title: "Liste", block: "list", duration: 4, props: { a: "Un", b: "Deux", c: "Trois" } }]);
+    const sfx = [
+      { id: "sfx-step-1", scene: "s1", path: "assets/library/sfx-kit/a.wav", start: -0.2, duration_s: 0.5, volume: 0.7 },
+      { id: "sfx-step-2", scene: "s1", path: "assets/library/sfx-kit/b.wav", start: 3.8, duration_s: 0.5, volume: 1 },
+      { id: "sfx-step-3", scene: "s1", path: "assets/library/sfx-kit/c.wav", start: 4.2, duration_s: 0.5, volume: 1 },
+    ];
+    const out = assembleVideo({ storyboard: parsed, blocks: soundBlocks, width: 1080, height: 1920, sfx });
+    expect(out.indexHtml).toContain('<audio id="el-sfx-1" src="assets/library/sfx-kit/a.wav" data-start="0" data-duration="0.5" data-track-index="12" data-volume="0.7"></audio>');
+    expect(out.indexHtml).toContain('<audio id="el-sfx-2" src="assets/library/sfx-kit/b.wav" data-start="3.8" data-duration="0.2" data-track-index="13" data-volume="1"></audio>');
+    expect(out.indexHtml).not.toContain("c.wav");
+    expect(out.sfx.map((sound) => sound.id)).toEqual(["sfx-step-1", "sfx-step-2"]);
   });
 });

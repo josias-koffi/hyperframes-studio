@@ -46,6 +46,19 @@ export const libraryEntrySchema = z.object({
   format: z.enum(LIBRARY_FORMATS),
   /** In pixels; required for a bitmap, whose size limits how large it can be shown. */
   dimensions: z.object({ width: z.number().int().positive(), height: z.number().int().positive() }).optional(),
+  /**
+   * How a sound is placed (SFX Kit's data): it starts at the on-screen moment minus `syncAt`, the instant that
+   * meets the moment (`meets`); `underVoiceoverDb` is the gain under a voice over. Required for a sound.
+   */
+  sound: z
+    .object({
+      duration: z.number().positive(),
+      syncAt: z.number().nonnegative(),
+      meets: z.string().min(1),
+      underVoiceoverDb: z.number().max(0),
+      fitsSeconds: z.tuple([z.number().nonnegative(), z.number().positive()]).optional(),
+    })
+    .optional(),
   pack: packIdSchema,
   license: z.enum(LIBRARY_LICENSES),
   /** The page the asset comes from. */
@@ -69,6 +82,7 @@ export const libraryCatalogSchema = z
       if (!entry.file.startsWith(`${entry.pack}/`)) problem(`le fichier doit être dans le dossier du pack ${entry.pack}`);
       if (!entry.file.endsWith(`.${entry.format}`)) problem(`l'extension du fichier doit être .${entry.format}`);
       if (BITMAP_FORMATS.includes(entry.format) && !entry.dimensions) problem("une image bitmap doit donner ses dimensions");
+      if (entry.kind === "sound" && !entry.sound) problem("un son doit donner sa durée, son point de synchro et son niveau sous la voix (sound)");
     });
   });
 export type LibraryCatalog = z.infer<typeof libraryCatalogSchema>;
