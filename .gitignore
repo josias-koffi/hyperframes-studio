@@ -11,6 +11,9 @@ coverage
 .idea
 .DS_Store
 tmp/
+# Asset packs, downloaded from library.lock.json; only the catalog is source
+workspace/library/*
+!workspace/library/catalog.json
 # Dev workspace mounted by the workers (videos are runtime data, not source)
 .workspace/
 .email-previews/

@@ -5,6 +5,7 @@ export * from "./brief-doc";
 export * from "./claude-events";
 export * from "./creations";
 export * from "./jobs";
+export * from "./library";
 export * from "./opencode-events";
 export * from "./queues";
 export * from "./storyboard";

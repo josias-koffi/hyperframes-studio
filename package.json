@@ -10,6 +10,7 @@
     "typecheck": "turbo run typecheck",
     "db:generate": "turbo run build --filter=@studio/shared && pnpm --filter @studio/db db:generate",
     "format": "prettier --write .",
+    "library:fetch": "node scripts/fetch-library.mjs",
     "desktop": "pnpm build && pnpm --filter @studio/desktop start",
     "desktop:dist": "pnpm build && pnpm --filter @studio/desktop dist"
   },
