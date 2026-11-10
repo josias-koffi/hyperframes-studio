@@ -68,6 +68,18 @@ describe("missingStepOutputs", () => {
     expect(await missingStepOutputs(workspace, "demo", "video", "footage")).toEqual(["FOOTAGE.md", "footage_map.json"]);
     expect(await missingStepOutputs(workspace, "demo", "video", "media")).toEqual([]);
   });
+
+  it.each([
+    ["voix+musique", ["audio_meta.json", "assets/audio/music/bgm.mp3"]],
+    ["voix", ["audio_meta.json"]],
+    ["musique", ["assets/audio/music/bgm.mp3"]],
+    ["aucun", []],
+  ])("expects the sound a storyboard with studio_audio: %s asks for", async (audio, expected) => {
+    const workspace = await mkdtemp(join(tmpdir(), "ws-"));
+    await mkdir(join(workspace, "videos", "demo"), { recursive: true });
+    await writeFile(join(workspace, "videos", "demo", "STORYBOARD.md"), `---\nstudio_audio: ${audio}\n---\n`);
+    expect(await missingStepOutputs(workspace, "demo", "video", "media")).toEqual(expected);
+  });
 });
 
 describe("setCanvasSize", () => {

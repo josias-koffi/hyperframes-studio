@@ -53,10 +53,11 @@ export async function startClaudeRunner() {
     bin: config.claudeBin,
     skillsDir: config.skillsDir,
     workspaceDir: config.workspaceDir,
-    env: agentEnv(
-      dirs,
-      Object.fromEntries(CLAUDE_CODE_ENV.filter((key) => process.env[key]).map((key) => [key, process.env[key] as string])),
-    ),
+    env: agentEnv(dirs, {
+      ...Object.fromEntries(CLAUDE_CODE_ENV.filter((key) => process.env[key]).map((key) => [key, process.env[key] as string])),
+      // The agents write bash: under zsh, a glob that matches nothing aborts the whole command.
+      CLAUDE_CODE_SHELL: "/bin/bash",
+    }),
   });
 
   // One `opencode serve` for the app, behind a password of its own, started by the first OpenCode turn.

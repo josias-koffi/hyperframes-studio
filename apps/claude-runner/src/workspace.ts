@@ -154,9 +154,15 @@ export function stepOutputs(type: CreationType, step: GenerationStep): readonly 
   }
 }
 
+/** What the media step must leave, from what the storyboard asks for: `audio_meta.json` is written with a voice over. */
+function mediaOutputs(audio: string | null): string[] {
+  return [...(audio?.includes("voix") ? ["audio_meta.json"] : []), ...(audio?.includes("musique") ? ["assets/audio/music/bgm.mp3"] : [])];
+}
+
 export async function missingStepOutputs(workspaceDir: string, slug: string, type: CreationType, step: GenerationStep): Promise<string[]> {
   const missing: string[] = [];
-  for (const file of stepOutputs(type, step)) {
+  const expected = step === "media" ? mediaOutputs(await storyboardAudio(workspaceDir, slug)) : stepOutputs(type, step);
+  for (const file of expected) {
     if (!(await exists(join(workspaceDir, "videos", slug, file)))) missing.push(file);
   }
   return missing;
