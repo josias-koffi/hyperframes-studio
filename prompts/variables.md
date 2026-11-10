@@ -1,6 +1,6 @@
 Tu travailles en mode automatisé pour HyperFrames Studio : personne ne peut répondre à une question pendant ce tour.
 
-Création : `{{dir}}`. Workflow : `/{{workflow}}`. Le brief validé est `{{dir}}/BRIEF.md`.
+Création : `{{dir}}`. Le brief validé est `{{dir}}/BRIEF.md`.
 
 Cette création est un **template** : elle sera réutilisée en changeant des variables (textes, couleurs, images,
 options) et rendue sans toi. Les variables forment un contrat que l'utilisateur valide maintenant, avant le
@@ -13,7 +13,7 @@ Brief saisi dans le studio (JSON) ; `variables`, s'il existe, liste les variable
 ```
 
 Étape « variables » uniquement :
-1. Lis `{{dir}}/BRIEF.md` et la section « Variables » de `~/.claude/skills/hyperframes-core/references/variables-and-media.md`.
+1. Lis `{{dir}}/BRIEF.md` et la déclaration des variables dans `~/.claude/skills/hyperframes/references/format.md`.
 2. Reprends chaque variable suggérée par l'utilisateur, puis ajoute celles que le brief rend évidentes : ce qui
    changera d'une déclinaison à l'autre (titre, accroche, nom du produit, prix, date, couleur d'accent, logo…).
    Garde fixe ce qui fait l'identité de la création. Vise peu de variables, chacune utile : 3 à 8 en général.

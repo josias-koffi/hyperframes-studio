@@ -19,6 +19,17 @@ export type PromptContext = {
   feedback?: string;
 };
 
+/** What each video style of the form reads in the `/hyperframes` skill, which replaced the skills named after them. */
+const STYLE_GUIDES: Record<string, string> = {
+  "product-launch-video": "types/launch.md",
+  "faceless-explainer": "types/explainer.md",
+  "motion-graphics": "motion.md",
+  "music-to-video": "types/music.md",
+  "general-video": "film.md",
+  "embedded-captions": "captions.md",
+  "talking-head-recut": "overlays.md",
+};
+
 /** `{{name}}` placeholders; an unknown placeholder is an authoring error of the prompt file. */
 export function renderTemplate(template: string, values: Record<string, string>): string {
   return template.replace(/\{\{\s*([a-zA-Z]+)\s*\}\}/g, (_, key: string) => {
@@ -61,7 +72,7 @@ export async function buildPrompt(promptsDir: string, context: PromptContext): P
     type: context.type,
     slug: context.slug,
     dir: `videos/${context.slug}`,
-    workflow: context.workflow,
+    guide: `~/.claude/skills/hyperframes/references/${STYLE_GUIDES[context.workflow] ?? "film.md"}`,
     brief: JSON.stringify(context.brief, null, 2),
     campaign: context.campaign.replace(/\n/g, "\n> "),
     width: String(context.width ?? ""),

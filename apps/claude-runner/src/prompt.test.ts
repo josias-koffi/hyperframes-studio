@@ -39,6 +39,16 @@ describe("buildPrompt", () => {
     }
   });
 
+  it.each([
+    ["product-launch-video", "references/types/launch.md"],
+    ["general-video", "references/film.md"],
+    ["a-style-from-an-old-creation", "references/film.md"],
+  ])("sends the style %s to its guide in the hyperframes skill", async (workflow, guide) => {
+    const prompt = await buildPrompt(PROMPTS, { ...base, step: "brief", workflow });
+    expect(prompt).toContain(`~/.claude/skills/hyperframes/${guide}`);
+    expect(prompt).not.toContain(`/${workflow}`);
+  });
+
   it("states the format of the création", async () => {
     const carousel = await buildPrompt(PROMPTS, { ...base, step: "build", type: "carousel", width: 1080, height: 1350, slideCount: 6 });
     expect(carousel).toContain('data-duration="6"');

@@ -1,7 +1,7 @@
 # Prompts des étapes
 
 Un fichier par étape de génération, lu par `apps/claude-runner` (`buildPrompt`). Placeholders :
-`{{slug}}`, `{{dir}}` (`videos/<slug>`), `{{workflow}}` (skill HyperFrames de la création), `{{brief}}` (JSON du
+`{{slug}}`, `{{dir}}` (`videos/<slug>`), `{{guide}}` (référence du skill `/hyperframes` pour ce type de vidéo), `{{brief}}` (JSON du
 formulaire), `{{campaign}}` (nom et contexte du projet), `{{step}}`, `{{feedback}}` (`feedback.md` uniquement),
 et le format de la création : `{{type}}`, `{{width}}`, `{{height}}`, `{{duration}}`, `{{slides}}` (vides quand ils
 ne s'appliquent pas). Un placeholder inconnu fait échouer le job.
