@@ -175,6 +175,16 @@ describe("the library of the repository", () => {
     expect(avatars.every((entry) => entry.license === "CC0-1.0" && entry.kind === "avatar" && Object.keys(manifest.styles).includes(entry.file.split("/")[1]))).toBe(true);
   });
 
+  it("names every country of the maps by its ISO code, Crimea inside Ukraine's outline", () => {
+    const maps = join(repo, "vendor/library/natural-earth");
+    const world = readFileSync(join(maps, "world.svg"), "utf8");
+    for (const code of ["FRA", "UKR", "MAR", "USA", "CHN"]) expect(world).toContain(`id="${code}"`);
+    expect(readFileSync(join(maps, "countries/fr.svg"), "utf8")).toContain('id="FRA" data-name="France" data-iso2="FR"');
+    expect(readFileSync(join(maps, "SOURCE.md"), "utf8")).toContain("vue officielle française");
+    const shipped = libraryCatalogSchema.parse(JSON.parse(readFileSync(join(repo, "workspace/library/catalog.json"), "utf8")));
+    expect(shipped.entries.find((entry) => entry.id === "carte-pays-ua")?.useWhen).toContain("La Crimée y est incluse.");
+  });
+
   it("keeps only the default tone of the emojis with skin tones", () => {
     const shipped = libraryCatalogSchema.parse(JSON.parse(readFileSync(join(repo, "workspace/library/catalog.json"), "utf8")));
     const emojis = shipped.entries.filter((entry) => entry.pack === "fluent-emoji");

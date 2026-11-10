@@ -123,6 +123,13 @@
       "sha256": "6b73828647739972d1d1060597766c7435aa02cae2399e9c840561aff2d26a51"
     },
     {
+      "pack": "natural-earth",
+      "type": "local",
+      "license": "public-domain",
+      "path": "vendor/library/natural-earth",
+      "sha256": "12a475d935007f449e345840a3fca4383926d1b124769bae2d0db80d9dbed0c9"
+    },
+    {
       "pack": "open-doodles",
       "type": "files",
       "license": "CC0-1.0",
