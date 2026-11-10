@@ -265372,6 +265372,4134 @@
       "license": "CC0-1.0",
       "source": "https://www.opendoodles.com/",
       "author": "Pablo Stanley"
+    },
+    {
+      "id": "avatar-lorelei-1",
+      "kind": "avatar",
+      "title": "Avatar 1 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-1.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-2",
+      "kind": "avatar",
+      "title": "Avatar 2 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-2.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-3",
+      "kind": "avatar",
+      "title": "Avatar 3 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-3.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-4",
+      "kind": "avatar",
+      "title": "Avatar 4 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-4.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-5",
+      "kind": "avatar",
+      "title": "Avatar 5 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-5.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-6",
+      "kind": "avatar",
+      "title": "Avatar 6 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-6.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-7",
+      "kind": "avatar",
+      "title": "Avatar 7 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-7.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-8",
+      "kind": "avatar",
+      "title": "Avatar 8 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-8.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-9",
+      "kind": "avatar",
+      "title": "Avatar 9 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-9.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-10",
+      "kind": "avatar",
+      "title": "Avatar 10 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-10.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-11",
+      "kind": "avatar",
+      "title": "Avatar 11 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-11.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-12",
+      "kind": "avatar",
+      "title": "Avatar 12 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-12.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-13",
+      "kind": "avatar",
+      "title": "Avatar 13 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-13.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-14",
+      "kind": "avatar",
+      "title": "Avatar 14 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-14.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-15",
+      "kind": "avatar",
+      "title": "Avatar 15 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-15.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-16",
+      "kind": "avatar",
+      "title": "Avatar 16 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-16.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-17",
+      "kind": "avatar",
+      "title": "Avatar 17 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-17.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-18",
+      "kind": "avatar",
+      "title": "Avatar 18 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-18.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-19",
+      "kind": "avatar",
+      "title": "Avatar 19 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-19.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-20",
+      "kind": "avatar",
+      "title": "Avatar 20 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-20.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-21",
+      "kind": "avatar",
+      "title": "Avatar 21 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-21.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-22",
+      "kind": "avatar",
+      "title": "Avatar 22 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-22.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-23",
+      "kind": "avatar",
+      "title": "Avatar 23 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-23.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-lorelei-24",
+      "kind": "avatar",
+      "title": "Avatar 24 : visage dessiné au trait, style illustration (DiceBear lorelei)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "illustration",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "illustration",
+          "line art",
+          "lorelei",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage dessiné au trait, style illustration, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/lorelei/avatar-24.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198749693280469639",
+      "author": "Lisa Wischofsky (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-1",
+      "kind": "avatar",
+      "title": "Avatar 1 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-1.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-2",
+      "kind": "avatar",
+      "title": "Avatar 2 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-2.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-3",
+      "kind": "avatar",
+      "title": "Avatar 3 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-3.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-4",
+      "kind": "avatar",
+      "title": "Avatar 4 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-4.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-5",
+      "kind": "avatar",
+      "title": "Avatar 5 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-5.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-6",
+      "kind": "avatar",
+      "title": "Avatar 6 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-6.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-7",
+      "kind": "avatar",
+      "title": "Avatar 7 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-7.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-8",
+      "kind": "avatar",
+      "title": "Avatar 8 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-8.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-9",
+      "kind": "avatar",
+      "title": "Avatar 9 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-9.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-10",
+      "kind": "avatar",
+      "title": "Avatar 10 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-10.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-11",
+      "kind": "avatar",
+      "title": "Avatar 11 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-11.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-12",
+      "kind": "avatar",
+      "title": "Avatar 12 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-12.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-13",
+      "kind": "avatar",
+      "title": "Avatar 13 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-13.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-14",
+      "kind": "avatar",
+      "title": "Avatar 14 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-14.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-15",
+      "kind": "avatar",
+      "title": "Avatar 15 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-15.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-16",
+      "kind": "avatar",
+      "title": "Avatar 16 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-16.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-17",
+      "kind": "avatar",
+      "title": "Avatar 17 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-17.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-18",
+      "kind": "avatar",
+      "title": "Avatar 18 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-18.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-19",
+      "kind": "avatar",
+      "title": "Avatar 19 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-19.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-20",
+      "kind": "avatar",
+      "title": "Avatar 20 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-20.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-21",
+      "kind": "avatar",
+      "title": "Avatar 21 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-21.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-22",
+      "kind": "avatar",
+      "title": "Avatar 22 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-22.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-23",
+      "kind": "avatar",
+      "title": "Avatar 23 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-23.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-notionists-24",
+      "kind": "avatar",
+      "title": "Avatar 24 : visage au trait noir, style Notion (DiceBear notionists)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "trait",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "line art",
+          "notionists",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage au trait noir, style Notion, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/notionists/avatar-24.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://heyzoish.gumroad.com/l/notionists",
+      "author": "Zoish (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-1",
+      "kind": "avatar",
+      "title": "Avatar 1 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-1.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-2",
+      "kind": "avatar",
+      "title": "Avatar 2 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-2.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-3",
+      "kind": "avatar",
+      "title": "Avatar 3 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-3.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-4",
+      "kind": "avatar",
+      "title": "Avatar 4 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-4.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-5",
+      "kind": "avatar",
+      "title": "Avatar 5 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-5.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-6",
+      "kind": "avatar",
+      "title": "Avatar 6 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-6.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-7",
+      "kind": "avatar",
+      "title": "Avatar 7 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-7.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-8",
+      "kind": "avatar",
+      "title": "Avatar 8 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-8.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-9",
+      "kind": "avatar",
+      "title": "Avatar 9 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-9.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-10",
+      "kind": "avatar",
+      "title": "Avatar 10 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-10.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-11",
+      "kind": "avatar",
+      "title": "Avatar 11 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-11.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-12",
+      "kind": "avatar",
+      "title": "Avatar 12 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-12.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-13",
+      "kind": "avatar",
+      "title": "Avatar 13 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-13.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-14",
+      "kind": "avatar",
+      "title": "Avatar 14 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-14.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-15",
+      "kind": "avatar",
+      "title": "Avatar 15 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-15.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-16",
+      "kind": "avatar",
+      "title": "Avatar 16 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-16.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-17",
+      "kind": "avatar",
+      "title": "Avatar 17 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-17.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-18",
+      "kind": "avatar",
+      "title": "Avatar 18 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-18.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-19",
+      "kind": "avatar",
+      "title": "Avatar 19 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-19.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-20",
+      "kind": "avatar",
+      "title": "Avatar 20 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-20.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-21",
+      "kind": "avatar",
+      "title": "Avatar 21 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-21.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-22",
+      "kind": "avatar",
+      "title": "Avatar 22 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-22.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-23",
+      "kind": "avatar",
+      "title": "Avatar 23 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-23.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-open-peeps-24",
+      "kind": "avatar",
+      "title": "Avatar 24 : visage Open Peeps dessiné à la main (DiceBear open-peeps)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "dessin",
+          "noir et blanc",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "hand-drawn",
+          "open-peeps",
+          "person",
+          "profile",
+          "profile picture",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage Open Peeps dessiné à la main, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/open-peeps/avatar-24.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-1",
+      "kind": "avatar",
+      "title": "Avatar 1 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-1.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-2",
+      "kind": "avatar",
+      "title": "Avatar 2 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-2.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-3",
+      "kind": "avatar",
+      "title": "Avatar 3 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-3.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-4",
+      "kind": "avatar",
+      "title": "Avatar 4 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-4.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-5",
+      "kind": "avatar",
+      "title": "Avatar 5 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-5.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-6",
+      "kind": "avatar",
+      "title": "Avatar 6 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-6.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-7",
+      "kind": "avatar",
+      "title": "Avatar 7 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-7.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-8",
+      "kind": "avatar",
+      "title": "Avatar 8 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-8.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-9",
+      "kind": "avatar",
+      "title": "Avatar 9 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-9.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-10",
+      "kind": "avatar",
+      "title": "Avatar 10 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-10.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-11",
+      "kind": "avatar",
+      "title": "Avatar 11 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-11.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-12",
+      "kind": "avatar",
+      "title": "Avatar 12 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-12.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-13",
+      "kind": "avatar",
+      "title": "Avatar 13 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-13.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-14",
+      "kind": "avatar",
+      "title": "Avatar 14 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-14.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-15",
+      "kind": "avatar",
+      "title": "Avatar 15 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-15.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-16",
+      "kind": "avatar",
+      "title": "Avatar 16 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-16.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-17",
+      "kind": "avatar",
+      "title": "Avatar 17 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-17.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-18",
+      "kind": "avatar",
+      "title": "Avatar 18 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-18.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-19",
+      "kind": "avatar",
+      "title": "Avatar 19 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-19.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-20",
+      "kind": "avatar",
+      "title": "Avatar 20 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-20.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-21",
+      "kind": "avatar",
+      "title": "Avatar 21 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-21.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-22",
+      "kind": "avatar",
+      "title": "Avatar 22 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-22.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-23",
+      "kind": "avatar",
+      "title": "Avatar 23 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-23.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-pixel-art-24",
+      "kind": "avatar",
+      "title": "Avatar 24 : visage en pixel art (DiceBear pixel-art)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "jeu vidéo",
+          "personne",
+          "photo de profil",
+          "pixel art",
+          "profil",
+          "rétro",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "person",
+          "pixel art",
+          "pixel-art",
+          "profile",
+          "profile picture",
+          "retro",
+          "user",
+          "video game"
+        ]
+      },
+      "useWhen": "Photo de profil générée, visage en pixel art, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo. Affiche-le avec image-rendering: pixelated, sinon il devient flou en grand.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/pixel-art/avatar-24.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.figma.com/community/file/1198754108850888330",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-1",
+      "kind": "avatar",
+      "title": "Avatar 1 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-1.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-2",
+      "kind": "avatar",
+      "title": "Avatar 2 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-2.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-3",
+      "kind": "avatar",
+      "title": "Avatar 3 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-3.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-4",
+      "kind": "avatar",
+      "title": "Avatar 4 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-4.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-5",
+      "kind": "avatar",
+      "title": "Avatar 5 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-5.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-6",
+      "kind": "avatar",
+      "title": "Avatar 6 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-6.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-7",
+      "kind": "avatar",
+      "title": "Avatar 7 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-7.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-8",
+      "kind": "avatar",
+      "title": "Avatar 8 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-8.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-9",
+      "kind": "avatar",
+      "title": "Avatar 9 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-9.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-10",
+      "kind": "avatar",
+      "title": "Avatar 10 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-10.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-11",
+      "kind": "avatar",
+      "title": "Avatar 11 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-11.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-12",
+      "kind": "avatar",
+      "title": "Avatar 12 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-12.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-13",
+      "kind": "avatar",
+      "title": "Avatar 13 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-13.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-14",
+      "kind": "avatar",
+      "title": "Avatar 14 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-14.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-15",
+      "kind": "avatar",
+      "title": "Avatar 15 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-15.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-16",
+      "kind": "avatar",
+      "title": "Avatar 16 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-16.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-17",
+      "kind": "avatar",
+      "title": "Avatar 17 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-17.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-18",
+      "kind": "avatar",
+      "title": "Avatar 18 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-18.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-19",
+      "kind": "avatar",
+      "title": "Avatar 19 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-19.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-20",
+      "kind": "avatar",
+      "title": "Avatar 20 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-20.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-21",
+      "kind": "avatar",
+      "title": "Avatar 21 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-21.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-22",
+      "kind": "avatar",
+      "title": "Avatar 22 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-22.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-23",
+      "kind": "avatar",
+      "title": "Avatar 23 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-23.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
+    },
+    {
+      "id": "avatar-thumbs-24",
+      "kind": "avatar",
+      "title": "Avatar 24 : pastille colorée minimaliste avec un visage (DiceBear thumbs)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "couleur",
+          "minimaliste",
+          "personne",
+          "photo de profil",
+          "profil",
+          "utilisateur"
+        ],
+        "en": [
+          "avatar",
+          "colorful",
+          "minimal",
+          "person",
+          "profile",
+          "profile picture",
+          "thumbs",
+          "user"
+        ]
+      },
+      "useWhen": "Photo de profil générée, pastille colorée minimaliste avec un visage, carrée : pour un commentaire, un témoignage, une liste d'utilisateurs, un message. Prends plusieurs avatars du même style dans une vidéo.",
+      "avoidFor": "Une vraie personne nommée : un avatar généré ne la représente pas. Son expression est tirée au hasard (certains grimacent) : regarde-le avant de le choisir. Ne mélange pas les styles d'avatar.",
+      "file": "dicebear/thumbs/avatar-24.svg",
+      "format": "svg",
+      "pack": "dicebear",
+      "license": "CC0-1.0",
+      "source": "https://www.dicebear.com",
+      "author": "DiceBear (DiceBear)"
     }
   ]
 }

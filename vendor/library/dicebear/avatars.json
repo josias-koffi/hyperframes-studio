@@ -1,0 +1,32 @@
+{
+  "generator": "scripts/library/dicebear.mjs",
+  "dicebear": "9.4.3",
+  "seeds": 24,
+  "styles": {
+    "lorelei": {
+      "license": "CC0 1.0",
+      "creator": "Lisa Wischofsky",
+      "source": "https://www.figma.com/community/file/1198749693280469639"
+    },
+    "notionists": {
+      "license": "CC0 1.0",
+      "creator": "Zoish",
+      "source": "https://heyzoish.gumroad.com/l/notionists"
+    },
+    "open-peeps": {
+      "license": "CC0 1.0",
+      "creator": "Pablo Stanley",
+      "source": "https://www.openpeeps.com/"
+    },
+    "pixel-art": {
+      "license": "CC0 1.0",
+      "creator": "DiceBear",
+      "source": "https://www.figma.com/community/file/1198754108850888330"
+    },
+    "thumbs": {
+      "license": "CC0 1.0",
+      "creator": "DiceBear",
+      "source": "https://www.dicebear.com"
+    }
+  }
+}

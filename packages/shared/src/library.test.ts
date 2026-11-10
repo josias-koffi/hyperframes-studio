@@ -166,6 +166,15 @@ describe("the library of the repository", () => {
     expect(germany?.file).toBe("flag-icons/flags/4x3/de.svg");
   });
 
+  it("generates avatars from CC0 styles only, never a CC BY style nor an artist's own license", () => {
+    const manifest = JSON.parse(readFileSync(join(repo, "vendor/library/dicebear/avatars.json"), "utf8")) as { styles: Record<string, { license: string }> };
+    expect(Object.keys(manifest.styles).length).toBeGreaterThan(0);
+    for (const [style, { license }] of Object.entries(manifest.styles)) expect(license, style).toBe("CC0 1.0");
+    const shipped = libraryCatalogSchema.parse(JSON.parse(readFileSync(join(repo, "workspace/library/catalog.json"), "utf8")));
+    const avatars = shipped.entries.filter((entry) => entry.pack === "dicebear");
+    expect(avatars.every((entry) => entry.license === "CC0-1.0" && entry.kind === "avatar" && Object.keys(manifest.styles).includes(entry.file.split("/")[1]))).toBe(true);
+  });
+
   it("keeps only the default tone of the emojis with skin tones", () => {
     const shipped = libraryCatalogSchema.parse(JSON.parse(readFileSync(join(repo, "workspace/library/catalog.json"), "utf8")));
     const emojis = shipped.entries.filter((entry) => entry.pack === "fluent-emoji");

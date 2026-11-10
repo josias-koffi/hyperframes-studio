@@ -15,6 +15,13 @@
       ]
     },
     {
+      "pack": "dicebear",
+      "type": "local",
+      "license": "CC0-1.0",
+      "path": "vendor/library/dicebear",
+      "sha256": "c6e8100eadabdd4525e13a016926c16baf9526ee95c678ea87733d36474709f4"
+    },
+    {
       "pack": "flag-icons",
       "type": "github",
       "repo": "lipis/flag-icons",
