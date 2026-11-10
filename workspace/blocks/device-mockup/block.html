@@ -1,0 +1,209 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        /*
+          Appareils : Devices.css v0.2.0 (github.com/picturepan2/devices.css, commit 11846244977a4905a4fb9ac12bb2121e068d6147),
+          réduit à trois modèles, renommés dm-phone, dm-laptop, dm-tablet, sans leurs variantes de couleur.
+
+          MIT License
+
+          Copyright (c) 2017 Yan Zhu
+
+          Permission is hereby granted, free of charge, to any person obtaining a copy
+          of this software and associated documentation files (the "Software"), to deal
+          in the Software without restriction, including without limitation the rights
+          to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+          copies of the Software, and to permit persons to whom the Software is
+          furnished to do so, subject to the following conditions:
+
+          The above copyright notice and this permission notice shall be included in all
+          copies or substantial portions of the Software.
+
+          THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+          IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+          FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+          AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+          LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+          OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+          SOFTWARE.
+        */
+        .device, .device::before, .device::after, .device *, .device *::before, .device *::after{box-sizing: border-box; display: block;}
+        .device{position: relative; transform: scale(1); z-index: 1;}
+        .device .device-frame{z-index: 1;}
+        .device .device-screen{background-color: #000; background-position: center center; background-size: cover; object-fit: cover; position: relative;}
+        .dm-phone{height: 862px; width: 404px;}
+        .dm-phone .device-frame{background: #121212; border-radius: 28px; box-shadow: inset 0 0 12px #8d8d86, inset 0 7px 0 3px #fdfdfc, inset 0 -6px 0 3px #fdfdfc; height: 862px; margin: 0 2px; padding: 20px 12px 26px 12px; width: 400px;}
+        .dm-phone .device-screen{border-radius: 27px; height: 816px; width: 376px;}
+        .dm-phone .device-header{background: linear-gradient(to bottom, #8d8d86 0, #cbcbc8 30%, #cbcbc8 100%); height: 10px; left: 50%; margin-left: -147px; position: absolute; top: 0; width: 294px;}
+        .dm-phone .device-stripe::after{background: linear-gradient(to top, #121212, #666661); border-radius: 50px 50px 0 0; bottom: 0; content: ""; height: 2px; left: 50%; margin-left: -22px; position: absolute; width: 44px;}
+        .dm-phone .device-stripe::before{background: #cbcbc8; bottom: 0; content: ""; height: 9px; left: 50%; margin-left: 40px; position: absolute; width: 11px;}
+        .dm-phone .device-sensors{background: #121212; border-radius: 50%; height: 22px; left: 50%; margin-left: -11px; margin-top: -11px; position: absolute; top: 39px; width: 22px;}
+        .dm-phone .device-sensors::after, .dm-phone .device-sensors::before{content: ""; position: absolute;}
+        .dm-phone .device-sensors::after{background: linear-gradient(to bottom, #121212, #666661); border-radius: 0 0 50px 50px; height: 4px; left: 50%; margin-left: -103px; top: -18px; width: 206px;}
+        .dm-phone .device-sensors::before{background: radial-gradient(farthest-corner at 20% 20%, #6074bf 0, transparent 40%), radial-gradient(farthest-corner at 80% 80%, #513785 0, #24555e 20%, transparent 50%); border-radius: 50%; box-shadow: 0 0 1px 1px rgba(255, 255, 255, .05); height: 8px; left: 7px; top: 7px; width: 8px;}
+        .dm-phone .device-btns{background: #b2b2ae; height: 102px; position: absolute; right: 0; top: 306px; width: 3px;}
+        .dm-phone .device-power{background: #b2b2ae; height: 58px; position: absolute; right: 0; top: 194px; width: 3px;}
+        .dm-laptop{height: 434px; width: 740px;}
+        .dm-laptop .device-frame{background: #0d0d0d; border-radius: 20px; box-shadow: inset 0 0 0 2px #c8cacb; height: 418px; margin: 0 auto; padding: 9px 9px 23px 9px; position: relative; width: 618px;}
+        .dm-laptop .device-frame::after{background: linear-gradient(to bottom, #272727, #0d0d0d); border-radius: 0 0 20px 20px; bottom: 2px; content: ""; height: 24px; left: 2px; position: absolute; width: 614px;}
+        .dm-laptop .device-header{background: #0d0d0d; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; height: 12px; left: 50%; margin-left: -32px; position: absolute; top: 11px; width: 64px; z-index: 2;}
+        .dm-laptop .device-header::after, .dm-laptop .device-header::before{content: ""; height: 4px; position: absolute; top: 0; width: 4px;}
+        .dm-laptop .device-header::after{background: radial-gradient(circle at bottom left, transparent 0, transparent 75%, #0d0d0d 75%, #0d0d0d 100%); left: -4px;}
+        .dm-laptop .device-header::before{background: radial-gradient(circle at bottom right, transparent 0, transparent 75%, #0d0d0d 75%, #0d0d0d 100%); right: -4px;}
+        .dm-laptop .device-screen{border: 2px solid #121212; border-radius: 10px 10px 0 0; height: 375px; width: 600px;}
+        .dm-laptop .device-power{background: radial-gradient(circle at center, #e2e3e4 85%, #c8cacb 100%); border: solid #a0a3a7; border-radius: 2px 2px 12px 12px; border-width: 1px 2px 0 2px; box-shadow: inset 0 -2px 8px 0 #6c7074; height: 24px; margin-top: -10px; position: relative; width: 740px; z-index: 9;}
+        .dm-laptop .device-power::after{background: #e2e3e4; border-radius: 0 0 10px 10px; box-shadow: inset 0 0 4px 2px #babdbf; content: ""; height: 10px; left: 50%; margin-left: -60px; position: absolute; top: 0; width: 120px;}
+        .dm-laptop .device-power::before{background: transparent; border-radius: 0 0 3px 3px; bottom: -2px; box-shadow: -300px 0 #272727, 300px 0 #272727; content: ""; height: 2px; left: 50%; margin-left: -20px; position: absolute; width: 40px;}
+        .dm-tablet{height: 778px; width: 560px;}
+        .dm-tablet .device-frame{background: #0d0d0d; border-radius: 36px; box-shadow: inset 0 0 0 1px #babdbf, inset 0 0 1px 3px #e2e3e4; height: 778px; padding: 27px; width: 560px;}
+        .dm-tablet .device-screen{border: 2px solid #121212; border-radius: 11px; height: 724px; width: 506px;}
+        .dm-tablet .device-btns::after, .dm-tablet .device-btns::before{background: #babdbf; content: ""; position: absolute;}
+        .dm-tablet .device-btns::after{height: 2px; right: 40px; top: -2px; width: 36px;}
+        .dm-tablet .device-btns::before{box-shadow: 0 37px #babdbf; height: 32px; right: -2px; top: 63px; width: 2px;}
+        .dm-tablet .device-sensors::after, .dm-tablet .device-sensors::before{content: ""; position: absolute;}
+        .dm-tablet .device-sensors::after{background: #1a1a1a; border-radius: 17px; box-shadow: -20px 0 #1a1a1a, 70px 0 #1a1a1a; height: 10px; left: 50%; margin-left: -30px; top: 12px; width: 10px;}
+        .dm-tablet .device-sensors::before{background: radial-gradient(farthest-corner at 20% 20%, #6074bf 0, transparent 40%), radial-gradient(farthest-corner at 80% 80%, #513785 0, #24555e 20%, transparent 50%); border-radius: 50%; box-shadow: 0 0 1px 1px rgba(255, 255, 255, .05); height: 6px; left: 50%; margin-left: -3px; top: 14px; width: 6px;}
+        /* The laptop's camera notch, gone: the screen stays whole. */
+        .dm-laptop .device-header,
+        .dm-laptop .device-sensors {
+          display: none;
+        }
+
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: {{background}};
+          color: {{textColor}};
+          font-family: system-ui, sans-serif;
+          display: flex;
+          flex-direction: column;
+          padding: 6% 7% calc(4% + {{@safeBottom}}px);
+          gap: 48px;
+        }
+        @media (min-aspect-ratio: 5/4) {
+          #root {
+            flex-direction: row;
+            align-items: center;
+            padding: 6% 6% calc(6% + {{@safeBottom}}px);
+            gap: 6%;
+          }
+        }
+        .dm-stage {
+          position: relative;
+          flex: 1 1 0;
+          min-height: 0;
+          min-width: 0;
+          align-self: stretch;
+        }
+        .dm-device {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+        }
+        .dm-scale {
+          transform-origin: 0 0;
+        }
+        .dm-copy {
+          flex: 0 0 auto;
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+          text-align: center;
+          align-items: center;
+        }
+        @media (min-aspect-ratio: 5/4) {
+          .dm-copy {
+            flex: 0 0 38%;
+            text-align: left;
+            align-items: flex-start;
+          }
+        }
+        .dm-copy:has(.dm-title:empty):has(.dm-text:empty) {
+          display: none;
+        }
+        .dm-rule {
+          width: 96px;
+          height: 10px;
+          border-radius: 5px;
+          background: {{accent}};
+        }
+        .dm-title {
+          margin: 0;
+          font-size: 76px;
+          line-height: 1.08;
+          font-weight: 900;
+          letter-spacing: -0.03em;
+          text-wrap: balance;
+          padding-bottom: 0.08em;
+        }
+        .dm-text {
+          margin: 0;
+          font-size: 44px;
+          line-height: 1.3;
+          font-weight: 500;
+          text-wrap: pretty;
+        }
+        .dm-title:empty,
+        .dm-text:empty {
+          display: none;
+        }
+      </style>
+
+      <div id="root" data-composition-id="{{@id}}" data-width="{{@width}}" data-height="{{@height}}">
+        <div id="{{@id}}-stage" class="dm-stage">
+          <div id="{{@id}}-device" class="dm-device" data-label="Appareil">
+            <div id="{{@id}}-scale" class="dm-scale">
+              <div class="device dm-{{device}}">
+                <div class="device-frame">
+                  <img id="{{@id}}-screen" class="device-screen" src="{{src}}" alt="" data-label="Écran" />
+                </div>
+                <div class="device-stripe"></div>
+                <div class="device-header"></div>
+                <div class="device-sensors"></div>
+                <div class="device-btns"></div>
+                <div class="device-power"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="{{@id}}-copy" class="dm-copy">
+          <div id="{{@id}}-rule" class="dm-rule" data-label="Filet"></div>
+          <h2 id="{{@id}}-title" class="dm-title" data-label="Titre">{{title}}</h2>
+          <p id="{{@id}}-text" class="dm-text" data-label="Texte">{{text}}</p>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const duration = {{@duration}};
+          // Natural size of each model (devices.css): the device is scaled to the room its stage leaves, whatever the frame.
+          const sizes = { phone: [404, 862], laptop: [740, 434], tablet: [560, 778] };
+          const [width, height] = sizes["{{device}}"] || sizes.phone;
+          const stage = document.getElementById("{{@id}}-stage");
+          const scale = Math.min(stage.offsetWidth / width, stage.offsetHeight / height, 2.5);
+          const scaler = document.getElementById("{{@id}}-scale");
+          scaler.style.transform = "scale(" + scale + ")";
+          const device = document.getElementById("{{@id}}-device");
+          device.style.width = width * scale + "px";
+          device.style.height = height * scale + "px";
+          device.style.marginLeft = (-width * scale) / 2 + "px";
+          device.style.marginTop = (-height * scale) / 2 + "px";
+
+          const tl = gsap.timeline({ paused: true });
+          tl.fromTo("#{{@id}}-device", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0);
+          tl.fromTo("#{{@id}}-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power3.out" }, 0.4);
+          tl.fromTo("#{{@id}}-title", { opacity: 0, y: 36 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.45);
+          tl.fromTo("#{{@id}}-text", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.7);
+          tl.to({}, { duration: duration }, 0);
+          window.__timelines["{{@id}}"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

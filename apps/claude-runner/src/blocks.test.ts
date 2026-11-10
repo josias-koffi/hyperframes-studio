@@ -50,6 +50,7 @@ describe("the shipped blocks", () => {
       "bullet-3",
       "captions-karaoke",
       "cta-end",
+      "device-mockup",
       "hook-kinetic",
       "logo-sting",
       "lower-third",
@@ -106,6 +107,13 @@ describe("the realistic storyboard prompt", () => {
     expect(realistic).toContain("Jamais de personne réelle nommée");
     expect(realistic).toContain('"style"');
     expect(storyboardSystemPrompt(manifests, { width: 1080, height: 1920, durationSeconds: 15 })).not.toContain("video-fullframe");
+  });
+
+  it("presents the device mockup to every storyboard, never as a block of generated shots", async () => {
+    const { manifests } = await loadBlocks(SKELETON);
+    expect(storyboardSystemPrompt(manifests, { width: 1080, height: 1920, durationSeconds: 15 })).toContain("### device-mockup");
+    const realistic = storyboardSystemPrompt(manifests, { width: 1080, height: 1920, durationSeconds: 15, realistic: true });
+    expect(realistic).toMatch(/Un plan généré est une scène au bloc video-fullframe avec/);
   });
 });
 

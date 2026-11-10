@@ -1,0 +1,17 @@
+{
+  "id": "device-mockup",
+  "name": "Écran dans un appareil",
+  "description": "Une capture d'écran affichée dans un téléphone, un ordinateur portable ou une tablette dessinés, sans marque ni logo, avec un titre et une phrase à côté ou en dessous.",
+  "useWhen": "Pour montrer une app, un site ou un écran du produit dans son appareil, au lieu de le dessiner. `src` : une capture d'écran listée comme disponible, au format de l'appareil (portrait pour le téléphone et la tablette, paysage pour l'ordinateur).",
+  "props": {
+    "device": { "type": "enum", "label": "Appareil : téléphone, ordinateur portable ou tablette", "options": ["phone", "laptop", "tablet"], "required": false, "default": "phone" },
+    "src": { "type": "image", "label": "Capture affichée à l'écran, par exemple assets/uploads/ecran.png" },
+    "title": { "type": "text", "label": "Titre", "maxLength": 40, "required": false, "default": "" },
+    "text": { "type": "text", "label": "Phrase d'explication", "maxLength": 90, "required": false, "default": "" },
+    "accent": { "type": "color", "label": "Couleur du filet", "required": false, "default": "#FF5A1F" },
+    "background": { "type": "color", "label": "Couleur de fond", "required": false, "default": "#EEF1F5" },
+    "textColor": { "type": "color", "label": "Couleur du texte", "required": false, "default": "#141414" }
+  },
+  "duration": { "min": 3, "max": 8, "default": 4.5 },
+  "example": { "device": "phone", "src": "assets/uploads/ecran.png", "title": "Ton studio dans la poche", "text": "Valide le storyboard depuis ton téléphone." }
+}
