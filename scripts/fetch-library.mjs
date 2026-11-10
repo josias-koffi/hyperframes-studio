@@ -7,7 +7,7 @@
 //
 // Pour ajouter une source GitHub : écris une sha256 quelconque de 64 caractères, lance le script, et reporte la valeur
 // « obtenue » de l'erreur après avoir relu les fichiers.
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -35,6 +35,10 @@ try {
     process.exit(1);
   }
   console.log(`Catalogue valide : ${catalog.entries.length} asset(s).`);
+
+  // Notices of the « À propos » screen, generated: nothing typed by hand.
+  const notices = shared.libraryNotices(catalog, lock, (path) => readFileSync(join(dest, path), "utf8"));
+  writeFileSync(join(dest, shared.LIBRARY_NOTICES_FILE), `${JSON.stringify(notices, null, 2)}\n`);
 
   // The library ships in the installer: its budget is checked here, before scripts/stage.mjs copies it.
   const size = await shared.directorySize(dest);

@@ -7,6 +7,7 @@ import {
   ChartColumnIcon,
   FolderKanbanIcon,
   FolderOpenIcon,
+  InfoIcon,
   LayoutDashboardIcon,
   LayoutTemplateIcon,
   PlusIcon,
@@ -139,6 +140,14 @@ export function AppSidebar({ reviewCount, templateReviewCount, liveCount, user, 
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={isActive("/about")} tooltip="À propos" className="text-muted-foreground">
+              <Link href="/about">
+                <InfoIcon />
+                <span>À propos</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Documentation HyperFrames" className="text-muted-foreground">
               <a href="https://hyperframes.heygen.com" target="_blank" rel="noreferrer">

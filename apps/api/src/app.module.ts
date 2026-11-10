@@ -10,13 +10,14 @@ import { DatabaseModule } from "./database/database.module";
 import { EditorModule } from "./editor/editor.module";
 import { HealthController } from "./health.controller";
 import { IterationsModule } from "./iterations/iterations.module";
+import { LibraryController } from "./library/library.controller";
 import { ProjectsModule } from "./projects/projects.module";
 import { QueuesModule } from "./queues/queues.module";
 import { StorageModule } from "./storage/storage.module";
 
 @Module({
   imports: [DatabaseModule, AuthModule, AiModule, QueuesModule, StorageModule, CreationsModule, EditorModule, ProjectsModule, IterationsModule],
-  controllers: [HealthController, AssetsController],
+  controllers: [HealthController, AssetsController, LibraryController],
 })
 export class AppModule implements NestModule {
   /** Every request, public or not, runs inside the request context that carries its signed-in person. */

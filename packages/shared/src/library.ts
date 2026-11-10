@@ -133,3 +133,46 @@ export function libraryProblems(catalog: LibraryCatalog, lock: LibraryLock, exis
   }
   return problems;
 }
+
+/** Written by `scripts/fetch-library.mjs` next to the catalog: what the « À propos » screen shows. */
+export const LIBRARY_NOTICES_FILE = "notices.json";
+
+export const libraryNoticeSchema = z.object({
+  pack: packIdSchema,
+  license: z.enum(LIBRARY_LICENSES),
+  /** Assets of the pack in the catalog. */
+  assets: z.number().int().nonnegative(),
+  authors: z.array(z.string()),
+  /** The pages the pack comes from. */
+  sources: z.array(z.string()),
+  /** The license's text as shipped in the pack; null when the license asks for none (CC0, public domain). */
+  text: z.string().nullable(),
+});
+export type LibraryNotice = z.infer<typeof libraryNoticeSchema>;
+
+export const libraryNoticesSchema = z.object({ version: z.literal(1), packs: z.array(libraryNoticeSchema) });
+export type LibraryNotices = z.infer<typeof libraryNoticesSchema>;
+
+const sorted = (values: Iterable<string>) => [...new Set(values)].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+
+/**
+ * The legal notices of the library, from the catalog and the lock alone: one per pack, with its authors, its sources
+ * and its license text. `readText` takes a path relative to the library's root.
+ */
+export function libraryNotices(catalog: LibraryCatalog, lock: LibraryLock, readText: (path: string) => string): LibraryNotices {
+  const packs = [...lock.sources]
+    .sort((a, b) => (a.pack < b.pack ? -1 : a.pack > b.pack ? 1 : 0))
+    .map((source) => {
+      const entries = catalog.entries.filter((entry) => entry.pack === source.pack);
+      const origin = source.type === "github" ? [`https://github.com/${source.repo}`] : [];
+      return {
+        pack: source.pack,
+        license: source.license,
+        assets: entries.length,
+        authors: sorted(entries.map((entry) => entry.author)),
+        sources: sorted([...origin, ...entries.map((entry) => entry.source)]),
+        text: source.licenseFile ? readText(`${source.pack}/${source.licenseFile}`) : null,
+      };
+    });
+  return { version: 1, packs };
+}

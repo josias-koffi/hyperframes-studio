@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { promisify } from "node:util";
-import type { LibraryLock, LibrarySource } from "./library";
+import { LIBRARY_NOTICES_FILE, type LibraryLock, type LibrarySource } from "./library";
 
 const exec = promisify(execFile);
 
@@ -15,7 +15,7 @@ export const LIBRARY_BUDGET_BYTES = 300 * 1000 * 1000;
 /** Written by `fetchLibrary` next to the catalog: each pack and its digest, the library's version with the catalog. */
 export const LIBRARY_PACKS_FILE = "packs.sha256";
 /** Entries of the library folder that are not packs. */
-const LIBRARY_FILES = new Set(["catalog.json", LIBRARY_PACKS_FILE]);
+const LIBRARY_FILES = new Set(["catalog.json", LIBRARY_PACKS_FILE, LIBRARY_NOTICES_FILE]);
 
 type FileDigest = { path: string; sha256: string };
 
@@ -163,15 +163,16 @@ export async function fetchLibrary({
 }
 
 /**
- * What tells two copies of the library apart without reading its packs: the catalog and the packs' manifest. Null
+ * What tells two copies of the library apart without reading its packs: the catalog, the packs' manifest and the notices. Null
  * when the folder holds no catalog.
  */
 export async function libraryVersion(dir: string): Promise<string | null> {
   const read = (name: string) => readFile(join(dir, name)).catch((error: NodeJS.ErrnoException) => (error.code === "ENOENT" ? null : Promise.reject(error)));
   const catalog = await read("catalog.json");
   if (!catalog) return null;
-  const packs = (await read(LIBRARY_PACKS_FILE)) ?? new Uint8Array();
-  return createHash("sha256").update(catalog).update("\0").update(packs).digest("hex");
+  const hash = createHash("sha256").update(catalog);
+  for (const name of [LIBRARY_PACKS_FILE, LIBRARY_NOTICES_FILE]) hash.update("\0").update((await read(name)) ?? new Uint8Array());
+  return hash.digest("hex");
 }
 
 /** Bytes of the regular files under `dir`. */

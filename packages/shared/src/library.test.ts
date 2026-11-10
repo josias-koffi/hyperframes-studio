@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { libraryCatalogSchema, libraryLockSchema, libraryProblems, type LibraryCatalog, type LibraryLock } from "./library";
+import { libraryCatalogSchema, libraryLockSchema, libraryNotices, libraryNoticesSchema, libraryProblems, type LibraryCatalog, type LibraryLock } from "./library";
 
 const SHA = "a".repeat(64);
 const COMMIT = "b".repeat(40);
@@ -111,6 +111,30 @@ describe("libraryProblems", () => {
 
   it("reports a missing license text", () => {
     expect(libraryProblems(parsed, lock, (path) => path !== "flags/LICENSE").join("\n")).toContain("flags/LICENSE");
+  });
+});
+
+describe("libraryNotices", () => {
+  const lock = libraryLockSchema.parse({ version: 1, sources: [githubSource, filesSource] });
+  const parsed = libraryCatalogSchema.parse({
+    version: 1,
+    entries: [entry, { ...entry, id: "peep-debout", file: "open-peeps/peep-2.svg", author: "Autre" }, { ...entry, id: "peep-groupe", file: "open-peeps/peep-3.svg" }],
+  });
+
+  it("gives every pack its license text, authors and sources, from the catalog and the lock", () => {
+    const read: string[] = [];
+    const notices = libraryNotices(parsed, lock, (path) => {
+      read.push(path);
+      return "MIT License";
+    });
+    expect(libraryNoticesSchema.parse(notices)).toEqual({
+      version: 1,
+      packs: [
+        { pack: "flags", license: "MIT", assets: 0, authors: [], sources: ["https://github.com/lipis/flag-icons"], text: "MIT License" },
+        { pack: "open-peeps", license: "CC0-1.0", assets: 3, authors: ["Autre", "Pablo Stanley"], sources: ["https://www.openpeeps.com/"], text: null },
+      ],
+    });
+    expect(read).toEqual(["flags/LICENSE"]);
   });
 });
 

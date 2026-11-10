@@ -30,6 +30,7 @@ const SEGMENTS: Record<string, string> = {
   exports: "Exports",
   studio: "Studio HyperFrames",
   settings: "Paramètres",
+  about: "À propos",
   ai: "Modèles IA",
   admin: "Administration",
   models: "Catalogue des modèles",
