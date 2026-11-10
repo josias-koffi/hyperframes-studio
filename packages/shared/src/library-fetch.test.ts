@@ -6,7 +6,7 @@ import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { digestOfFiles, fetchLibrary, treeDigest } from "./library-fetch";
+import { digestOfFiles, directorySize, fetchLibrary, libraryVersion, treeDigest } from "./library-fetch";
 import { libraryLockSchema, type LibraryLock } from "./library";
 
 const COMMIT = "c".repeat(40);
@@ -135,7 +135,25 @@ describe("fetchLibrary", () => {
     writeFileSync(join(dest, "catalog.json"), "{}");
     await fetchLibrary({ lock: filesLock("<svg/>"), dest, githubBase: base });
     expect(readFileSync(join(dest, "catalog.json"), "utf8")).toBe("{}");
-    expect(readdirSync(dest).sort()).toEqual(["catalog.json", "peeps"]);
+    expect(readdirSync(dest).sort()).toEqual(["catalog.json", "packs.sha256", "peeps"]);
+  });
+
+  it("writes the manifest of the packs", async () => {
+    await fetchLibrary({ lock: githubLock(), dest, githubBase: base });
+    expect(readFileSync(join(dest, "packs.sha256"), "utf8")).toBe(`${expected}  flags\n`);
+  });
+
+  it("removes a pack taken out of the lock", async () => {
+    await fetchLibrary({ lock: githubLock(), dest, githubBase: base });
+    await fetchLibrary({ lock: filesLock("<svg/>"), dest, githubBase: base });
+    expect(readdirSync(dest).sort()).toEqual(["packs.sha256", "peeps"]);
+  });
+
+  it("refuses a folder that is not a library", async () => {
+    mkdirSync(dest, { recursive: true });
+    writeFileSync(join(dest, "précieux.txt"), "à garder");
+    await expect(fetchLibrary({ lock: filesLock("<svg/>"), dest, githubBase: base })).rejects.toThrow("bibliothèque");
+    expect(readdirSync(dest)).toEqual(["précieux.txt"]);
   });
 
   it("fails when a GitHub source selects nothing", async () => {
@@ -159,5 +177,28 @@ describe("digests", () => {
 
   it("has no digest for a missing folder", async () => {
     expect(await treeDigest(join(root, "absent"))).toBeNull();
+  });
+});
+
+describe("libraryVersion", () => {
+  it("changes with the catalog and with the packs, not with anything else", async () => {
+    mkdirSync(dest, { recursive: true });
+    expect(await libraryVersion(dest)).toBeNull();
+    writeFileSync(join(dest, "catalog.json"), "{}");
+    const first = await libraryVersion(dest);
+    writeFileSync(join(dest, "notes.txt"), "rien");
+    expect(await libraryVersion(dest)).toBe(first);
+    writeFileSync(join(dest, "packs.sha256"), "x  flags\n");
+    const second = await libraryVersion(dest);
+    expect(second).not.toBe(first);
+    writeFileSync(join(dest, "catalog.json"), "{ }");
+    expect(await libraryVersion(dest)).not.toBe(second);
+  });
+
+  it("measures the files of a folder", async () => {
+    mkdirSync(join(dest, "a"), { recursive: true });
+    writeFileSync(join(dest, "a/b.svg"), "12345");
+    writeFileSync(join(dest, "c.svg"), "678");
+    expect(await directorySize(dest)).toBe(8);
   });
 });

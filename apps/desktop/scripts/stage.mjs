@@ -4,7 +4,7 @@
 //   runtime/    the core and the engine with their production dependencies (`pnpm deploy`, flat node_modules),
 //               and the app's default settings (defaults.env)
 //   web/        the front's standalone Next.js server
-//   workspace/  prompts/   the HyperFrames workspace skeleton and the step prompts
+//   workspace/  prompts/   the HyperFrames workspace skeleton (asset library included) and the step prompts
 //   node/       Node (node, npm, npx) for the agents' commands and the HyperFrames CLI
 //   ffmpeg/     ffmpeg and ffprobe
 //
@@ -85,6 +85,9 @@ await rm(join(build, "runtime", "scripts"), { recursive: true, force: true });
 step("web: the front's standalone server");
 // Its node_modules keep pnpm's layout: relative symlinks into node_modules/.pnpm, kept as they are.
 await cp(join(repo, "apps", "web", ".next", "standalone"), join(build, "web"), { recursive: true, verbatimSymlinks: true });
+
+step("library: the asset packs of library.lock.json, checked against their digests and the budget");
+run("node", [join(repo, "scripts", "fetch-library.mjs")], { cwd: repo });
 
 step("workspace and prompts");
 await cp(join(repo, "workspace"), join(build, "workspace"), {

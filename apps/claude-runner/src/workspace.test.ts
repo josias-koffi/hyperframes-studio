@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -44,6 +44,53 @@ describe("syncWorkspaceSkeleton", () => {
     await commitCheckpoint(workspace, "demo", "demo: nothing changed");
     const log = execFileSync("git", ["log", "--format=%s"], { cwd: workspace }).toString().trim();
     expect(log).toBe("demo: brief\nworkspace");
+  });
+
+  it("copies the library only when its version changes, and never touches the videos", async () => {
+    const skeleton = await mkdtemp(join(tmpdir(), "skel-"));
+    const workspace = await mkdtemp(join(tmpdir(), "ws-"));
+    const library = join(workspace, "library");
+    await mkdir(join(skeleton, "library", "peeps"), { recursive: true });
+    await writeFile(join(skeleton, "library", "catalog.json"), "v1");
+    await writeFile(join(skeleton, "library", "peeps", "a.svg"), "a");
+    await mkdir(join(workspace, "videos", "demo", "assets", "library"), { recursive: true });
+    await writeFile(join(workspace, "videos", "demo", "assets", "library", "a.svg"), "copie de la vidéo");
+
+    await syncWorkspaceSkeleton(skeleton, workspace);
+    expect(await readFile(join(library, "peeps", "a.svg"), "utf8")).toBe("a");
+
+    // A start without a new library copies nothing: a file changed in the workspace stays as it is.
+    await writeFile(join(library, "peeps", "a.svg"), "marqueur");
+    await syncWorkspaceSkeleton(skeleton, workspace);
+    expect(await readFile(join(library, "peeps", "a.svg"), "utf8")).toBe("marqueur");
+
+    // An updated app replaces the whole library.
+    await writeFile(join(skeleton, "library", "catalog.json"), "v2");
+    await writeFile(join(library, "peeps", "retiré.svg"), "x");
+    await syncWorkspaceSkeleton(skeleton, workspace);
+    expect(await readFile(join(library, "peeps", "a.svg"), "utf8")).toBe("a");
+    await expect(readFile(join(library, "peeps", "retiré.svg"))).rejects.toThrow();
+    expect(await readFile(join(workspace, "videos", "demo", "assets", "library", "a.svg"), "utf8")).toBe("copie de la vidéo");
+
+    // Neither the repository's ignore rules nor a checkpoint take the library in.
+    await writeFile(join(workspace, ".gitignore"), await readFile(join(__dirname, "../../../workspace/.gitignore"), "utf8"));
+    expect(execFileSync("git", ["check-ignore", "library/peeps/a.svg"], { cwd: workspace }).toString().trim()).toBe("library/peeps/a.svg");
+    await commitCheckpoint(workspace, "demo", "demo: assets");
+    const files = execFileSync("git", ["ls-files"], { cwd: workspace }).toString();
+    expect(files).toContain("videos/demo/assets/library/a.svg");
+    expect(files).not.toMatch(/^library\//m);
+  });
+
+  it("re-copies a library whose copy was interrupted", async () => {
+    const skeleton = await mkdtemp(join(tmpdir(), "skel-"));
+    const workspace = await mkdtemp(join(tmpdir(), "ws-"));
+    await mkdir(join(skeleton, "library"), { recursive: true });
+    await writeFile(join(skeleton, "library", "catalog.json"), "v1");
+    await syncWorkspaceSkeleton(skeleton, workspace);
+    await rm(join(workspace, "library", ".version"));
+    await rm(join(workspace, "library", "catalog.json"));
+    await syncWorkspaceSkeleton(skeleton, workspace);
+    expect(await readFile(join(workspace, "library", "catalog.json"), "utf8")).toBe("v1");
   });
 
   it("gives a new repository a root commit, once: OpenCode names its project after it", async () => {

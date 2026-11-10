@@ -22,3 +22,6 @@ snapshots/
 
 # Modèles audio choisis par le studio pour une vidéo (écrits avant chaque étape)
 .studio.env
+
+# Bibliothèque d'assets, remplacée par l'app à chaque nouvelle version ; une vidéo copie ses assets dans assets/library/
+/library/

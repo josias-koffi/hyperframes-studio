@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Remplit workspace/library/ à partir de library.lock.json, puis vérifie le catalogue. Lance `pnpm build` avant.
+// Remplit workspace/library/ à partir de library.lock.json, puis vérifie le catalogue et le budget de 300 Mo.
+// Lance `pnpm build` avant ; scripts/stage.mjs (installateur) le lance aussi.
 //
 // Usage, depuis la racine du dépôt :
 //   node scripts/fetch-library.mjs [--lock <fichier>] [--dest <dossier>]
@@ -34,6 +35,15 @@ try {
     process.exit(1);
   }
   console.log(`Catalogue valide : ${catalog.entries.length} asset(s).`);
+
+  // The library ships in the installer: its budget is checked here, before scripts/stage.mjs copies it.
+  const size = await shared.directorySize(dest);
+  const mb = (bytes) => `${(bytes / 1e6).toFixed(1)} Mo`;
+  if (size > shared.LIBRARY_BUDGET_BYTES) {
+    console.error(`Bibliothèque trop lourde : ${mb(size)} pour un budget de ${mb(shared.LIBRARY_BUDGET_BYTES)}.`);
+    process.exit(1);
+  }
+  console.log(`Taille : ${mb(size)} sur ${mb(shared.LIBRARY_BUDGET_BYTES)}.`);
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);

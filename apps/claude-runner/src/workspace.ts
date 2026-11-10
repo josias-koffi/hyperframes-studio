@@ -1,10 +1,11 @@
 import { execFile } from "node:child_process";
-import { cp, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import {
   commitCheckpoint,
   compositionVariablesSchema,
+  libraryVersion,
   diffVariables,
   parseCompositionVariables,
   type CreationType,
@@ -19,6 +20,10 @@ const exec = promisify(execFile);
 
 /** Files of the skeleton never copied over the mounted workspace: they hold runtime data. */
 const RUNTIME_ENTRIES = new Set(["videos", ".git", "node_modules", ".env"]);
+/** The asset library (up to 300 MB): copied only when its version changes, see `syncLibrary`. */
+const LIBRARY = "library";
+/** The version of the library a workspace holds, written once its copy is complete. */
+const LIBRARY_STAMP = ".version";
 
 async function exists(path: string): Promise<boolean> {
   try {
@@ -91,6 +96,10 @@ export async function syncWorkspaceSkeleton(skeletonDir: string, workspaceDir: s
   await mkdir(join(workspaceDir, "videos"), { recursive: true });
   for (const entry of await readdir(skeletonDir)) {
     if (RUNTIME_ENTRIES.has(entry)) continue;
+    if (entry === LIBRARY) {
+      await syncLibrary(join(skeletonDir, LIBRARY), join(workspaceDir, LIBRARY));
+      continue;
+    }
     await cp(join(skeletonDir, entry), join(workspaceDir, entry), { recursive: true, force: true });
   }
   await writeFile(join(workspaceDir, ".env"), renderWorkspaceEnv(process.env), { mode: 0o600 });
@@ -101,6 +110,20 @@ export async function syncWorkspaceSkeleton(skeletonDir: string, workspaceDir: s
   // project, where the agent answers "what would you like help with?" instead of doing the step.
   const head = await git(workspaceDir, "rev-parse", "--verify", "-q", "HEAD").catch(() => null);
   if (!head) await git(workspaceDir, "commit", "-q", "--allow-empty", "-m", "workspace");
+}
+
+/**
+ * Replaces the workspace's library by the app's when their versions differ, so a start without a new library copies
+ * nothing. The stamp is written last: an interrupted copy is made again on the next start.
+ */
+async function syncLibrary(source: string, target: string): Promise<void> {
+  const version = await libraryVersion(source);
+  if (!version) return;
+  const current = await readFile(join(target, LIBRARY_STAMP), "utf8").catch(() => null);
+  if (current === version) return;
+  await rm(target, { recursive: true, force: true });
+  await cp(source, target, { recursive: true });
+  await writeFile(join(target, LIBRARY_STAMP), version);
 }
 
 const git = workspaceGit;

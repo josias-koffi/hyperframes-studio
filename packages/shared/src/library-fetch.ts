@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { promisify } from "node:util";
 import type { LibraryLock, LibrarySource } from "./library";
@@ -9,6 +9,13 @@ const exec = promisify(execFile);
 
 const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000;
 const PARALLEL_DOWNLOADS = 6;
+
+/** Ceiling of the library shipped in the installer (ADR-008). */
+export const LIBRARY_BUDGET_BYTES = 300 * 1000 * 1000;
+/** Written by `fetchLibrary` next to the catalog: each pack and its digest, the library's version with the catalog. */
+export const LIBRARY_PACKS_FILE = "packs.sha256";
+/** Entries of the library folder that are not packs. */
+const LIBRARY_FILES = new Set(["catalog.json", LIBRARY_PACKS_FILE]);
 
 type FileDigest = { path: string; sha256: string };
 
@@ -117,6 +124,11 @@ export async function fetchLibrary({
   githubBase?: string;
 }): Promise<{ fetched: string[]; kept: string[] }> {
   await mkdir(dest, { recursive: true });
+  const present = await readdir(dest);
+  // Packs out of the lock are deleted: never in a folder that is not a library, as a mistyped --dest would be.
+  if (present.length > 0 && !present.some((entry) => LIBRARY_FILES.has(entry))) {
+    throw new Error(`${dest} n'est pas une bibliothèque : ni catalog.json ni ${LIBRARY_PACKS_FILE}`);
+  }
   const staging = await mkdtemp(join(dest, ".fetch-"));
   const fetched: string[] = [];
   const kept: string[] = [];
@@ -137,8 +149,33 @@ export async function fetchLibrary({
       await rm(join(dest, pack), { recursive: true, force: true });
       await rename(join(staging, pack), join(dest, pack));
     }
+    // A pack taken out of the lock would still ship in the installer.
+    const packs = new Set(lock.sources.map((source) => source.pack));
+    for (const entry of await readdir(dest)) {
+      if (!packs.has(entry) && !LIBRARY_FILES.has(entry) && join(dest, entry) !== staging) await rm(join(dest, entry), { recursive: true, force: true });
+    }
+    const manifest = lock.sources.map((source) => `${expectedDigest(source)}  ${source.pack}\n`).sort().join("");
+    await writeFile(join(dest, LIBRARY_PACKS_FILE), manifest);
     return { fetched, kept };
   } finally {
     await rm(staging, { recursive: true, force: true });
   }
+}
+
+/**
+ * What tells two copies of the library apart without reading its packs: the catalog and the packs' manifest. Null
+ * when the folder holds no catalog.
+ */
+export async function libraryVersion(dir: string): Promise<string | null> {
+  const read = (name: string) => readFile(join(dir, name)).catch((error: NodeJS.ErrnoException) => (error.code === "ENOENT" ? null : Promise.reject(error)));
+  const catalog = await read("catalog.json");
+  if (!catalog) return null;
+  const packs = (await read(LIBRARY_PACKS_FILE)) ?? new Uint8Array();
+  return createHash("sha256").update(catalog).update("\0").update(packs).digest("hex");
+}
+
+/** Bytes of the regular files under `dir`. */
+export async function directorySize(dir: string): Promise<number> {
+  const sizes = await Promise.all((await regularFiles(dir)).map(async (path) => (await stat(join(dir, path))).size));
+  return sizes.reduce((total, size) => total + size, 0);
 }
