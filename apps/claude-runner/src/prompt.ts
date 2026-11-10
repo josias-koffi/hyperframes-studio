@@ -44,6 +44,12 @@ export function renderTemplate(template: string, values: Record<string, string>)
  */
 const RULES_STEPS: readonly GenerationStep[] = ["build"];
 
+/**
+ * Steps that choose or place what the création shows get the asset library (`prompts/partials/library.md`): the
+ * storyboard names the assets, the build adds them. Review comments of those steps included.
+ */
+const LIBRARY_STEPS: readonly GenerationStep[] = ["storyboard", "build"];
+
 /** Steps a template's variable contract (`prompts/partials/template.md`) applies to. */
 const CONTRACT_STEPS: readonly GenerationStep[] = ["storyboard", "build"];
 
@@ -57,7 +63,7 @@ function formatPartial(context: PromptContext): string {
  * The prompt of a step comes from `prompts/<step>.md`, in a new session that reads the validated files of the
  * previous steps. With feedback, the step's session is resumed and `prompts/feedback.md` wraps the user's comment
  * instead. Every prompt ends with the format of the création; a template's storyboard and build also get its
- * variable contract, and the build the key HyperFrames rules.
+ * variable contract, the storyboard and the build the asset library, and the build the key HyperFrames rules.
  */
 export async function buildPrompt(promptsDir: string, context: PromptContext): Promise<string> {
   const file = context.feedback ? "feedback.md" : `${context.step}.md`;
@@ -66,6 +72,7 @@ export async function buildPrompt(promptsDir: string, context: PromptContext): P
   if (context.kind === "template" && CONTRACT_STEPS.includes(context.step)) {
     template += await readFile(join(promptsDir, "partials", "template.md"), "utf8");
   }
+  if (LIBRARY_STEPS.includes(context.step)) template += await readFile(join(promptsDir, "partials", "library.md"), "utf8");
   if (RULES_STEPS.includes(context.step)) template += await readFile(join(promptsDir, "partials", "rules.md"), "utf8");
   return renderTemplate(template, {
     step: context.step,

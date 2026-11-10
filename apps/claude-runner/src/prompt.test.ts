@@ -105,6 +105,19 @@ describe("buildPrompt", () => {
     expect(await build("template", "brief")).not.toContain("VARIABLES.json");
   });
 
+  it("tells the storyboard and the build to search the library before drawing, review comments included", async () => {
+    const search = 'node scripts/library.mjs search "<mots>"';
+    for (const type of CREATION_TYPES) {
+      for (const step of ["storyboard", "build"] as const) {
+        expect(await buildPrompt(PROMPTS, { ...base, type, step }), `${type} ${step}`).toContain(search);
+        expect(await buildPrompt(PROMPTS, { ...base, type, step, feedback: "Plus vivant" }), `${type} ${step} feedback`).toContain(search);
+      }
+    }
+    expect(await buildPrompt(PROMPTS, { ...base, step: "storyboard" })).toContain("Bibliothèque : <id>, <id>");
+    expect(await buildPrompt(PROMPTS, { ...base, step: "build" })).toContain("node scripts/library.mjs add <id> videos/demo");
+    for (const step of ["brief", "media"] as const) expect(await buildPrompt(PROMPTS, { ...base, step })).not.toContain(search);
+  });
+
   it("writes the key HyperFrames rules into the build prompts only, review comments included", async () => {
     const rules = "jamais `data-layer`, refusé par `check`";
     expect(await buildPrompt(PROMPTS, { ...base, step: "build" })).toContain(rules);

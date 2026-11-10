@@ -22,7 +22,9 @@ validation ou étape suivante).
 des étapes précédentes (`BRIEF.md`, `STORYBOARD.md`, `audio_meta.json`…) : les prompts le disent. Seul un retour sur
 la même étape (commentaire de relecture, demande depuis l'éditeur) reprend la session de l'étape. Le build reçoit
 en plus `partials/rules.md`, les règles HyperFrames clés écrites dans le prompt : un modèle faible ne lit pas
-toujours les skills, qui restent la référence. Après un build, le studio relance lui-même `check` ; un échec repart
+toujours les skills, qui restent la référence. Le storyboard et le build, retours compris, reçoivent
+`partials/library.md` : chercher dans la bibliothèque d'assets (`workspace/scripts/library.mjs`) avant de dessiner,
+nommer les `id` retenus par frame, puis les ajouter au build. Après un build, le studio relance lui-même `check` ; un échec repart
 dans la session de l'agent, le second chez le modèle d'escalade.
 
 **Moteur blocs.** Une création dont le brief porte `engine: "blocks"` n'utilise aucun de ces fichiers : le brief

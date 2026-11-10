@@ -28,6 +28,21 @@ another audio script.
 These override the `/media-use` default order (HeyGen → ElevenLabs → Kokoro, HeyGen → Lyria via
 Gemini key → MusicGen). Use another provider only when the user asks.
 
+## Library — search before drawing
+
+`library/` holds free assets checked for their license, available offline: characters, objects, icons, flags,
+devices (phone, laptop, tablet), illustrations and sound effects. Before drawing an object, a device, a person, an
+icon or a flag in HTML, search for it, in French then in English:
+
+```bash
+node scripts/library.mjs search "<mots>" [--kind character|object|icon|flag|device|...] [--limit 10]
+node scripts/library.mjs add <id> videos/<nom> [--color #RRGGBB]   # copies it to assets/library/, credits it
+```
+
+Nothing fits: try `/hyperframes-registry`, and draw only after both searches came back empty. Never copy a file out
+of `library/` by hand (`add` keeps `assets/library/CREDITS.json`), never edit `library/` (the app replaces it), and
+never show a bitmap larger than the size the search gives.
+
 ## Skills — USE THESE FIRST
 
 **Always invoke the relevant skill before writing or modifying compositions.** Skills encode framework-specific patterns (e.g., `window.__timelines` registration, `data-*` attribute semantics, shader-compatible CSS rules) that are NOT in generic web docs. Skipping them produces broken compositions.
