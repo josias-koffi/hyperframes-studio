@@ -265,6 +265,13 @@ describe("runBlocksStep", () => {
     expect(prompts[0]).toContain("videos/essai/compositions/custom/s2.html");
     expect(prompts[0]).toContain("Trois étapes reliées par une flèche.");
     expect(prompts[0]).toContain('data-composition-id="scene-s2"');
+    // The library first, and the folders the agent may add to besides its scene.
+    expect(prompts[0]).toContain('node scripts/library.mjs search "<mots>"');
+    expect(prompts[0]).toContain("node scripts/library.mjs add <id> videos/essai");
+    expect(prompts[0]).toContain("`videos/essai/assets/library/` (assets de la bibliothèque) et `videos/essai/compositions/components/`");
+    // The prompt is not part of what the scene was written for: a new wording of it leaves the `.sha` of the scenes
+    // already written as it was (value from before the library was added to the prompt), so they are not written again.
+    expect(await readFile(join(dir, "videos/essai/.media/custom/s2.sha"), "utf8")).toBe("15d8938b908e4ef8f8395226bbceba6bcfa9f8cbdb977edd277aa4a48f4c07c8");
     expect(await readFile(join(dir, "videos/essai/index.html"), "utf8")).toContain('data-composition-src="compositions/custom/s2.html"');
     expect(await calls()).toEqual(["npm run check -- videos/essai", "npx --yes hyperframes@0.0.1 snapshot videos/essai --at 1.5,6,11"]);
 

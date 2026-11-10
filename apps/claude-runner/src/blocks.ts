@@ -617,13 +617,19 @@ export function customScenePrompt({
   const id = sceneCompositionId(sceneId);
   const path = `videos/${slug}/${customScenePath(sceneId)}`;
   return [
-    `Tu écris une seule scène d'une vidéo HyperFrames assemblée par le studio : le fichier \`${path}\`. Ne modifie aucun autre fichier : le reste de la vidéo est généré.`,
+    `Tu écris une seule scène d'une vidéo HyperFrames assemblée par le studio : le fichier \`${path}\`. Tu peux aussi ajouter ce qu'elle utilise dans \`videos/${slug}/assets/library/\` (assets de la bibliothèque) et \`videos/${slug}/compositions/components/\` (composants du registre). Ne modifie aucun autre fichier : le reste de la vidéo est généré.`,
     "",
     "## La scène",
     "",
     description.trim(),
     "",
     `Durée : ${duration} s · Cadre : ${width}×${height} px${colors.length ? ` · Couleurs du reste de la vidéo : ${colors.join(", ")}` : ""}.`,
+    "",
+    "## Bibliothèque d'assets",
+    "",
+    "Le workspace livre des assets libres, sans réseau : personnages, objets, icônes, drapeaux, appareils (téléphone, laptop, tablette), illustrations. Ils rendent mieux qu'un dessin en HTML.",
+    `- Avant de dessiner un objet, un appareil, un personnage, une icône ou un drapeau, cherche-le, en français puis en anglais : \`node scripts/library.mjs search "<mots>" [--kind <type>]\`. Si rien ne convient, cherche dans le registre (\`/hyperframes-registry\`). Dessine-le seulement après ces deux recherches vides.`,
+    `- Pour l'utiliser : \`node scripts/library.mjs add <id> videos/${slug}\` (\`--color #RRGGBB\` pour teindre une icône d'une seule couleur), puis le chemin affiché dans un \`<img>\`. Ne copie jamais un fichier de \`library/\` à la main : \`add\` tient les crédits. N'affiche pas une image bitmap plus grande que la taille indiquée par la recherche.`,
     "",
     "## Format du fichier",
     "",
