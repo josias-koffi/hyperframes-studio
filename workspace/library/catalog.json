@@ -108,6 +108,3621 @@
       "avoidFor": "Montrer de vraies captures : les écrans sont dessinés par le composant. Un cadre portrait (9:16, 4:5) : conçu pour le paysage, la tablette et l'ordinateur sortent du cadre.",
       "file": "hyperframes-registry/components/multi-device-splay/multi-device-splay.html",
       "source": "https://github.com/heygen-com/hyperframes/tree/0b531bc7a4635b8ede475522f21bfc451f0c6320/registry/components/multi-device-splay"
+    },
+    {
+      "id": "open-peeps-buste-1",
+      "kind": "character",
+      "title": "Buste, lunettes, épaules nues",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : lunettes, épaules nues. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-1.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-2",
+      "kind": "character",
+      "title": "Buste, qui hausse les épaules, mains ouvertes",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "hausse les épaules",
+          "illustration",
+          "je ne sais pas",
+          "noir et blanc",
+          "perplexe",
+          "personnage",
+          "personne",
+          "portrait",
+          "question"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "confused",
+          "don't know",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait",
+          "question",
+          "shrug"
+        ]
+      },
+      "useWhen": "Buste : qui hausse les épaules, mains ouvertes. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-2.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-3",
+      "kind": "character",
+      "title": "Buste, yeux écarquillés, mains sur les hanches",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "mains sur les hanches",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait",
+          "surpris",
+          "étonné"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "hands on hips",
+          "illustration",
+          "people",
+          "person",
+          "portrait",
+          "shocked",
+          "surprised"
+        ]
+      },
+      "useWhen": "Buste : yeux écarquillés, mains sur les hanches. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-3.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-8",
+      "kind": "character",
+      "title": "Buste, lunettes, sweat à capuche",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : lunettes, sweat à capuche. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-8.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-12",
+      "kind": "character",
+      "title": "Buste, cache-œil, marinière",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : cache-œil, marinière. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-12.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-13",
+      "kind": "character",
+      "title": "Buste, chemise",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : chemise. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-13.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-14",
+      "kind": "character",
+      "title": "Buste, mains sur les hanches",
+      "tags": {
+        "fr": [
+          "assuré",
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "mains sur les hanches",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "confident",
+          "hand-drawn",
+          "hands on hips",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : mains sur les hanches. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-14.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-15",
+      "kind": "character",
+      "title": "Buste, queue de cheval, lunettes de soleil",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : queue de cheval, lunettes de soleil. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-15.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-17",
+      "kind": "character",
+      "title": "Buste, chapeau, lunettes, veste",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : chapeau, lunettes, veste. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-17.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-18",
+      "kind": "character",
+      "title": "Buste, barbe, veste",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : barbe, veste. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-18.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-19",
+      "kind": "character",
+      "title": "Buste, barbe, cheveux afro",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : barbe, cheveux afro. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-19.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-20",
+      "kind": "character",
+      "title": "Buste, bandana, lunettes, mains sur les hanches",
+      "tags": {
+        "fr": [
+          "assuré",
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "lunettes",
+          "mains sur les hanches",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "confident",
+          "glasses",
+          "hand-drawn",
+          "hands on hips",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : bandana, lunettes, mains sur les hanches. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-20.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-21",
+      "kind": "character",
+      "title": "Buste, mains sur les hanches",
+      "tags": {
+        "fr": [
+          "assuré",
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "mains sur les hanches",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "confident",
+          "hand-drawn",
+          "hands on hips",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : mains sur les hanches. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-21.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-22",
+      "kind": "character",
+      "title": "Buste, carré, cache-œil",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : carré, cache-œil. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-22.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-23",
+      "kind": "character",
+      "title": "Buste, t-shirt à texte",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : t-shirt à texte. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo. Son t-shirt porte un nom écrit.",
+      "file": "open-peeps/bust/peep-23.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-26",
+      "kind": "character",
+      "title": "Buste, foulard (hijab), lunettes",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : foulard (hijab), lunettes. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-26.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-27",
+      "kind": "character",
+      "title": "Buste, sweat à capuche",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : sweat à capuche. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-27.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-29",
+      "kind": "character",
+      "title": "Buste, moustache, débardeur",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : moustache, débardeur. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-29.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-31",
+      "kind": "character",
+      "title": "Buste, tresses, t-shirt clair",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : tresses, t-shirt clair. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-31.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-32",
+      "kind": "character",
+      "title": "Buste, cheveux afro, qui lit une feuille",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "document",
+          "illustration",
+          "lecture",
+          "lit",
+          "message",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "document",
+          "hand-drawn",
+          "illustration",
+          "message",
+          "paper",
+          "people",
+          "person",
+          "portrait",
+          "reading"
+        ]
+      },
+      "useWhen": "Buste : cheveux afro, qui lit une feuille. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-32.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-40",
+      "kind": "character",
+      "title": "Buste, lunettes de soleil, marinière",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : lunettes de soleil, marinière. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-40.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-41",
+      "kind": "character",
+      "title": "Buste, chapeau, veste",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : chapeau, veste. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-41.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-43",
+      "kind": "character",
+      "title": "Buste, barbe, qui regarde son téléphone",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "message",
+          "mobile",
+          "noir et blanc",
+          "notification",
+          "personnage",
+          "personne",
+          "portrait",
+          "réseaux sociaux",
+          "smartphone",
+          "téléphone"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "mobile",
+          "notification",
+          "people",
+          "person",
+          "phone",
+          "portrait",
+          "smartphone",
+          "social media",
+          "texting"
+        ]
+      },
+      "useWhen": "Buste : barbe, qui regarde son téléphone. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-43.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-44",
+      "kind": "character",
+      "title": "Buste, cache-œil, qui hausse les épaules",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "hausse les épaules",
+          "illustration",
+          "je ne sais pas",
+          "noir et blanc",
+          "perplexe",
+          "personnage",
+          "personne",
+          "portrait",
+          "question"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "confused",
+          "don't know",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait",
+          "question",
+          "shrug"
+        ]
+      },
+      "useWhen": "Buste : cache-œil, qui hausse les épaules. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-44.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-46",
+      "kind": "character",
+      "title": "Buste, qui travaille sur un ordinateur portable",
+      "tags": {
+        "fr": [
+          "avatar",
+          "bureau",
+          "buste",
+          "dessin",
+          "illustration",
+          "laptop",
+          "noir et blanc",
+          "ordinateur",
+          "personnage",
+          "personne",
+          "portable",
+          "portrait",
+          "travail",
+          "télétravail"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "computer",
+          "hand-drawn",
+          "illustration",
+          "laptop",
+          "office",
+          "people",
+          "person",
+          "portrait",
+          "remote work",
+          "work"
+        ]
+      },
+      "useWhen": "Buste : qui travaille sur un ordinateur portable. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-46.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-47",
+      "kind": "character",
+      "title": "Buste, bras croisés, l'air fermé",
+      "tags": {
+        "fr": [
+          "avatar",
+          "bras croisés",
+          "buste",
+          "dessin",
+          "fermé",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait",
+          "sceptique"
+        ],
+        "en": [
+          "arms crossed",
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait",
+          "skeptical"
+        ]
+      },
+      "useWhen": "Buste : bras croisés, l'air fermé. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-47.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-50",
+      "kind": "character",
+      "title": "Buste, cache-œil, veste",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : cache-œil, veste. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-50.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-52",
+      "kind": "character",
+      "title": "Buste, qui pointe du doigt sur le côté",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "montre",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "pointe",
+          "portrait",
+          "regarde ça"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "look",
+          "people",
+          "person",
+          "pointing",
+          "portrait",
+          "showing"
+        ]
+      },
+      "useWhen": "Buste : qui pointe du doigt sur le côté. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-52.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-53",
+      "kind": "character",
+      "title": "Buste, crête",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : crête. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-53.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-55",
+      "kind": "character",
+      "title": "Buste, moustache, débardeur",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : moustache, débardeur. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-55.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-57",
+      "kind": "character",
+      "title": "Buste, main sur la poitrine, l'air inquiet",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "inquiet",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait",
+          "sincère",
+          "émotion"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "emotion",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait",
+          "sincere",
+          "worried"
+        ]
+      },
+      "useWhen": "Buste : main sur la poitrine, l'air inquiet. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-57.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-63",
+      "kind": "character",
+      "title": "Buste, foulard (hijab)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : foulard (hijab). Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-63.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-65",
+      "kind": "character",
+      "title": "Buste, chapeau, veste",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : chapeau, veste. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-65.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-66",
+      "kind": "character",
+      "title": "Buste, lunettes, bras croisés",
+      "tags": {
+        "fr": [
+          "avatar",
+          "bras croisés",
+          "buste",
+          "dessin",
+          "illustration",
+          "lunettes",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait",
+          "sceptique"
+        ],
+        "en": [
+          "arms crossed",
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "glasses",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait",
+          "skeptical"
+        ]
+      },
+      "useWhen": "Buste : lunettes, bras croisés. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-66.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-69",
+      "kind": "character",
+      "title": "Buste, visage à un seul œil (fantaisiste)",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "fantaisie",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait",
+          "quirky"
+        ]
+      },
+      "useWhen": "Buste : visage à un seul œil (fantaisiste). Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo. Un visage fantaisiste ne convient pas à un sujet sérieux.",
+      "file": "open-peeps/bust/peep-69.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-71",
+      "kind": "character",
+      "title": "Buste, tresses, qui hausse les épaules, l'air contrarié",
+      "tags": {
+        "fr": [
+          "agacé",
+          "avatar",
+          "buste",
+          "dessin",
+          "hausse les épaules",
+          "illustration",
+          "noir et blanc",
+          "perplexe",
+          "personnage",
+          "personne",
+          "portrait",
+          "problème"
+        ],
+        "en": [
+          "annoyed",
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait",
+          "problem",
+          "shrug"
+        ]
+      },
+      "useWhen": "Buste : tresses, qui hausse les épaules, l'air contrarié. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-71.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-73",
+      "kind": "character",
+      "title": "Buste, bonnet, veste",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : bonnet, veste. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-73.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-75",
+      "kind": "character",
+      "title": "Buste, bonnet, t-shirt à texte",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : bonnet, t-shirt à texte. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo. Son t-shirt porte un nom écrit.",
+      "file": "open-peeps/bust/peep-75.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-76",
+      "kind": "character",
+      "title": "Buste, bonnet, barbe, lunettes",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : bonnet, barbe, lunettes. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-76.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-79",
+      "kind": "character",
+      "title": "Buste, chignon, barbe, sweat",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : chignon, barbe, sweat. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-79.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-80",
+      "kind": "character",
+      "title": "Buste, l'air inquiet ou triste",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "inquiet",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait",
+          "problème",
+          "triste"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait",
+          "problem",
+          "sad",
+          "worried"
+        ]
+      },
+      "useWhen": "Buste : l'air inquiet ou triste. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-80.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-82",
+      "kind": "character",
+      "title": "Buste, frange, t-shirt clair",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : frange, t-shirt clair. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-82.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-85",
+      "kind": "character",
+      "title": "Buste, turban, barbe, lunettes de soleil",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : turban, barbe, lunettes de soleil. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-85.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-86",
+      "kind": "character",
+      "title": "Buste, lunettes de soleil",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : lunettes de soleil. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-86.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-87",
+      "kind": "character",
+      "title": "Buste, lunettes",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : lunettes. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-87.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-91",
+      "kind": "character",
+      "title": "Buste, moustache",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : moustache. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-91.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-92",
+      "kind": "character",
+      "title": "Buste, barbe, lunettes, chemise",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : barbe, lunettes, chemise. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-92.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-95",
+      "kind": "character",
+      "title": "Buste, mains sur les hanches",
+      "tags": {
+        "fr": [
+          "assuré",
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "mains sur les hanches",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "confident",
+          "hand-drawn",
+          "hands on hips",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : mains sur les hanches. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-95.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-buste-98",
+      "kind": "character",
+      "title": "Buste, cheveux afro, lunettes",
+      "tags": {
+        "fr": [
+          "avatar",
+          "buste",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "portrait"
+        ],
+        "en": [
+          "avatar",
+          "black and white",
+          "bust",
+          "character",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "portrait"
+        ]
+      },
+      "useWhen": "Buste : cheveux afro, lunettes. Pour un témoignage, un profil, une réaction, une bulle de dialogue. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/bust/peep-98.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-assis-1",
+      "kind": "character",
+      "title": "Personne assise au sol, les bras autour des genoux, veste noire",
+      "tags": {
+        "fr": [
+          "assis",
+          "attente",
+          "corps entier",
+          "dessin",
+          "détendu",
+          "genoux",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "sol"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "floor",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "knees",
+          "people",
+          "person",
+          "relaxed",
+          "sitting",
+          "waiting"
+        ]
+      },
+      "useWhen": "Corps entier, assis : au sol, les bras autour des genoux, veste noire. Pour une pause, une attente, une discussion. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/sitting/peep-sitting-1.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-assis-2",
+      "kind": "character",
+      "title": "Personne assise au sol, les bras autour des genoux, chignon",
+      "tags": {
+        "fr": [
+          "assis",
+          "attente",
+          "corps entier",
+          "dessin",
+          "détendu",
+          "genoux",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "sol"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "floor",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "knees",
+          "people",
+          "person",
+          "relaxed",
+          "sitting",
+          "waiting"
+        ]
+      },
+      "useWhen": "Corps entier, assis : au sol, les bras autour des genoux, chignon. Pour une pause, une attente, une discussion. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/sitting/peep-sitting-2.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-assis-4",
+      "kind": "character",
+      "title": "Personne assise accroupi, chauve et souriant",
+      "tags": {
+        "fr": [
+          "accroupi",
+          "assis",
+          "corps entier",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "sourire"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "crouching",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "sitting",
+          "smile",
+          "squatting"
+        ]
+      },
+      "useWhen": "Corps entier, assis : accroupi, chauve et souriant. Pour une pause, une attente, une discussion. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/sitting/peep-sitting-4.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-assis-5",
+      "kind": "character",
+      "title": "Personne assise accroupi, bonnet",
+      "tags": {
+        "fr": [
+          "accroupi",
+          "assis",
+          "corps entier",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "crouching",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "sitting",
+          "squatting"
+        ]
+      },
+      "useWhen": "Corps entier, assis : accroupi, bonnet. Pour une pause, une attente, une discussion. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/sitting/peep-sitting-5.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-assis-6",
+      "kind": "character",
+      "title": "Personne assise une jambe croisée, sur un siège à dessiner",
+      "tags": {
+        "fr": [
+          "assis",
+          "chaise",
+          "corps entier",
+          "dessin",
+          "décontracté",
+          "illustration",
+          "jambe croisée",
+          "noir et blanc",
+          "personnage",
+          "personne"
+        ],
+        "en": [
+          "black and white",
+          "casual",
+          "chair",
+          "character",
+          "crossed legs",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "sitting"
+        ]
+      },
+      "useWhen": "Corps entier, assis : une jambe croisée, sur un siège à dessiner. Pour une pause, une attente, une discussion. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo. Sans siège dessiné, la personne flotte.",
+      "file": "open-peeps/sitting/peep-sitting-6.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-assis-7",
+      "kind": "character",
+      "title": "Personne assise une jambe croisée, sur un siège à dessiner, cheveux afro",
+      "tags": {
+        "fr": [
+          "assis",
+          "chaise",
+          "corps entier",
+          "dessin",
+          "décontracté",
+          "illustration",
+          "jambe croisée",
+          "noir et blanc",
+          "personnage",
+          "personne"
+        ],
+        "en": [
+          "black and white",
+          "casual",
+          "chair",
+          "character",
+          "crossed legs",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "sitting"
+        ]
+      },
+      "useWhen": "Corps entier, assis : une jambe croisée, sur un siège à dessiner, cheveux afro. Pour une pause, une attente, une discussion. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo. Sans siège dessiné, la personne flotte.",
+      "file": "open-peeps/sitting/peep-sitting-7.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-assis-9",
+      "kind": "character",
+      "title": "Personne assise à genoux, en appui sur une main",
+      "tags": {
+        "fr": [
+          "assis",
+          "corps entier",
+          "dessin",
+          "genoux",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "sol"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "floor",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "kneeling",
+          "people",
+          "person",
+          "sitting"
+        ]
+      },
+      "useWhen": "Corps entier, assis : à genoux, en appui sur une main. Pour une pause, une attente, une discussion. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/sitting/peep-sitting-9.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-assis-10",
+      "kind": "character",
+      "title": "Personne assise à genoux, assise sur les talons, souriante",
+      "tags": {
+        "fr": [
+          "assis",
+          "corps entier",
+          "dessin",
+          "genoux",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "sol",
+          "sourire"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "floor",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "kneeling",
+          "people",
+          "person",
+          "sitting",
+          "smile"
+        ]
+      },
+      "useWhen": "Corps entier, assis : à genoux, assise sur les talons, souriante. Pour une pause, une attente, une discussion. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/sitting/peep-sitting-10.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-assis-11",
+      "kind": "character",
+      "title": "Personne assise au sol, une jambe repliée, le bras sur le genou, cheveux courts",
+      "tags": {
+        "fr": [
+          "assis",
+          "corps entier",
+          "dessin",
+          "détendu",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "sol"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "floor",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "relaxed",
+          "sitting"
+        ]
+      },
+      "useWhen": "Corps entier, assis : au sol, une jambe repliée, le bras sur le genou, cheveux courts. Pour une pause, une attente, une discussion. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/sitting/peep-sitting-11.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-assis-12",
+      "kind": "character",
+      "title": "Personne assise au sol, une jambe repliée, le bras sur le genou",
+      "tags": {
+        "fr": [
+          "assis",
+          "corps entier",
+          "dessin",
+          "détendu",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "sol"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "floor",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "relaxed",
+          "sitting"
+        ]
+      },
+      "useWhen": "Corps entier, assis : au sol, une jambe repliée, le bras sur le genou. Pour une pause, une attente, une discussion. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/sitting/peep-sitting-12.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-assis-14",
+      "kind": "character",
+      "title": "Personne assise en fauteuil roulant, qui parle avec la main",
+      "tags": {
+        "fr": [
+          "assis",
+          "corps entier",
+          "dessin",
+          "explique",
+          "fauteuil roulant",
+          "handicap",
+          "illustration",
+          "noir et blanc",
+          "parle",
+          "personnage",
+          "personne"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "disability",
+          "explaining",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "sitting",
+          "talking",
+          "wheelchair"
+        ]
+      },
+      "useWhen": "Corps entier, assis : en fauteuil roulant, qui parle avec la main. Pour une pause, une attente, une discussion. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/sitting/peep-sitting-14.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-assis-15",
+      "kind": "character",
+      "title": "Personne assise en fauteuil roulant, qui parle avec la main, chignon",
+      "tags": {
+        "fr": [
+          "assis",
+          "corps entier",
+          "dessin",
+          "explique",
+          "fauteuil roulant",
+          "handicap",
+          "illustration",
+          "noir et blanc",
+          "parle",
+          "personnage",
+          "personne"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "disability",
+          "explaining",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "sitting",
+          "talking",
+          "wheelchair"
+        ]
+      },
+      "useWhen": "Corps entier, assis : en fauteuil roulant, qui parle avec la main, chignon. Pour une pause, une attente, une discussion. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/sitting/peep-sitting-15.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-assis-17",
+      "kind": "character",
+      "title": "Personne assise une jambe croisée, sur un siège à dessiner, chignon",
+      "tags": {
+        "fr": [
+          "assis",
+          "chaise",
+          "corps entier",
+          "dessin",
+          "décontracté",
+          "illustration",
+          "jambe croisée",
+          "noir et blanc",
+          "personnage",
+          "personne"
+        ],
+        "en": [
+          "black and white",
+          "casual",
+          "chair",
+          "character",
+          "crossed legs",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "sitting"
+        ]
+      },
+      "useWhen": "Corps entier, assis : une jambe croisée, sur un siège à dessiner, chignon. Pour une pause, une attente, une discussion. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo. Sans siège dessiné, la personne flotte.",
+      "file": "open-peeps/sitting/peep-sitting-17.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-assis-18",
+      "kind": "character",
+      "title": "Personne assise au sol, les bras autour des genoux, veste claire",
+      "tags": {
+        "fr": [
+          "assis",
+          "attente",
+          "corps entier",
+          "dessin",
+          "détendu",
+          "genoux",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "sol"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "floor",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "knees",
+          "people",
+          "person",
+          "relaxed",
+          "sitting",
+          "waiting"
+        ]
+      },
+      "useWhen": "Corps entier, assis : au sol, les bras autour des genoux, veste claire. Pour une pause, une attente, une discussion. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/sitting/peep-sitting-18.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-1",
+      "kind": "character",
+      "title": "Personne debout, chemise, short, prothèse de jambe, lunettes",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "handicap",
+          "illustration",
+          "lunettes",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "prothèse"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "disability",
+          "full body",
+          "glasses",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "prosthesis",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : chemise, short, prothèse de jambe, lunettes. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-1.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-2",
+      "kind": "character",
+      "title": "Personne debout, chemise noire, short, prothèse de jambe",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "handicap",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "prothèse"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "disability",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "prosthesis",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : chemise noire, short, prothèse de jambe. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-2.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-3",
+      "kind": "character",
+      "title": "Personne debout, chapeau et moustache, mains dans les poches",
+      "tags": {
+        "fr": [
+          "chapeau",
+          "corps entier",
+          "debout",
+          "dessin",
+          "illustration",
+          "moustache",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "poches"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "full body",
+          "hand-drawn",
+          "hands in pockets",
+          "hat",
+          "illustration",
+          "mustache",
+          "people",
+          "person",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : chapeau et moustache, mains dans les poches. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-3.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-4",
+      "kind": "character",
+      "title": "Personne debout, cheveux longs, pull noir, mains dans les poches",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "décontracté",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "poches"
+        ],
+        "en": [
+          "black and white",
+          "casual",
+          "character",
+          "full body",
+          "hand-drawn",
+          "hands in pockets",
+          "illustration",
+          "people",
+          "person",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : cheveux longs, pull noir, mains dans les poches. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-4.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-5",
+      "kind": "character",
+      "title": "Personne debout, foulard (hijab), mains dans les poches",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "foulard",
+          "hijab",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "poches"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "full body",
+          "hand-drawn",
+          "hands in pockets",
+          "headscarf",
+          "hijab",
+          "illustration",
+          "people",
+          "person",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : foulard (hijab), mains dans les poches. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-5.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-6",
+      "kind": "character",
+      "title": "Personne debout, lunettes, pull noir, mains dans les poches",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "illustration",
+          "lunettes",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "poches"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "full body",
+          "glasses",
+          "hand-drawn",
+          "hands in pockets",
+          "illustration",
+          "people",
+          "person",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : lunettes, pull noir, mains dans les poches. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-6.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-7",
+      "kind": "character",
+      "title": "Personne debout, veste, prothèse de jambe, main sur la hanche",
+      "tags": {
+        "fr": [
+          "assuré",
+          "corps entier",
+          "debout",
+          "dessin",
+          "handicap",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "prothèse"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "confident",
+          "disability",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "prosthesis",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : veste, prothèse de jambe, main sur la hanche. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-7.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-8",
+      "kind": "character",
+      "title": "Personne debout, veste, lunettes de soleil, prothèse de jambe, mains sur les hanches",
+      "tags": {
+        "fr": [
+          "assuré",
+          "corps entier",
+          "debout",
+          "dessin",
+          "handicap",
+          "illustration",
+          "lunettes de soleil",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "prothèse"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "confident",
+          "disability",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "prosthesis",
+          "standing",
+          "sunglasses"
+        ]
+      },
+      "useWhen": "Corps entier, debout : veste, lunettes de soleil, prothèse de jambe, mains sur les hanches. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-8.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-9",
+      "kind": "character",
+      "title": "Personne debout, veste claire, mains sur les hanches",
+      "tags": {
+        "fr": [
+          "assuré",
+          "corps entier",
+          "debout",
+          "dessin",
+          "fier",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "confident",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "proud",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : veste claire, mains sur les hanches. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-9.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-10",
+      "kind": "character",
+      "title": "Personne debout, tresses, bras croisés",
+      "tags": {
+        "fr": [
+          "bras croisés",
+          "corps entier",
+          "debout",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "sceptique"
+        ],
+        "en": [
+          "arms crossed",
+          "black and white",
+          "character",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "skeptical",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : tresses, bras croisés. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-10.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-11",
+      "kind": "character",
+      "title": "Personne debout, bonnet, bras croisés",
+      "tags": {
+        "fr": [
+          "bras croisés",
+          "corps entier",
+          "debout",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "sceptique"
+        ],
+        "en": [
+          "arms crossed",
+          "black and white",
+          "character",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "skeptical",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : bonnet, bras croisés. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-11.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-12",
+      "kind": "character",
+      "title": "Personne debout, bandana, bras croisés",
+      "tags": {
+        "fr": [
+          "bras croisés",
+          "corps entier",
+          "debout",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "sceptique"
+        ],
+        "en": [
+          "arms crossed",
+          "black and white",
+          "character",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "skeptical",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : bandana, bras croisés. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-12.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-13",
+      "kind": "character",
+      "title": "Personne debout, chauve, chemise ouverte, mains dans les poches",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "décontracté",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "poches"
+        ],
+        "en": [
+          "black and white",
+          "casual",
+          "character",
+          "full body",
+          "hand-drawn",
+          "hands in pockets",
+          "illustration",
+          "people",
+          "person",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : chauve, chemise ouverte, mains dans les poches. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-13.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-14",
+      "kind": "character",
+      "title": "Personne debout, lunettes, chemise ouverte",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "décontracté",
+          "illustration",
+          "lunettes",
+          "noir et blanc",
+          "personnage",
+          "personne"
+        ],
+        "en": [
+          "black and white",
+          "casual",
+          "character",
+          "full body",
+          "glasses",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : lunettes, chemise ouverte. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-14.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-15",
+      "kind": "character",
+      "title": "Personne debout, lunettes de soleil, chemise ouverte",
+      "tags": {
+        "fr": [
+          "cool",
+          "corps entier",
+          "debout",
+          "dessin",
+          "illustration",
+          "lunettes de soleil",
+          "noir et blanc",
+          "personnage",
+          "personne"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "cool",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "standing",
+          "sunglasses"
+        ]
+      },
+      "useWhen": "Corps entier, debout : lunettes de soleil, chemise ouverte. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-15.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-16",
+      "kind": "character",
+      "title": "Personne debout, qui pointe du doigt vers le haut, une idée",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "explique",
+          "idée",
+          "illustration",
+          "montre",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "pointe"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "explaining",
+          "full body",
+          "hand-drawn",
+          "idea",
+          "illustration",
+          "people",
+          "person",
+          "pointing",
+          "standing",
+          "tip"
+        ]
+      },
+      "useWhen": "Corps entier, debout : qui pointe du doigt vers le haut, une idée. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-16.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-17",
+      "kind": "character",
+      "title": "Personne debout, pull noir, qui pointe du doigt vers le haut, une idée",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "explique",
+          "idée",
+          "illustration",
+          "montre",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "pointe"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "explaining",
+          "full body",
+          "hand-drawn",
+          "idea",
+          "illustration",
+          "people",
+          "person",
+          "pointing",
+          "standing",
+          "tip"
+        ]
+      },
+      "useWhen": "Corps entier, debout : pull noir, qui pointe du doigt vers le haut, une idée. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-17.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-18",
+      "kind": "character",
+      "title": "Personne debout, lunettes, veste, main sur la hanche",
+      "tags": {
+        "fr": [
+          "assuré",
+          "corps entier",
+          "debout",
+          "dessin",
+          "illustration",
+          "lunettes",
+          "noir et blanc",
+          "personnage",
+          "personne"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "confident",
+          "full body",
+          "glasses",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : lunettes, veste, main sur la hanche. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-18.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-19",
+      "kind": "character",
+      "title": "Personne debout, barbe, lunettes de soleil, pull à pois",
+      "tags": {
+        "fr": [
+          "barbe",
+          "corps entier",
+          "debout",
+          "dessin",
+          "illustration",
+          "lunettes de soleil",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "pois"
+        ],
+        "en": [
+          "beard",
+          "black and white",
+          "character",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "polka dots",
+          "standing",
+          "sunglasses"
+        ]
+      },
+      "useWhen": "Corps entier, debout : barbe, lunettes de soleil, pull à pois. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-19.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-20",
+      "kind": "character",
+      "title": "Personne debout, chemise noire, bras le long du corps",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "illustration",
+          "neutre",
+          "noir et blanc",
+          "personnage",
+          "personne"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "neutral",
+          "people",
+          "person",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : chemise noire, bras le long du corps. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-20.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-21",
+      "kind": "character",
+      "title": "Personne debout, barbe, pull à pois",
+      "tags": {
+        "fr": [
+          "barbe",
+          "corps entier",
+          "debout",
+          "dessin",
+          "illustration",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "pois"
+        ],
+        "en": [
+          "beard",
+          "black and white",
+          "character",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "polka dots",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : barbe, pull à pois. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-21.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-22",
+      "kind": "character",
+      "title": "Personne debout, en marche, qui présente de la main",
+      "tags": {
+        "fr": [
+          "accueil",
+          "corps entier",
+          "debout",
+          "dessin",
+          "illustration",
+          "marche",
+          "montre",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "présente"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "presenting",
+          "showing",
+          "standing",
+          "walking",
+          "welcome"
+        ]
+      },
+      "useWhen": "Corps entier, debout : en marche, qui présente de la main. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-22.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-23",
+      "kind": "character",
+      "title": "Personne debout, chapeau et barbe, en marche, qui présente de la main",
+      "tags": {
+        "fr": [
+          "accueil",
+          "corps entier",
+          "debout",
+          "dessin",
+          "illustration",
+          "marche",
+          "montre",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "présente"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "presenting",
+          "showing",
+          "standing",
+          "walking",
+          "welcome"
+        ]
+      },
+      "useWhen": "Corps entier, debout : chapeau et barbe, en marche, qui présente de la main. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-23.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-24",
+      "kind": "character",
+      "title": "Personne debout, cheveux au carré, en marche, qui présente de la main",
+      "tags": {
+        "fr": [
+          "accueil",
+          "corps entier",
+          "debout",
+          "dessin",
+          "illustration",
+          "marche",
+          "montre",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "présente"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "presenting",
+          "showing",
+          "standing",
+          "walking",
+          "welcome"
+        ]
+      },
+      "useWhen": "Corps entier, debout : cheveux au carré, en marche, qui présente de la main. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-24.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-25",
+      "kind": "character",
+      "title": "Personne debout, cheveux afro, qui marche",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "en route",
+          "illustration",
+          "marche",
+          "mouvement",
+          "noir et blanc",
+          "personnage",
+          "personne"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "moving",
+          "on the way",
+          "people",
+          "person",
+          "standing",
+          "walking"
+        ]
+      },
+      "useWhen": "Corps entier, debout : cheveux afro, qui marche. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-25.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-26",
+      "kind": "character",
+      "title": "Personne debout, cheveux longs, qui marche",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "en route",
+          "illustration",
+          "marche",
+          "mouvement",
+          "noir et blanc",
+          "personnage",
+          "personne"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "moving",
+          "on the way",
+          "people",
+          "person",
+          "standing",
+          "walking"
+        ]
+      },
+      "useWhen": "Corps entier, debout : cheveux longs, qui marche. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-26.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-27",
+      "kind": "character",
+      "title": "Personne debout, cheveux afro et moustache, qui marche",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "en route",
+          "illustration",
+          "marche",
+          "mouvement",
+          "noir et blanc",
+          "personnage",
+          "personne"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "moving",
+          "on the way",
+          "people",
+          "person",
+          "standing",
+          "walking"
+        ]
+      },
+      "useWhen": "Corps entier, debout : cheveux afro et moustache, qui marche. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-27.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-28",
+      "kind": "character",
+      "title": "Personne debout, lunettes de soleil, chemise, short, prothèse de jambe",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "handicap",
+          "illustration",
+          "lunettes de soleil",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "prothèse"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "disability",
+          "full body",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "prosthesis",
+          "standing",
+          "sunglasses"
+        ]
+      },
+      "useWhen": "Corps entier, debout : lunettes de soleil, chemise, short, prothèse de jambe. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-28.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-29",
+      "kind": "character",
+      "title": "Personne debout, chemise noire, short, prothèse de jambe, lunettes",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "handicap",
+          "illustration",
+          "lunettes",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "prothèse"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "disability",
+          "full body",
+          "glasses",
+          "hand-drawn",
+          "illustration",
+          "people",
+          "person",
+          "prosthesis",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : chemise noire, short, prothèse de jambe, lunettes. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-29.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-peeps-debout-30",
+      "kind": "character",
+      "title": "Personne debout, moustache, chemise, mains dans les poches",
+      "tags": {
+        "fr": [
+          "corps entier",
+          "debout",
+          "dessin",
+          "illustration",
+          "moustache",
+          "noir et blanc",
+          "personnage",
+          "personne",
+          "poches"
+        ],
+        "en": [
+          "black and white",
+          "character",
+          "full body",
+          "hand-drawn",
+          "hands in pockets",
+          "illustration",
+          "mustache",
+          "people",
+          "person",
+          "standing"
+        ]
+      },
+      "useWhen": "Corps entier, debout : moustache, chemise, mains dans les poches. Pour présenter quelqu'un, une équipe, un client. Trait noir sur fond transparent, à poser sur un fond clair ; teinter le contour avec --color est impossible (deux couleurs).",
+      "avoidFor": "Une vidéo au style photo ou 3D : garde un seul style de personnages par vidéo.",
+      "file": "open-peeps/standing/peep-standing-30.svg",
+      "format": "svg",
+      "pack": "open-peeps",
+      "license": "CC0-1.0",
+      "source": "https://www.openpeeps.com/",
+      "author": "Pablo Stanley"
     }
   ]
 }

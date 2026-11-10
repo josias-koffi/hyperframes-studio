@@ -57,9 +57,15 @@ function words(text) {
     .map((word) => (word.length > 3 && /[sx]$/.test(word) && !/ss$/.test(word) ? word.slice(0, -1) : word));
 }
 
+/** « tel » for « telephone », « shrugging » for « shrug »: the start of a word, or a word with an ending. */
+function related(word, known) {
+  if (word.length >= 3 && known.length > word.length && known.startsWith(word)) return true;
+  return known.length >= 4 && word.length > known.length && word.length - known.length <= 4 && word.startsWith(known);
+}
+
 /**
  * Each word of the query scores on the best place it is found: a tag (3), the title or the id (2), the start of a
- * longer word (1). More words found first, then the score, then the id: the same query gives the same list.
+ * longer word or a word with an ending (1). More words found first, then the score, then the id: the same query gives the same list.
  */
 function search(entries, query, kind, formats) {
   const asked = [...new Set(words(query))];
@@ -77,7 +83,7 @@ function search(entries, query, kind, formats) {
     let found = 0;
     let score = 0;
     for (const word of asked) {
-      const points = tags.has(word) ? 3 : named.has(word) ? 2 : word.length >= 3 && all.some((known) => known.length > word.length && known.startsWith(word)) ? 1 : 0;
+      const points = tags.has(word) ? 3 : named.has(word) ? 2 : all.some((known) => related(word, known)) ? 1 : 0;
       if (points > 0) found += 1;
       score += points;
     }

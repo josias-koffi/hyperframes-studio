@@ -54,6 +54,7 @@ describe("library.mjs search", () => {
 
   it("matches the start of a word, filters by kind and keeps to the limit", () => {
     expect(ids("lanc")).toEqual(["emoji-fusee"]);
+    expect(ids("calling")).toEqual(["icone-telephone"]);
     expect(ids("personne", "--kind", "icon")).toEqual([]);
     expect(ids("", "--kind", "character")).toEqual(["peep-assis-bureau", "peep-debout"]);
     expect(ids("personne bureau", "--limit", "1")).toEqual(["peep-assis-bureau"]);
