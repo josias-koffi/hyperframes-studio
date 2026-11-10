@@ -78,6 +78,10 @@ npx hyperframes lint videos/<nom> --verbose  # include info-level findings
 npx hyperframes docs <topic> # reference docs in terminal
 ```
 
+> **Shell commands that pass the permission check.** Nobody can approve a refused command, so:
+> - Never start a command with `cd` when it also reads paths: `cd videos/x && find . -type f` and `cd videos/x; ls -la` are refused. Stay at the workspace root and name the paths: `find videos/x -type f`, `ls -la videos/x`.
+> - Always quote URLs (`curl -sSL "https://host/path?a=1&b=2"`): an unquoted `&` splits the command, and it is refused.
+
 > **Agents must use `npm run preview -- videos/<nom>` (`hyperframes preview --background`) for Studio handoff.** Do not rely
 > on a shell/tool `run_in_background` wrapper around `npm run dev`: that foreground process
 > remains owned by the invoking session and can disappear while the browser stays open,

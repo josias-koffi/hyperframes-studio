@@ -8,6 +8,7 @@ export type OpencodeClient = {
   prompt(directory: string, sessionId: string, model: { providerID: string; modelID: string }, text: string): Promise<void>;
   abort(directory: string, sessionId: string): Promise<void>;
   rejectPermission(directory: string, requestId: string, message: string): Promise<void>;
+  allowPermission(directory: string, requestId: string): Promise<void>;
   /** The server's event stream, opened before the prompt is sent so that no event is missed. */
   events(directory: string, signal: AbortSignal): Promise<AsyncIterable<unknown>>;
 };
@@ -39,6 +40,9 @@ export function createOpencodeHttpClient(baseUrl: string, password?: string): Op
     },
     async rejectPermission(directory, requestId, message) {
       await call(`/permission/${requestId}/reply`, directory, { reply: "reject", message });
+    },
+    async allowPermission(directory, requestId) {
+      await call(`/permission/${requestId}/reply`, directory, { reply: "once" });
     },
     async events(directory, signal) {
       const response = await fetch(url("/event", directory), { headers: { accept: "text/event-stream", ...auth }, signal });
@@ -82,8 +86,9 @@ const PROVIDER_ID = "openrouter";
  */
 export function createOpencodeRunner(client: OpencodeClient): AgentRunner {
   return {
-    async run({ prompt, sessionId, model, cwd, timeoutMs, onEvent }) {
+    async run({ prompt, sessionId, model, cwd, timeoutMs, allowedDirs = [], onEvent }) {
       const started = Date.now();
+      const isGranted = (pattern: string) => allowedDirs.some((dir) => pattern === dir || pattern.startsWith(`${dir}/`));
       const id = sessionId ?? (await client.createSession(cwd, prompt.slice(0, 80)));
       await onEvent({ kind: "session", sessionId: id, model });
 
@@ -102,9 +107,15 @@ export function createOpencodeRunner(client: OpencodeClient): AgentRunner {
         await client.prompt(cwd, id, { providerID: PROVIDER_ID, modelID: model }, prompt);
         for await (const raw of events) {
           const event = raw as { type?: string; properties?: { id?: string; sessionID?: string; permission?: string; patterns?: string[] } };
-          // Nobody can answer a permission prompt: what opencode.json does not allow is refused.
+          // Nobody can answer a permission prompt: what opencode.json does not allow is refused, but for the folders
+          // the person opened to this turn.
           if (event.type === "permission.asked" && event.properties?.sessionID === id && event.properties.id) {
-            const what = `${event.properties.permission ?? "?"} ${(event.properties.patterns ?? []).join(" ")}`.trim();
+            const patterns = event.properties.patterns ?? [];
+            if (event.properties.permission === "external_directory" && patterns.length && patterns.every(isGranted)) {
+              await client.allowPermission(cwd, event.properties.id);
+              continue;
+            }
+            const what = `${event.properties.permission ?? "?"} ${patterns.join(" ")}`.trim();
             await onEvent({ kind: "log", level: "error", text: `Permission refusée : ${what}` });
             await client.rejectPermission(cwd, event.properties.id, "Non autorisé dans le studio.");
             continue;

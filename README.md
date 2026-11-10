@@ -38,7 +38,9 @@ fenêtre Electron ──▶ web (Next.js + shadcn) ──/api relais──▶ co
   et ses rendus, sans Claude, via `hyperframes render --variables-file --strict-variables`. Les images passent par
   `snapshot --at`, sur une copie dont les valeurs par défaut sont réécrites (`applyVariableDefaults`).
 - **Claude sans prompt de permission** : `--permission-mode dontAsk` + liste blanche dans
-  [`workspace/.claude/settings.json`](workspace/.claude/settings.json). Un seul tour Claude Code à la fois.
+  [`workspace/.claude/settings.json`](workspace/.claude/settings.json). Un seul tour Claude Code à la fois. Un dossier
+  du poste cité dans le brief, le projet ou un commentaire est ouvert à l'agent pour cette création
+  (`apps/claude-runner/src/granted-dirs.ts`) : dans le home ou sur un disque monté, jamais un dossier caché.
 
 ## Structure
 

@@ -1,6 +1,6 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { assets, createJobReporter, creations, projects, type Database, type Publish } from "@studio/db";
+import { assets, createJobReporter, creations, jobs, projects, type Database, type Publish } from "@studio/db";
 import {
   BLOCKS_STEPS,
   CHECKPOINT_STEPS,
@@ -22,6 +22,7 @@ import { and, eq, isNull, or } from "drizzle-orm";
 import { agentEnv } from "./agent-env";
 import type { AgentRunner, AgentTurnResult } from "./agents/types";
 import { runBlocksStep, runCommand } from "./blocks";
+import { grantedDirs, grantedDirsNote, stringsOf } from "./granted-dirs";
 import { addUsage, type Escalation } from "./structured";
 import type { RunnerConfig } from "./config";
 import type { OpenrouterProxy } from "./openrouter-proxy";
@@ -201,6 +202,13 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
     if (job.mode === "edit") await commitCheckpoint(config.workspaceDir, job.slug, `${job.slug}: édition manuelle`);
     const campaign = [project.name, project.context.trim()].filter(Boolean).join("\n\n");
 
+    // Only what the person typed opens a folder: the brief, the project, and every comment on this création, so a
+    // folder named in one comment stays open for the next.
+    const creationJobs = await db.select({ input: jobs.input }).from(jobs).where(eq(jobs.creationId, creation.id));
+    const allowedDirs = await grantedDirs([...stringsOf(creation.brief), campaign, job.feedback ?? "", ...stringsOf(creationJobs.map((row) => row.input.feedback))]);
+    const dirsNote = grantedDirsNote(allowedDirs, job.slug);
+    if (allowedDirs.length) await report.event({ kind: "log", level: "info", text: `Dossiers ouverts à l'agent : ${allowedDirs.join(", ")}` });
+
     let agent: AgentChoice;
     let result: AgentTurnResult;
     let escalation: Escalation | undefined;
@@ -234,7 +242,7 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
         onEvent: (event) => report.event(event),
         customScene: sceneRunner
           ? async (prompt) => {
-              const turn = await sceneRunner.run({ prompt, sessionId: null, model: sceneAgent.model, cwd: config.workspaceDir, timeoutMs: config.timeoutMs, onEvent: (event) => report.event(event) });
+              const turn = await sceneRunner.run({ prompt: prompt + dirsNote, sessionId: null, model: sceneAgent.model, cwd: config.workspaceDir, timeoutMs: config.timeoutMs, allowedDirs, onEvent: (event) => report.event(event) });
               return { ok: turn.ok, resultText: turn.resultText, usage: turn.usage, costUsd: turn.costUsd };
             }
           : undefined,
@@ -269,8 +277,8 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
       // comment, an editor change) resumes it, and only on the backend that opened it.
       const sameBackend = (creation.sessionBackend ?? "claude-code") === agent.backend;
       const turn = (input: { prompt: string; sessionId: string | null; model: string }) =>
-        runner.run({ ...input, cwd: config.workspaceDir, timeoutMs: config.timeoutMs, onEvent: (event) => report.event(event) });
-      result = await turn({ prompt, sessionId: job.feedback && sameBackend ? (job.resumeSessionId ?? creation.claudeSessionId) : null, model: agent.model });
+        runner.run({ ...input, cwd: config.workspaceDir, timeoutMs: config.timeoutMs, allowedDirs, onEvent: (event) => report.event(event) });
+      result = await turn({ prompt: prompt + dirsNote, sessionId: job.feedback && sameBackend ? (job.resumeSessionId ?? creation.claudeSessionId) : null, model: agent.model });
       if (result.ok && job.step === "build") {
         const env = agentEnv({ home: homedir(), tmp: config.agentTmpDir }, {});
         const verified = await verifyBuild({ job, config, env, report, turn, first: result, model: agent.model, escalationModel: escalationAgentFor(job, config) });

@@ -20,7 +20,7 @@ export type ClaudeCodeOptions = {
 export function createClaudeCodeRunner({ bin, skillsDir, workspaceDir, env }: ClaudeCodeOptions): AgentRunner {
   let queue: Promise<unknown> = Promise.resolve();
   return {
-    run({ prompt, sessionId, model, cwd, timeoutMs, onEvent }) {
+    run({ prompt, sessionId, model, cwd, timeoutMs, allowedDirs = [], onEvent }) {
       const turn = queue.then(async () => {
         let result: (StudioEvent & { kind: "result" }) | undefined;
         const outcome = await runClaude({
@@ -30,7 +30,7 @@ export function createClaudeCodeRunner({ bin, skillsDir, workspaceDir, env }: Cl
             resumeSessionId: sessionId,
             model,
             settingsFile: join(workspaceDir, ".claude", "settings.json"),
-            addDirs: [skillsDir],
+            addDirs: [skillsDir, ...allowedDirs],
           }),
           cwd,
           env,

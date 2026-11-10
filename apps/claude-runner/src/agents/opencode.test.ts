@@ -22,6 +22,9 @@ function fakeClient(events: unknown[], { hang = false } = {}) {
     rejectPermission: vi.fn(async (_dir, id) => {
       client.calls.push(`reject ${id}`);
     }),
+    allowPermission: vi.fn(async (_dir, id) => {
+      client.calls.push(`allow ${id}`);
+    }),
     events: vi.fn(async (_dir, signal: AbortSignal) =>
       (async function* () {
         await prompted;
@@ -76,6 +79,13 @@ describe("createOpencodeRunner", () => {
     expect(client.calls).toEqual(["prompt ses_old openrouter/m", "reject per_1"]);
     expect(events).toContainEqual({ kind: "log", level: "error", text: "Permission refusée : bash rm -rf x" });
     expect(result.ok).toBe(true);
+  });
+
+  it("allows a folder the person opened, and refuses the others", async () => {
+    const asked = (id: string, pattern: string) => ({ type: "permission.asked", properties: { id, sessionID: "ses_new", permission: "external_directory", patterns: [pattern] } });
+    const client = fakeClient([asked("per_1", "/home/a/logos/*"), asked("per_2", "/home/a/logos-prives/*"), { type: "session.idle", properties: { sessionID: "ses_new" } }]);
+    await createOpencodeRunner(client).run({ prompt: "p", sessionId: null, model: "m", cwd: "/ws", timeoutMs: 5_000, allowedDirs: ["/home/a/logos"], onEvent: () => undefined });
+    expect(client.calls).toEqual(["create", "prompt ses_new openrouter/m", "allow per_1", "reject per_2"]);
   });
 
   it("fails the turn on a session error", async () => {

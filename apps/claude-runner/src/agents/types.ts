@@ -7,6 +7,8 @@ export type AgentTurn = {
   model: string;
   cwd: string;
   timeoutMs: number;
+  /** Folders of the computer the person opened to the agent by naming them (see `granted-dirs.ts`). */
+  allowedDirs?: readonly string[];
   onEvent: (event: StudioEvent) => Promise<void> | void;
 };
 
