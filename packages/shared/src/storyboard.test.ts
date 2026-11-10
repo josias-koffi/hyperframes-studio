@@ -5,6 +5,7 @@ import {
   blocksCatalog,
   fillBlock,
   isAssetPath,
+  isLibraryRef,
   parseStoryboard,
   renderScriptMd,
   renderStoryboardMd,
@@ -441,6 +442,15 @@ describe("isAssetPath", () => {
     expect(isAssetPath("assets/../index.html")).toBe(false);
     expect(isAssetPath("/etc/passwd")).toBe(false);
     expect(isAssetPath('assets/a".png')).toBe(false);
+  });
+});
+
+describe("isLibraryRef", () => {
+  it("names an asset of the library by its id, nothing else", () => {
+    expect(isLibraryRef("library:peep-assis")).toBe(true);
+    expect(isLibraryRef("library:../catalog")).toBe(false);
+    expect(isLibraryRef('library:a" onerror="x')).toBe(false);
+    expect(isLibraryRef("peep-assis")).toBe(false);
   });
 });
 

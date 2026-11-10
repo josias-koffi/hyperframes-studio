@@ -1,10 +1,13 @@
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import { promisify } from "node:util";
 import {
   aspectOf,
   IMAGE_EXTENSIONS,
+  isLibraryRef,
+  LIBRARY_REF_PREFIX,
   REALISTIC_BUDGET_EUR,
   USD_PER_EUR,
   VIDEO_EXTENSIONS,
@@ -51,6 +54,7 @@ import {
   type CreationKind,
   type CreationType,
   type GenerationStep,
+  type LibraryEntry,
   type LoadedBlock,
   type StoryboardFormat,
   type Storyboard,
@@ -152,6 +156,93 @@ export async function availableAssets(videoDir: string, { videos = false }: { vi
   return found.sort();
 }
 
+const execFileAsync = promisify(execFile);
+
+/** Assets of the library offered to the storyboard: the images a block can show. */
+export const LIBRARY_SUGGESTIONS = 30;
+const LIBRARY_IMAGE_FORMATS = "svg,png,webp";
+/** The words of the brief the search reads: past that, a brief only repeats itself. */
+const LIBRARY_QUERY_CHARS = 4000;
+
+/** `node scripts/library.mjs …` in the workspace, the agents' own command; its JSON answer. */
+async function libraryCommand(ctx: Pick<BlocksContext, "workspaceDir" | "env">, args: string[]): Promise<unknown> {
+  const { stdout } = await execFileAsync("node", ["scripts/library.mjs", ...args, "--json"], {
+    cwd: ctx.workspaceDir,
+    env: ctx.env,
+    timeout: 60_000,
+    maxBuffer: 8 * 1024 * 1024,
+  });
+  return JSON.parse(stdout);
+}
+
+/**
+ * The library's images closest to the brief (and to the comment of a revision), found by the same deterministic
+ * search the agents run, plus those the current storyboard already uses. None when the workspace has no library.
+ */
+export async function librarySuggestions(ctx: BlocksContext, query: string, current?: Storyboard | null): Promise<LibraryEntry[]> {
+  if (!(await exists(join(ctx.workspaceDir, "scripts", "library.mjs")))) return [];
+  const used = [...new Set([...(current?.scenes ?? []), ...(current?.overlays ?? [])].flatMap((item) => Object.values(item.props)).filter(isLibraryRef))].map((ref) =>
+    ref.slice(LIBRARY_REF_PREFIX.length),
+  );
+  try {
+    const found = (await libraryCommand(ctx, ["search", query.slice(0, LIBRARY_QUERY_CHARS), "--format", LIBRARY_IMAGE_FORMATS, "--limit", String(LIBRARY_SUGGESTIONS)])) as LibraryEntry[];
+    const kept = used.length ? ((await libraryCommand(ctx, ["get", ...used])) as LibraryEntry[]) : [];
+    const ids = new Set(kept.map((entry) => entry.id));
+    return [...kept, ...found.filter((entry) => !ids.has(entry.id))];
+  } catch (error) {
+    await ctx.onEvent({ kind: "log", level: "error", text: `Bibliothèque d'assets indisponible : ${error instanceof Error ? error.message : String(error)}` });
+    return [];
+  }
+}
+
+/** How the storyboard sees an asset of the library: its reference, what it shows and when to use it. */
+function libraryLine(entry: LibraryEntry): string {
+  const size = entry.dimensions ? `, ${entry.dimensions.width}×${entry.dimensions.height} px au plus` : "";
+  const avoid = entry.avoidFor ? ` Éviter : ${entry.avoidFor}` : "";
+  return `- ${LIBRARY_REF_PREFIX}${entry.id} — ${entry.title} (${entry.kind}, ${entry.format}${size}). ${entry.useWhen}${avoid}`;
+}
+
+/**
+ * Copies the library's assets a storyboard points at into `assets/library/` (`library.mjs add`, which credits them)
+ * and rewrites their props to the copied file. An id the library does not have is an error of the storyboard.
+ */
+async function resolveLibraryRefs(
+  ctx: BlocksContext,
+  storyboard: Storyboard,
+  manifests: readonly BlockManifest[],
+): Promise<{ storyboard: Storyboard; errors: string[]; changed: boolean }> {
+  const byId = new Map(manifests.map((manifest) => [manifest.id, manifest]));
+  const files = new Map<string, string>();
+  const errors: string[] = [];
+  let changed = false;
+  const resolveProps = async (props: Record<string, string>, block: string, where: string) => {
+    const out = { ...props };
+    for (const [key, prop] of Object.entries(byId.get(block)?.props ?? {})) {
+      const value = props[key];
+      if (prop.type !== "image" || !value || !isLibraryRef(value)) continue;
+      const id = value.slice(LIBRARY_REF_PREFIX.length);
+      if (!files.has(id)) {
+        try {
+          files.set(id, ((await libraryCommand(ctx, ["add", id, `videos/${ctx.slug}`])) as { file: string }).file);
+        } catch (error) {
+          const stderr = (error as { stderr?: string }).stderr?.trim();
+          errors.push(`${where} : ${value} ne peut pas être ajouté (${stderr || (error instanceof Error ? error.message : String(error))}).`);
+          continue;
+        }
+      }
+      out[key] = files.get(id)!;
+      changed = true;
+    }
+    return out;
+  };
+  const scenes = [];
+  for (const scene of storyboard.scenes) scenes.push({ ...scene, props: await resolveProps(scene.props, scene.block, `scène ${scene.id}`) });
+  const overlays = [];
+  for (const overlay of storyboard.overlays) overlays.push({ ...overlay, props: await resolveProps(overlay.props, overlay.block, `calque ${overlay.id}`) });
+  if (files.size) await ctx.onEvent({ kind: "log", level: "info", text: `Bibliothèque : ${[...files.keys()].join(", ")} ajouté(s) dans assets/library/.` });
+  return { storyboard: { ...storyboard, scenes, overlays }, errors, changed };
+}
+
 export function storyboardSystemPrompt(manifests: readonly BlockManifest[], format: StoryboardFormat): string {
   const rules = format.frames ? stillRules(format.frames) : format.realistic ? [...videoRules(format), ...realisticRules(manifests)] : videoRules(format);
   return [
@@ -221,6 +312,9 @@ export function answerShape(format: StoryboardFormat): Record<string, unknown> {
   };
 }
 
+const LIBRARY_RULE =
+  "- Les assets `library:<id>` de cette liste (personnages, objets, icônes, drapeaux, illustrations) s'écrivent tels quels dans une prop image : préfère-les à un dessin quand ils montrent l'idée, et suis leur « Éviter ».";
+
 /** A carousel (`frames` slides) or an image (1): one block per slide, no time, no sound. */
 function stillRules(frames: number): string[] {
   const image = frames === 1;
@@ -237,6 +331,7 @@ function stillRules(frames: number): string[] {
     "- Varie les blocs : pas deux fois de suite le même bloc, sauf raison claire.",
     "- Respecte la longueur maximale de chaque texte : un texte trop long est refusé. Écris court, concret, en français naturel, sans emoji.",
     "- Une image ne peut venir que de la liste des fichiers disponibles. Sans fichier adapté, n'utilise pas de bloc d'image.",
+    LIBRARY_RULE,
     "- Garde une identité visuelle commune : mêmes couleurs d'accent et de texte d'une slide à l'autre, sauf raison claire. Les couleurs s'écrivent #RRGGBB.",
     "- Pas de son ni de mouvement : `duration` vaut 1, `transition` vaut cut, `voiceover` est vide, `audio` vaut { \"voice\": false, \"music\": null } et `overlays` est une liste vide.",
     "- Les ids de scène vont de s1 à sN dans l'ordre.",
@@ -255,6 +350,7 @@ function videoRules(format: StoryboardFormat): string[] {
     "- La durée d'une scène suit son texte : environ 2,5 mots lus par seconde, sans sortir des bornes du bloc.",
     format.durationSeconds ? `- La somme des durées vise ${format.durationSeconds} s.` : "- Garde la vidéo sous 45 s.",
     "- Une image ne peut venir que de la liste des fichiers disponibles. Sans fichier adapté, n'utilise pas de bloc d'image.",
+    LIBRARY_RULE,
     "- Garde une identité visuelle commune : mêmes couleurs d'accent et de texte d'une scène à l'autre, sauf raison claire. Les couleurs s'écrivent #RRGGBB.",
     "- Voix off : si `audio.voice` vaut true, chaque scène a une phrase parlée (`voiceover`) qui complète l'écran au lieu de le répéter mot pour mot ; sinon tous les `voiceover` sont vides.",
     "- `audio.music` est une description en anglais de la musique (ambiance, tempo, instrumental, sans voix), ou null. Une vidéo sans voix off peut avoir une musique.",
@@ -299,12 +395,15 @@ export function storyboardUserPrompt({
   campaign,
   brief,
   assets,
+  library = [],
   current,
   feedback,
 }: {
   campaign: string;
   brief: string;
   assets: readonly string[];
+  /** The library's assets found for this brief (`librarySuggestions`). */
+  library?: readonly LibraryEntry[];
   current?: Storyboard | null;
   feedback?: string;
 }): string {
@@ -319,7 +418,7 @@ export function storyboardUserPrompt({
     "",
     "## Fichiers disponibles",
     "",
-    assets.length ? assets.map((asset) => `- ${asset}`).join("\n") : "(aucun)",
+    assets.length || library.length ? [...assets.map((asset) => `- ${asset}`), ...library.map(libraryLine)].join("\n") : "(aucun)",
   ];
   if (current && feedback) {
     parts.push(
@@ -348,7 +447,7 @@ export function storyboardUserPrompt({
  */
 export async function writeStoryboard(
   ctx: BlocksContext,
-  input: { manifests: readonly BlockManifest[]; brief: string; assets: readonly string[]; current?: Storyboard | null; model?: string },
+  input: { manifests: readonly BlockManifest[]; brief: string; assets: readonly string[]; library?: readonly LibraryEntry[]; current?: Storyboard | null; model?: string },
 ): Promise<{ storyboard: Storyboard | null; warnings: string[]; errors: string[]; usage?: TokenUsage; costUsd: number; escalation?: Escalation }> {
   const outcome = await structuredCall(ctx, {
     label: "Storyboard",
@@ -358,11 +457,13 @@ export async function writeStoryboard(
     escalationModel: ctx.escalationModel,
     messages: [
       { role: "system", content: storyboardSystemPrompt(input.manifests, ctx.format) },
-      { role: "user", content: storyboardUserPrompt({ campaign: ctx.campaign, brief: input.brief, assets: input.assets, current: input.current, feedback: ctx.feedback }) },
+      { role: "user", content: storyboardUserPrompt({ campaign: ctx.campaign, brief: input.brief, assets: input.assets, library: input.library, current: input.current, feedback: ctx.feedback }) },
     ],
     check: async (content) => {
       const parsed = parseStoryboard(content, input.manifests, ctx.format);
-      const errors = [...parsed.errors, ...(parsed.storyboard ? await missingImages(ctx, parsed.storyboard, input.manifests, input.assets) : [])];
+      // A library asset is offered as `library:<id>`: an id the search did not offer is refused like a missing file.
+      const offered = [...input.assets, ...(input.library ?? []).map((entry) => `${LIBRARY_REF_PREFIX}${entry.id}`)];
+      const errors = [...parsed.errors, ...(parsed.storyboard ? await missingImages(ctx, parsed.storyboard, input.manifests, offered) : [])];
       return { value: parsed.storyboard, errors, warnings: parsed.warnings };
     },
   });
@@ -456,10 +557,12 @@ async function storyboardStep(
   const dir = videoDir(ctx);
   const briefPath = join(dir, "BRIEF.md");
   if (!(await exists(briefPath))) return { ok: false, resultText: "BRIEF.md absent : relance l'étape brief." };
+  const brief = await readFile(briefPath, "utf8");
   const result = await writeStoryboard(ctx, {
     manifests,
-    brief: await readFile(briefPath, "utf8"),
+    brief,
     assets: await availableAssets(dir, { videos: ctx.format.realistic }),
+    library: await librarySuggestions(ctx, [brief, ctx.feedback ?? ""].join("\n"), current),
     current,
   });
   // Called as the escalation itself (a build repaired by the escalation model), the whole call is the escalation.
@@ -593,8 +696,13 @@ type BuildRound = BlocksStepResult & { assembled?: AssembledVideo; storyboard?: 
 
 async function assembleAndCheck(ctx: BlocksContext, manifests: BlockManifest[], blocks: Map<string, LoadedBlock>): Promise<BuildRound> {
   const dir = videoDir(ctx);
-  const { storyboard, errors } = await readStoryboard(ctx, manifests);
-  if (!storyboard) return { ok: false, resultText: errors.join("\n") };
+  const read = await readStoryboard(ctx, manifests);
+  if (!read.storyboard) return { ok: false, resultText: read.errors.join("\n") };
+  // The library's assets are copied into the video and STORYBOARD.json points at the copies from then on.
+  const library = await resolveLibraryRefs(ctx, read.storyboard, manifests);
+  if (library.errors.length) return { ok: false, resultText: `Assets de la bibliothèque introuvables :\n- ${library.errors.join("\n- ")}` };
+  if (library.changed) await saveStoryboard(ctx, library.storyboard, manifests, read.warnings);
+  const { storyboard } = library;
   const metaPath = join(dir, "audio_meta.json");
   const audio = (await exists(metaPath)) ? (JSON.parse(await readFile(metaPath, "utf8")) as AudioMeta) : null;
   const { width, height, variables } = ctx.format;

@@ -1,9 +1,9 @@
-import { chmod, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { chmod, copyFile, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { assembleVideo, fillBlock, parseStoryboard, type StudioEvent } from "@studio/shared";
 import { describe, expect, it } from "vitest";
-import { availableAssets, loadBlocks, runBlocksStep, storyboardSystemPrompt, writeStoryboard, type BlocksContext } from "./blocks";
+import { availableAssets, librarySuggestions, loadBlocks, runBlocksStep, storyboardSystemPrompt, writeStoryboard, type BlocksContext } from "./blocks";
 import { blocksModelFor } from "./process-job";
 
 /** The workspace skeleton shipped with the app, whose blocks are tested as they are. */
@@ -463,5 +463,80 @@ describe("blocksModelFor", () => {
     expect(blocksModelFor({ ...base, ai: { backend: "opencode", models: { storyboard: "deepseek/deepseek-v4" }, media: {} } }, { blocksModel: "x/y" })).toBe("deepseek/deepseek-v4");
     expect(blocksModelFor({ ...base, ai: { backend: "claude-code", models: { storyboard: "opus" }, media: {} } }, { blocksModel: "x/y" })).toBe("x/y");
     expect(blocksModelFor(base, { blocksModel: null })).toBeNull();
+  });
+});
+
+const phone = {
+  id: "icone-telephone",
+  kind: "icon",
+  title: "Téléphone",
+  tags: { fr: ["téléphone", "appel"], en: ["phone", "call"] },
+  useWhen: "Pour évoquer un appel.",
+  avoidFor: "Un vrai smartphone à l'écran.",
+  file: "icons/phone.svg",
+  format: "svg",
+  pack: "icons",
+  license: "ISC",
+  source: "https://lucide.dev/",
+  author: "Lucide",
+};
+const bell = { ...phone, id: "son-cloche", kind: "sound", title: "Cloche", tags: { fr: ["téléphone", "sonnerie"], en: ["ring"] }, file: "sfx/bell.wav", format: "wav", pack: "sfx" };
+
+/** The workspace's real `library.mjs` over a library of one icon (and a sound, which no image prop can show). */
+async function withLibrary(dir: string) {
+  await copyFile(join(SKELETON, "scripts/library.mjs"), join(dir, "scripts/library.mjs"));
+  await mkdir(join(dir, "library/icons"), { recursive: true });
+  await writeFile(join(dir, "library/catalog.json"), JSON.stringify({ version: 1, entries: [phone, bell] }));
+  await writeFile(join(dir, "library/icons/phone.svg"), '<svg stroke="currentColor"/>');
+}
+
+const withPhone = {
+  ...valid,
+  scenes: [valid.scenes[0], { id: "s2", title: "Appel", block: "media-fullframe", duration: 6, props: { src: "library:icone-telephone" }, voiceover: "", transition: "cut" }, valid.scenes[2]],
+};
+
+describe("the asset library in a blocks video", () => {
+  it("offers the images of the library that fit the brief, with what they show", async () => {
+    const { dir, ctx } = await fakeWorkspace(valid);
+    await withLibrary(dir);
+    const found = await librarySuggestions(ctx("storyboard"), "Une pub pour une app d'appels téléphoniques");
+    expect(found.map((entry) => entry.id)).toEqual(["icone-telephone"]);
+    expect(await librarySuggestions(ctx("storyboard"), "dinosaure", withPhone as never)).toHaveLength(1);
+  });
+
+  it("lists them among the available files and accepts only the ids it offered", async () => {
+    const bodies: { messages: { content: string }[] }[] = [];
+    const replies = [answer({ ...withPhone, scenes: [valid.scenes[0], { ...withPhone.scenes[1], props: { src: "library:inconnu" } }, valid.scenes[2]] }), answer(withPhone)];
+    const fetchImpl = (async (_url: string, init: RequestInit) => {
+      bodies.push(JSON.parse(String(init.body)));
+      return replies.shift()!;
+    }) as unknown as typeof fetch;
+    const { manifests } = await loadBlocks(SKELETON);
+    const result = await writeStoryboard(context(fetchImpl), { manifests, brief: "# Brief", assets: [], library: [phone] as never });
+    expect(bodies[0].messages[1].content).toContain("- library:icone-telephone — Téléphone (icon, svg). Pour évoquer un appel. Éviter : Un vrai smartphone à l'écran.");
+    expect(bodies[0].messages[0].content).toContain("s'écrivent tels quels dans une prop image");
+    expect(bodies[1].messages.at(-1)?.content).toMatch(/library:inconnu » n'est pas dans les fichiers disponibles/);
+    expect(result.storyboard?.scenes[1].props.src).toBe("library:icone-telephone");
+  });
+
+  it("copies the asset into the video at the build, credits it and points the storyboard at the copy", async () => {
+    const { dir, ctx } = await fakeWorkspace(withPhone);
+    await withLibrary(dir);
+    const result = await runBlocksStep(ctx("build"));
+    expect(result).toMatchObject({ ok: true });
+    expect(await readFile(join(dir, "videos/essai/assets/library/icons/phone.svg"), "utf8")).toBe('<svg stroke="currentColor"/>');
+    const credits = JSON.parse(await readFile(join(dir, "videos/essai/assets/library/CREDITS.json"), "utf8"));
+    expect(credits.assets).toEqual([expect.objectContaining({ id: "icone-telephone", license: "ISC" })]);
+    const saved = JSON.parse(await readFile(join(dir, "videos/essai/STORYBOARD.json"), "utf8"));
+    expect(saved.scenes[1].props.src).toBe("assets/library/icons/phone.svg");
+    expect(await readFile(join(dir, "videos/essai/compositions/scenes/s2.html"), "utf8")).toContain("assets/library/icons/phone.svg");
+  });
+
+  it("fails the build on an id the library does not have", async () => {
+    const { dir, ctx } = await fakeWorkspace({ ...withPhone, scenes: [valid.scenes[0], { ...withPhone.scenes[1], props: { src: "library:disparu" } }, valid.scenes[2]] });
+    await withLibrary(dir);
+    const result = await runBlocksStep(ctx("build"));
+    expect(result).toMatchObject({ ok: false });
+    expect(result.resultText).toMatch(/scène s2 : library:disparu ne peut pas être ajouté \(Asset inconnu/);
   });
 });

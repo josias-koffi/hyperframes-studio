@@ -3,8 +3,9 @@
 // Cherche avant de dessiner ; ajoute à la vidéo ce que tu utilises, avec son crédit.
 //
 // Usage, depuis la racine du workspace (sans réseau) :
-//   node scripts/library.mjs search "<mots en français ou en anglais>" [--kind <type>] [--limit 10] [--json]
-//   node scripts/library.mjs add <id> videos/<nom> [--color #RRGGBB]
+//   node scripts/library.mjs search "<mots en français ou en anglais>" [--kind <type>] [--format svg,png] [--limit 10] [--json]
+//   node scripts/library.mjs add <id> videos/<nom> [--color #RRGGBB] [--json]
+//   node scripts/library.mjs get <id> [<id>…]          → les entrées du catalogue en JSON, ids inconnus omis
 //
 // search  liste les assets les plus proches, du meilleur au moins bon, toujours dans le même ordre. Sans résultat, le
 //         dit : la bibliothèque n'a rien pour ça, note le manque avant de dessiner.
@@ -59,11 +60,12 @@ function words(text) {
  * Each word of the query scores on the best place it is found: a tag (3), the title or the id (2), the start of a
  * longer word (1). More words found first, then the score, then the id: the same query gives the same list.
  */
-function search(entries, query, kind) {
+function search(entries, query, kind, formats) {
   const asked = [...new Set(words(query))];
   const scored = [];
   for (const entry of entries) {
     if (kind && entry.kind !== kind) continue;
+    if (formats && !formats.includes(entry.format)) continue;
     if (asked.length === 0) {
       scored.push({ entry, found: 0, score: 0 });
       continue;
@@ -99,7 +101,8 @@ function runSearch() {
   const limit = Number(flag("limit", "10"));
   if (!Number.isInteger(limit) || limit < 1) fail("--limit attend un entier positif");
   if (!query.trim() && !kind) fail('usage: node scripts/library.mjs search "<mots>" [--kind <type>] [--limit 10] [--json]');
-  const found = search(loadCatalog(), query, kind).slice(0, limit);
+  const formats = flag("format", null)?.split(",") ?? null;
+  const found = search(loadCatalog(), query, kind, formats).slice(0, limit);
   if (rest.includes("--json")) {
     console.log(JSON.stringify(found, null, 2));
     return;
@@ -169,11 +172,21 @@ function runAdd() {
   credits.assets = [...credits.assets.filter((known) => known.file !== file), credit].sort((a, b) => (a.file < b.file ? -1 : a.file > b.file ? 1 : 0));
   writeFileSync(creditsPath, `${JSON.stringify(credits, null, 2)}\n`);
 
+  if (rest.includes("--json")) {
+    console.log(JSON.stringify({ file, id: entry.id }));
+    return;
+  }
   const size = entry.dimensions ? ` (${entry.dimensions.width}×${entry.dimensions.height} px, ne l'affiche pas plus grand)` : "";
   console.log(`${file}${size}`);
   console.log(`Utilise ce chemin depuis videos/${relative(join(WORKSPACE, "videos"), videoDir).split(sep).join("/")}/index.html. Crédit ajouté à assets/library/CREDITS.json.`);
 }
 
+function runGet() {
+  const wanted = new Set(positional);
+  console.log(JSON.stringify(loadCatalog().filter((entry) => wanted.has(entry.id)), null, 2));
+}
+
 if (command === "search") runSearch();
+else if (command === "get") runGet();
 else if (command === "add") runAdd();
 else fail('usage: node scripts/library.mjs search "<mots>" [--kind <type>] [--limit 10] [--json]\n       node scripts/library.mjs add <id> videos/<nom> [--color #RRGGBB]');

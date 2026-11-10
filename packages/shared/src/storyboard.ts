@@ -166,6 +166,13 @@ export function isAssetPath(value: string): boolean {
   return /^assets\/[^\s"'<>\\]+$/.test(value) && !value.split("/").includes("..");
 }
 
+/** An asset of the library (`library/catalog.json`), copied into `assets/library/` when the video is assembled. */
+export const LIBRARY_REF_PREFIX = "library:";
+
+export function isLibraryRef(value: string): boolean {
+  return /^library:[a-z0-9][a-z0-9-]{1,80}$/.test(value);
+}
+
 export const VIDEO_EXTENSIONS = /\.(mp4|webm|mov)$/i;
 export const IMAGE_EXTENSIONS = /\.(png|jpe?g|webp|gif|svg|avif)$/i;
 
@@ -211,8 +218,8 @@ export function validateStoryboard(storyboard: Storyboard, manifests: readonly B
       if (prop.type === "text" && prop.maxLength && value.length > prop.maxLength)
         errors.push(`${where} : « ${key} » fait ${value.length} caractères, ${prop.maxLength} au plus. Raccourcis-le.`);
       if (prop.type === "color" && !COLOR.test(value)) errors.push(`${where} : « ${key} » doit être une couleur #RRGGBB.`);
-      if (prop.type === "image" && !isAssetPath(value))
-        errors.push(`${where} : « ${key} » doit être un chemin du dossier de la création, commençant par assets/.`);
+      if (prop.type === "image" && !isAssetPath(value) && !isLibraryRef(value))
+        errors.push(`${where} : « ${key} » doit être un chemin du dossier de la création, commençant par assets/, ou un asset library:<id>.`);
       if (prop.type === "video" && !(isAssetPath(value) && VIDEO_EXTENSIONS.test(value)))
         errors.push(`${where} : « ${key} » doit être une vidéo du dossier de la création (assets/….mp4, .webm ou .mov).`);
       if (prop.type === "enum" && prop.options && !prop.options.includes(value))
