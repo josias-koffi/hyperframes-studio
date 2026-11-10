@@ -116,6 +116,178 @@
       "sha256": "6b73828647739972d1d1060597766c7435aa02cae2399e9c840561aff2d26a51"
     },
     {
+      "pack": "open-doodles",
+      "type": "files",
+      "license": "CC0-1.0",
+      "files": [
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/Doggie.svg",
+          "path": "Doggie.svg",
+          "sha256": "902bc544f1edb1131c9a56dcbdb07a6a8c30427c70e3243a49164adf592c3f7b"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/ballet.svg",
+          "path": "ballet.svg",
+          "sha256": "9e9446cdad7b39b76dff2111a9b7352c8cb432b96ef93e92798902bcf0091d2d"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/bikini.svg",
+          "path": "bikini.svg",
+          "sha256": "c47f102612bcb3c8bd52f6e663457faab522a3acabf52fd937ec06b5414967a9"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/chilling.svg",
+          "path": "chilling.svg",
+          "sha256": "bd2d45ec903eb4ed3eb87109098a079ec63d021ed8ff8a3e9d057307e4ed5e04"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/clumsy.svg",
+          "path": "clumsy.svg",
+          "sha256": "75ce995657fdd723be79059e129e05093d2b4cb537f4a817da301b034a870c70"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/coffee.svg",
+          "path": "coffee.svg",
+          "sha256": "b3d514f21436095dcb0a82673f43d347b428515c141acbaf47f98d2142ad69d6"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/dancing.svg",
+          "path": "dancing.svg",
+          "sha256": "595e589dfd0927cb3cf71174543c05a940ca3743dd99a3dcdd1f3cb757168edf"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/dog-jump.svg",
+          "path": "dog-jump.svg",
+          "sha256": "e523b5af8328bc18e9ca6216ab0102b115bd955c3f46527da61428a0cdf6158d"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/float.svg",
+          "path": "float.svg",
+          "sha256": "e4d4f06ffc6b2795a69f2e5b1e12cd9425f517705ba29c053999829b9897d587"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/groovy.svg",
+          "path": "groovy.svg",
+          "sha256": "12c591694ce270e464ebe99b61b5d0a638326b13c47876aba39eeb716258792d"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/ice-cream.svg",
+          "path": "ice-cream.svg",
+          "sha256": "3a0d637d9e17b8e7d212f6d0c4586d0b62da5cd90610f598bee39967866f2820"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/jumping.svg",
+          "path": "jumping.svg",
+          "sha256": "3e92d083e118f3ea00c852a0e718a0549708685da44dabf2472a9411013c9a39"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/laying.svg",
+          "path": "laying.svg",
+          "sha256": "1d6d130d58a185b55adbe6464fc926cf3ebe60375b3d0ff37059f8a14eae53fc"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/levitate.svg",
+          "path": "levitate.svg",
+          "sha256": "c5f7a30e08fa3bde8c8d346ef3e957cc0d7f9f2f9541cbfa5ff8011941fc78d6"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/loving.svg",
+          "path": "loving.svg",
+          "sha256": "ec2530045eace13aa9d9f10ffc091cab561233ec57564f04f045e6ec53bbd62a"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/meditating.svg",
+          "path": "meditating.svg",
+          "sha256": "fbd94062293864a062428c2d7ba1fb5eb4c6b01681c27ff5e27220368a1ea74d"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/moshing.svg",
+          "path": "moshing.svg",
+          "sha256": "d391bbe1c7499fa8a5b31d6d18f6b5d66ce8a9560c344bac9533ca76dac33179"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/petting.svg",
+          "path": "petting.svg",
+          "sha256": "39fa8760f02e5db4858d2daff5ee09ba2a39b4e6804b8c829c8cd3525b1ddb83"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/plant.svg",
+          "path": "plant.svg",
+          "sha256": "9ba5faae5233f4fac4e9dc120b68ee4855a49757180910729ccb5227961aa91b"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/reading-side.svg",
+          "path": "reading-side.svg",
+          "sha256": "bc98d93429c03fe206050649841d0cecab51c928fcb6f7e842ff4af6a5585593"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/reading.svg",
+          "path": "reading.svg",
+          "sha256": "902934889ec6599d4820d3ff7d47f7a6a1d0cbe01362f60f6548c2d1b1894550"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/roller-skating.svg",
+          "path": "roller-skating.svg",
+          "sha256": "0aa5aae7151041845d881e91770dfa677474749d10324f596b245f785919e8ed"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/rolling.svg",
+          "path": "rolling.svg",
+          "sha256": "b72df1f609039586c5c2490de3deae24d09533cc1cb53c222f38cb6f9d0156bd"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/running.svg",
+          "path": "running.svg",
+          "sha256": "316d030f281cfd434ddcf115bea04ec3a9f176298f6e8f488307d6c40d02c3e7"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/selfie.svg",
+          "path": "selfie.svg",
+          "sha256": "54865e02673b21f88e4ff1ad60d3eeb4e67c137ec586ee57d02bb7b0ce94ddc9"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/sitting-reading.svg",
+          "path": "sitting-reading.svg",
+          "sha256": "957f2c9047d12fed332378f307609990934403b4e2421f49d027d6793faa81d5"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/sitting.svg",
+          "path": "sitting.svg",
+          "sha256": "6245f1c3b2b2a9ce37ec7a6e58c8e3ccd0d2dc3445116a9329c3fdd47062d062"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/sleek.svg",
+          "path": "sleek.svg",
+          "sha256": "d0cf2e8b1319e1621ea10c68869cebc2db8b089355b72478ea7f8345b7f0dc5a"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/sprinting.svg",
+          "path": "sprinting.svg",
+          "sha256": "de4c130718c40ec50599361df3ba3db12e1d199dc8d26302f95c8b2cf03e5af0"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/strolling.svg",
+          "path": "strolling.svg",
+          "sha256": "b8e031d834dc3106969d8a6dbf74e47c487bab39e97c4ff600d270c98230909e"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/swinging.svg",
+          "path": "swinging.svg",
+          "sha256": "adf4d5a57b937d61ba7b31e16d8a88984abee2a8ba9e4b47613d34c879932303"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/unboxing.svg",
+          "path": "unboxing.svg",
+          "sha256": "2baafd8c17ef5046318397bb5f08f25f6e613e7e56553c5741362cca87d33586"
+        },
+        {
+          "url": "https://opendoodles.s3-us-west-1.amazonaws.com/zombieing.svg",
+          "path": "zombieing.svg",
+          "sha256": "d2c516a46dacba43900f7a2ea027001dcca5da7b6030ee048f1e93cb175cad15"
+        }
+      ]
+    },
+    {
       "pack": "open-peeps",
       "type": "files",
       "license": "CC0-1.0",

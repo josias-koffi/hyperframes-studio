@@ -264104,6 +264104,1274 @@
       "license": "CC0-1.0",
       "source": "https://github.com/wyzowl/sfx-kit",
       "author": "Wyzowl"
+    },
+    {
+      "id": "open-doodles-ballet",
+      "kind": "illustration",
+      "title": "Danseur de ballet en grand écart sauté (Open Doodles)",
+      "tags": {
+        "fr": [
+          "ballet",
+          "danse",
+          "dessin",
+          "grâce",
+          "illustration",
+          "noir et rose",
+          "personnage",
+          "saut",
+          "scène",
+          "énergie"
+        ],
+        "en": [
+          "ballet",
+          "black and pink",
+          "character",
+          "dance",
+          "doodle",
+          "energy",
+          "grace",
+          "hand-drawn",
+          "illustration",
+          "leap",
+          "scene"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : danseur de ballet en grand écart sauté. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/ballet.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-bikini",
+      "kind": "illustration",
+      "title": "Personne en maillot de bain, étirée et décontractée (Open Doodles)",
+      "tags": {
+        "fr": [
+          "dessin",
+          "illustration",
+          "maillot de bain",
+          "noir et rose",
+          "personnage",
+          "plage",
+          "scène",
+          "vacances",
+          "été"
+        ],
+        "en": [
+          "beach",
+          "black and pink",
+          "character",
+          "doodle",
+          "hand-drawn",
+          "holiday",
+          "illustration",
+          "scene",
+          "summer",
+          "swimsuit"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne en maillot de bain, étirée et décontractée. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo. Hors d'un sujet plage ou été.",
+      "file": "open-doodles/bikini.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-chilling",
+      "kind": "illustration",
+      "title": "Personne allongée qui se détend, jambes croisées (Open Doodles)",
+      "tags": {
+        "fr": [
+          "dessin",
+          "détente",
+          "illustration",
+          "noir et rose",
+          "pause",
+          "personnage",
+          "repos",
+          "scène",
+          "week-end"
+        ],
+        "en": [
+          "black and pink",
+          "break",
+          "character",
+          "chilling",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "rest",
+          "scene",
+          "weekend"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne allongée qui se détend, jambes croisées. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/chilling.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-clumsy",
+      "kind": "illustration",
+      "title": "Personne maladroite qui fait voler ses papiers (Open Doodles)",
+      "tags": {
+        "fr": [
+          "chaos",
+          "dessin",
+          "erreur",
+          "illustration",
+          "maladroit",
+          "noir et rose",
+          "papiers",
+          "personnage",
+          "scène",
+          "stress"
+        ],
+        "en": [
+          "black and pink",
+          "chaos",
+          "character",
+          "clumsy",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "mistake",
+          "papers",
+          "scene",
+          "stress"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne maladroite qui fait voler ses papiers. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/clumsy.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-coffee",
+      "kind": "illustration",
+      "title": "Personne qui tient une énorme tasse de café qui déborde (Open Doodles)",
+      "tags": {
+        "fr": [
+          "boisson",
+          "café",
+          "dessin",
+          "illustration",
+          "matin",
+          "noir et rose",
+          "pause",
+          "personnage",
+          "scène",
+          "énergie"
+        ],
+        "en": [
+          "black and pink",
+          "break",
+          "character",
+          "coffee",
+          "doodle",
+          "drink",
+          "energy",
+          "hand-drawn",
+          "illustration",
+          "morning",
+          "scene"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui tient une énorme tasse de café qui déborde. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/coffee.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-dancing",
+      "kind": "illustration",
+      "title": "Personne qui danse avec un casque audio (Open Doodles)",
+      "tags": {
+        "fr": [
+          "casque",
+          "danse",
+          "dessin",
+          "fête",
+          "illustration",
+          "musique",
+          "noir et rose",
+          "personnage",
+          "scène"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "dancing",
+          "doodle",
+          "hand-drawn",
+          "headphones",
+          "illustration",
+          "music",
+          "party",
+          "scene"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui danse avec un casque audio. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/dancing.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-dog-jump",
+      "kind": "illustration",
+      "title": "Personne qui saute avec son chien (Open Doodles)",
+      "tags": {
+        "fr": [
+          "animal",
+          "chien",
+          "dessin",
+          "illustration",
+          "jeu",
+          "joie",
+          "noir et rose",
+          "personnage",
+          "saut",
+          "scène"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "dog",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "joy",
+          "jump",
+          "pet",
+          "play",
+          "scene"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui saute avec son chien. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/dog-jump.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-doggie",
+      "kind": "illustration",
+      "title": "Personne assise en tailleur qui caresse son chien (Open Doodles)",
+      "tags": {
+        "fr": [
+          "animal",
+          "chien",
+          "compagnie",
+          "dessin",
+          "illustration",
+          "noir et rose",
+          "personnage",
+          "scène",
+          "tendresse"
+        ],
+        "en": [
+          "affection",
+          "black and pink",
+          "character",
+          "companion",
+          "dog",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "pet",
+          "scene"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne assise en tailleur qui caresse son chien. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/Doggie.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-float",
+      "kind": "illustration",
+      "title": "Personne qui flotte en apesanteur parmi des formes (Open Doodles)",
+      "tags": {
+        "fr": [
+          "apesanteur",
+          "créativité",
+          "dessin",
+          "flotte",
+          "illustration",
+          "noir et rose",
+          "personnage",
+          "rêve",
+          "scène"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "creativity",
+          "doodle",
+          "dream",
+          "floating",
+          "hand-drawn",
+          "illustration",
+          "scene",
+          "weightless"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui flotte en apesanteur parmi des formes. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/float.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-groovy",
+      "kind": "illustration",
+      "title": "Personne qui avance d'un pas dansant (Open Doodles)",
+      "tags": {
+        "fr": [
+          "bonne humeur",
+          "danse",
+          "dessin",
+          "illustration",
+          "noir et rose",
+          "personnage",
+          "rythme",
+          "scène"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "dance",
+          "doodle",
+          "good mood",
+          "groovy",
+          "hand-drawn",
+          "illustration",
+          "rhythm",
+          "scene"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui avance d'un pas dansant. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/groovy.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-ice-cream",
+      "kind": "illustration",
+      "title": "Personne qui porte un cornet de glace géant (Open Doodles)",
+      "tags": {
+        "fr": [
+          "dessert",
+          "dessin",
+          "glace",
+          "gourmandise",
+          "illustration",
+          "noir et rose",
+          "personnage",
+          "scène",
+          "été"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "dessert",
+          "doodle",
+          "hand-drawn",
+          "ice cream",
+          "illustration",
+          "scene",
+          "summer",
+          "treat"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui porte un cornet de glace géant. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/ice-cream.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-jumping",
+      "kind": "illustration",
+      "title": "Personne qui saute de joie (Open Doodles)",
+      "tags": {
+        "fr": [
+          "célébration",
+          "dessin",
+          "illustration",
+          "joie",
+          "noir et rose",
+          "personnage",
+          "saut",
+          "scène",
+          "énergie"
+        ],
+        "en": [
+          "black and pink",
+          "celebration",
+          "character",
+          "doodle",
+          "energy",
+          "hand-drawn",
+          "illustration",
+          "joy",
+          "jumping",
+          "scene"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui saute de joie. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/jumping.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-laying",
+      "kind": "illustration",
+      "title": "Personne allongée sur le ventre qui regarde son téléphone (Open Doodles)",
+      "tags": {
+        "fr": [
+          "allongé",
+          "dessin",
+          "détente",
+          "illustration",
+          "noir et rose",
+          "personnage",
+          "réseaux sociaux",
+          "scène",
+          "téléphone"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "lying",
+          "phone",
+          "relax",
+          "scene",
+          "social media"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne allongée sur le ventre qui regarde son téléphone. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/laying.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-levitate",
+      "kind": "illustration",
+      "title": "Personne en lévitation, le dos cambré (Open Doodles)",
+      "tags": {
+        "fr": [
+          "dessin",
+          "flotte",
+          "illustration",
+          "lévitation",
+          "magie",
+          "noir et rose",
+          "personnage",
+          "rêve",
+          "scène"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "doodle",
+          "dream",
+          "floating",
+          "hand-drawn",
+          "illustration",
+          "levitate",
+          "magic",
+          "scene"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne en lévitation, le dos cambré. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/levitate.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-loving",
+      "kind": "illustration",
+      "title": "Personne qui serre un cœur contre elle (Open Doodles)",
+      "tags": {
+        "fr": [
+          "amour",
+          "bienveillance",
+          "cœur",
+          "dessin",
+          "gratitude",
+          "illustration",
+          "noir et rose",
+          "personnage",
+          "scène"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "doodle",
+          "gratitude",
+          "hand-drawn",
+          "heart",
+          "illustration",
+          "kindness",
+          "love",
+          "scene"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui serre un cœur contre elle. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/loving.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-meditating",
+      "kind": "illustration",
+      "title": "Personne qui médite en tailleur (Open Doodles)",
+      "tags": {
+        "fr": [
+          "bien-être",
+          "calme",
+          "dessin",
+          "illustration",
+          "méditation",
+          "noir et rose",
+          "personnage",
+          "scène",
+          "yoga",
+          "zen"
+        ],
+        "en": [
+          "black and pink",
+          "calm",
+          "character",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "meditation",
+          "scene",
+          "wellbeing",
+          "yoga",
+          "zen"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui médite en tailleur. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/meditating.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-moshing",
+      "kind": "illustration",
+      "title": "Personne qui se déchaîne, cheveux au vent (Open Doodles)",
+      "tags": {
+        "fr": [
+          "concert",
+          "dessin",
+          "fête",
+          "illustration",
+          "musique",
+          "noir et rose",
+          "personnage",
+          "scène",
+          "énergie"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "concert",
+          "doodle",
+          "energy",
+          "hand-drawn",
+          "illustration",
+          "moshing",
+          "music",
+          "party",
+          "scene"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui se déchaîne, cheveux au vent. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/moshing.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-petting",
+      "kind": "illustration",
+      "title": "Personne à genoux qui caresse un chien (Open Doodles)",
+      "tags": {
+        "fr": [
+          "animal",
+          "chien",
+          "compagnie",
+          "dessin",
+          "illustration",
+          "noir et rose",
+          "personnage",
+          "scène",
+          "tendresse"
+        ],
+        "en": [
+          "affection",
+          "black and pink",
+          "character",
+          "companion",
+          "dog",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "pet",
+          "scene"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne à genoux qui caresse un chien. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/petting.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-plant",
+      "kind": "illustration",
+      "title": "Personne qui tient une grande plante en pot (Open Doodles)",
+      "tags": {
+        "fr": [
+          "dessin",
+          "illustration",
+          "maison",
+          "nature",
+          "noir et rose",
+          "personnage",
+          "plante",
+          "scène",
+          "soin",
+          "écologie"
+        ],
+        "en": [
+          "black and pink",
+          "care",
+          "character",
+          "doodle",
+          "ecology",
+          "hand-drawn",
+          "home",
+          "illustration",
+          "nature",
+          "plant",
+          "scene"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui tient une grande plante en pot. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/plant.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-reading",
+      "kind": "illustration",
+      "title": "Personne assise qui lit un livre, de face (Open Doodles)",
+      "tags": {
+        "fr": [
+          "apprendre",
+          "dessin",
+          "illustration",
+          "lecture",
+          "livre",
+          "noir et rose",
+          "personnage",
+          "scène",
+          "étude"
+        ],
+        "en": [
+          "black and pink",
+          "book",
+          "character",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "learning",
+          "reading",
+          "scene",
+          "study"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne assise qui lit un livre, de face. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/reading.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-reading-side",
+      "kind": "illustration",
+      "title": "Personne assise par terre qui lit, à côté d'une plante et d'une tasse (Open Doodles)",
+      "tags": {
+        "fr": [
+          "dessin",
+          "détente",
+          "illustration",
+          "lecture",
+          "livre",
+          "maison",
+          "noir et rose",
+          "personnage",
+          "scène"
+        ],
+        "en": [
+          "black and pink",
+          "book",
+          "character",
+          "doodle",
+          "hand-drawn",
+          "home",
+          "illustration",
+          "reading",
+          "relax",
+          "scene"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne assise par terre qui lit, à côté d'une plante et d'une tasse. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/reading-side.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-roller-skating",
+      "kind": "illustration",
+      "title": "Personne en patins à roulettes (Open Doodles)",
+      "tags": {
+        "fr": [
+          "dessin",
+          "illustration",
+          "loisir",
+          "noir et rose",
+          "patins",
+          "personnage",
+          "scène",
+          "sport",
+          "vitesse"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "leisure",
+          "roller skating",
+          "scene",
+          "speed",
+          "sport"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne en patins à roulettes. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/roller-skating.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-rolling",
+      "kind": "illustration",
+      "title": "Personne qui court en se roulant presque, très dynamique (Open Doodles)",
+      "tags": {
+        "fr": [
+          "course",
+          "dessin",
+          "illustration",
+          "mouvement",
+          "noir et rose",
+          "personnage",
+          "scène",
+          "énergie"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "doodle",
+          "energy",
+          "hand-drawn",
+          "illustration",
+          "moving",
+          "rolling",
+          "running",
+          "scene"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui court en se roulant presque, très dynamique. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/rolling.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-running",
+      "kind": "illustration",
+      "title": "Personne qui court à grandes enjambées (Open Doodles)",
+      "tags": {
+        "fr": [
+          "course",
+          "dessin",
+          "illustration",
+          "noir et rose",
+          "personnage",
+          "pressé",
+          "scène",
+          "sport",
+          "vitesse"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "doodle",
+          "hand-drawn",
+          "hurry",
+          "illustration",
+          "running",
+          "scene",
+          "speed",
+          "sport"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui court à grandes enjambées. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/running.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-selfie",
+      "kind": "illustration",
+      "title": "Personne qui prend un selfie avec son téléphone (Open Doodles)",
+      "tags": {
+        "fr": [
+          "dessin",
+          "illustration",
+          "noir et rose",
+          "personnage",
+          "photo",
+          "réseaux sociaux",
+          "scène",
+          "selfie",
+          "téléphone"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "phone",
+          "photo",
+          "scene",
+          "selfie",
+          "social media"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui prend un selfie avec son téléphone. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/selfie.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-sitting",
+      "kind": "illustration",
+      "title": "Personne assise par terre, accoudée, l'air pensif (Open Doodles)",
+      "tags": {
+        "fr": [
+          "assis",
+          "attente",
+          "dessin",
+          "illustration",
+          "noir et rose",
+          "pensif",
+          "personnage",
+          "réflexion",
+          "scène"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "scene",
+          "sitting",
+          "thinking",
+          "thoughtful",
+          "waiting"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne assise par terre, accoudée, l'air pensif. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/sitting.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-sitting-reading",
+      "kind": "illustration",
+      "title": "Personne qui lit sur une chaise, une pile de livres à côté (Open Doodles)",
+      "tags": {
+        "fr": [
+          "bibliothèque",
+          "chaise",
+          "dessin",
+          "illustration",
+          "lecture",
+          "livre",
+          "noir et rose",
+          "personnage",
+          "scène",
+          "étude"
+        ],
+        "en": [
+          "black and pink",
+          "book",
+          "chair",
+          "character",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "library",
+          "reading",
+          "scene",
+          "study"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui lit sur une chaise, une pile de livres à côté. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/sitting-reading.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-sleek",
+      "kind": "illustration",
+      "title": "Personne qui file en avant, élégante et rapide (Open Doodles)",
+      "tags": {
+        "fr": [
+          "dessin",
+          "illustration",
+          "mouvement",
+          "noir et rose",
+          "personnage",
+          "scène",
+          "vitesse",
+          "élan"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "momentum",
+          "moving",
+          "scene",
+          "sleek",
+          "speed"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui file en avant, élégante et rapide. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/sleek.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-sprinting",
+      "kind": "illustration",
+      "title": "Personne qui sprinte, penchée en avant (Open Doodles)",
+      "tags": {
+        "fr": [
+          "course",
+          "dessin",
+          "illustration",
+          "noir et rose",
+          "personnage",
+          "scène",
+          "sprint",
+          "urgence",
+          "vitesse"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "running",
+          "scene",
+          "speed",
+          "sprinting",
+          "urgency"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui sprinte, penchée en avant. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/sprinting.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-strolling",
+      "kind": "illustration",
+      "title": "Personne qui se promène tranquillement (Open Doodles)",
+      "tags": {
+        "fr": [
+          "calme",
+          "dessin",
+          "flânerie",
+          "illustration",
+          "marche",
+          "noir et rose",
+          "personnage",
+          "promenade",
+          "scène"
+        ],
+        "en": [
+          "black and pink",
+          "calm",
+          "character",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "scene",
+          "strolling",
+          "walking",
+          "wandering"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui se promène tranquillement. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/strolling.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-swinging",
+      "kind": "illustration",
+      "title": "Personne sur une balançoire (Open Doodles)",
+      "tags": {
+        "fr": [
+          "balançoire",
+          "dessin",
+          "enfance",
+          "illustration",
+          "jeu",
+          "liberté",
+          "noir et rose",
+          "personnage",
+          "scène"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "doodle",
+          "freedom",
+          "hand-drawn",
+          "illustration",
+          "play",
+          "scene",
+          "swing",
+          "swinging"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne sur une balançoire. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/swinging.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-unboxing",
+      "kind": "illustration",
+      "title": "Personne qui sort d'un carton, déballage (Open Doodles)",
+      "tags": {
+        "fr": [
+          "colis",
+          "dessin",
+          "déballage",
+          "illustration",
+          "livraison",
+          "noir et rose",
+          "nouveauté",
+          "personnage",
+          "scène",
+          "surprise"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "delivery",
+          "doodle",
+          "hand-drawn",
+          "illustration",
+          "new",
+          "package",
+          "scene",
+          "surprise",
+          "unboxing"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui sort d'un carton, déballage. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/unboxing.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
+    },
+    {
+      "id": "open-doodles-zombieing",
+      "kind": "illustration",
+      "title": "Personne qui avance bras tendus comme un zombie, entourée de formes (Open Doodles)",
+      "tags": {
+        "fr": [
+          "bizarre",
+          "dessin",
+          "fatigue",
+          "humour",
+          "illustration",
+          "noir et rose",
+          "personnage",
+          "scène",
+          "zombie"
+        ],
+        "en": [
+          "black and pink",
+          "character",
+          "doodle",
+          "funny",
+          "hand-drawn",
+          "illustration",
+          "scene",
+          "tired",
+          "weird",
+          "zombie"
+        ]
+      },
+      "useWhen": "Illustration au trait noir et rose, dessinée à la main, fond transparent : personne qui avance bras tendus comme un zombie, entourée de formes. Pour une émotion, une ambiance, un moment de vie.",
+      "avoidFor": "Une vidéo sobre ou institutionnelle : style très expressif. Garde un seul style d'illustration par vidéo.",
+      "file": "open-doodles/zombieing.svg",
+      "format": "svg",
+      "pack": "open-doodles",
+      "license": "CC0-1.0",
+      "source": "https://www.opendoodles.com/",
+      "author": "Pablo Stanley"
     }
   ]
 }
