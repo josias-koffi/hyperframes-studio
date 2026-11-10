@@ -85,7 +85,7 @@ const githubSourceSchema = z.object({
   type: z.literal("github"),
   repo: z.string().regex(/^[\w.-]+\/[\w.-]+$/),
   commit: z.string().regex(/^[0-9a-f]{40}$/),
-  /** Paths of the repository to keep; `*` stays within a folder, `**` crosses them. */
+  /** Paths of the repository to keep; `*` stays within a folder, `**` crosses them, `!` excludes. */
   include: z.array(z.string().min(1)).min(1),
   /** Digest of the kept files (`digestOfFiles`): a download error prints the value to write here. */
   sha256: sha256Schema,
@@ -97,10 +97,23 @@ const filesSourceSchema = z.object({
   files: z.array(z.object({ url: z.url(), path: safePathSchema, sha256: sha256Schema })).min(1),
 });
 
+/**
+ * A pack kept in the repository, for a source no script can download (an archive behind a personal link): its
+ * folder is copied and checked like a download.
+ */
+const localSourceSchema = z.object({
+  ...sourceBase,
+  type: z.literal("local"),
+  /** Relative to the repository's root. */
+  path: safePathSchema,
+  /** Digest of the folder (`digestOfFiles`). */
+  sha256: sha256Schema,
+});
+
 export const libraryLockSchema = z
   .object({
     version: z.number().int().positive(),
-    sources: z.array(z.discriminatedUnion("type", [githubSourceSchema, filesSourceSchema])),
+    sources: z.array(z.discriminatedUnion("type", [githubSourceSchema, filesSourceSchema, localSourceSchema])),
   })
   .superRefine((lock, ctx) => {
     const seen = new Set<string>();

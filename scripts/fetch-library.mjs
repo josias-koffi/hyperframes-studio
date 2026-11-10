@@ -25,7 +25,7 @@ const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 
 try {
   const lock = shared.libraryLockSchema.parse(readJson(lockPath));
-  const { fetched, kept } = await shared.fetchLibrary({ lock, dest });
+  const { fetched, kept } = await shared.fetchLibrary({ lock, dest, localBase: REPO });
   console.log(`Bibliothèque : ${fetched.length} pack(s) téléchargé(s), ${kept.length} déjà à jour.`);
 
   const catalog = shared.libraryCatalogSchema.parse(readJson(join(dest, "catalog.json")));

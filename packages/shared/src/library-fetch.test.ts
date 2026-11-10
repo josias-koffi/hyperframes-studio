@@ -156,6 +156,30 @@ describe("fetchLibrary", () => {
     expect(readdirSync(dest)).toEqual(["précieux.txt"]);
   });
 
+  it("leaves out what a `!` pattern excludes", async () => {
+    const lock = githubLock();
+    const source = lock.sources[0];
+    if (source?.type !== "github") throw new Error("source GitHub attendue");
+    const without = digestOfFiles([
+      { path: "LICENSE", sha256: sha("MIT") },
+      { path: "flags/4x3/fr.svg", sha256: sha("<svg>fr</svg>") },
+    ]);
+    await fetchLibrary({ lock: { ...lock, sources: [{ ...source, include: [...INCLUDE, "!flags/4x3/de.svg"], sha256: without }] }, dest, githubBase: base });
+    expect(existsSync(join(dest, "flags/flags/4x3/de.svg"))).toBe(false);
+    expect(existsSync(join(dest, "flags/flags/4x3/fr.svg"))).toBe(true);
+  });
+
+  it("copies a pack kept in the repository, checked like a download", async () => {
+    mkdirSync(join(root, "vendor/peeps/a"), { recursive: true });
+    writeFileSync(join(root, "vendor/peeps/a/peep.svg"), "<svg/>");
+    const digest = digestOfFiles([{ path: "a/peep.svg", sha256: sha("<svg/>") }]);
+    const local = (sha256: string) => libraryLockSchema.parse({ version: 1, sources: [{ pack: "peeps", type: "local", license: "CC0-1.0", path: "vendor/peeps", sha256 }] });
+    await expect(fetchLibrary({ lock: local("e".repeat(64)), dest, localBase: root })).rejects.toThrow(digest);
+    await fetchLibrary({ lock: local(digest), dest, localBase: root });
+    expect(readFileSync(join(dest, "peeps/a/peep.svg"), "utf8")).toBe("<svg/>");
+    expect(requests).toEqual([]);
+  });
+
   it("fails when a GitHub source selects nothing", async () => {
     const lock = githubLock();
     const source = lock.sources[0];

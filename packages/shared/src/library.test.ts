@@ -147,6 +147,18 @@ describe("the library of the repository", () => {
     expect(libraryProblems(shipped, pinned, () => true)).toEqual([]);
   });
 
+  it("ships no brand logo among the icons, and finds a flag by its French name and its ISO code", () => {
+    const shipped = libraryCatalogSchema.parse(JSON.parse(readFileSync(join(repo, "workspace/library/catalog.json"), "utf8")));
+    const icons = shipped.entries.filter((entry) => entry.kind === "icon");
+    expect(icons.filter((entry) => /logo/.test(entry.id))).toEqual([]);
+    const pinned = libraryLockSchema.parse(JSON.parse(readFileSync(join(repo, "library.lock.json"), "utf8")));
+    const phosphor = pinned.sources.find((source) => source.pack === "phosphor");
+    expect(phosphor?.type === "github" && phosphor.include).toEqual(expect.arrayContaining(["!assets/regular/*-logo.svg", "!assets/regular/*-logo-*.svg"]));
+    const germany = shipped.entries.find((entry) => entry.id === "drapeau-de");
+    expect(germany?.tags.fr).toEqual(expect.arrayContaining(["Allemagne", "de"]));
+    expect(germany?.file).toBe("flag-icons/flags/4x3/de.svg");
+  });
+
   it("keeps only the default tone of the emojis with skin tones", () => {
     const shipped = libraryCatalogSchema.parse(JSON.parse(readFileSync(join(repo, "workspace/library/catalog.json"), "utf8")));
     const emojis = shipped.entries.filter((entry) => entry.pack === "fluent-emoji");

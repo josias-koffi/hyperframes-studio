@@ -53,7 +53,7 @@ export async function treeDigest(dir: string): Promise<string | null> {
 }
 
 function expectedDigest(source: LibrarySource): string {
-  return source.type === "github" ? source.sha256 : digestOfFiles(source.files);
+  return source.type === "files" ? digestOfFiles(source.files) : source.sha256;
 }
 
 async function download(url: string): Promise<Uint8Array> {
@@ -82,8 +82,10 @@ async function fetchGithubSource(source: Extract<LibrarySource, { type: "github"
   const archive = join(staging, `.src-${source.pack}.tar.gz`);
   await writeFile(archive, await download(`${githubBase}/${source.repo}/tar.gz/${source.commit}`));
   await exec("tar", ["-xzf", archive, "-C", unpacked, "--strip-components=1"]);
-  const patterns = source.include.map(globToRegExp);
-  const kept = (await regularFiles(unpacked)).filter((path) => patterns.some((pattern) => pattern.test(path)));
+  // `!pattern` takes back what the other patterns selected: the brand logos of an icon set, for one.
+  const patterns = source.include.filter((glob) => !glob.startsWith("!")).map(globToRegExp);
+  const excluded = source.include.filter((glob) => glob.startsWith("!")).map((glob) => globToRegExp(glob.slice(1)));
+  const kept = (await regularFiles(unpacked)).filter((path) => patterns.some((pattern) => pattern.test(path)) && !excluded.some((pattern) => pattern.test(path)));
   if (kept.length === 0) throw new Error(`${source.pack} : aucun fichier ne correspond à include`);
   for (const path of kept) {
     const target = join(staging, source.pack, path);
@@ -92,6 +94,15 @@ async function fetchGithubSource(source: Extract<LibrarySource, { type: "github"
   }
   await rm(unpacked, { recursive: true, force: true });
   await rm(archive, { force: true });
+}
+
+async function copyLocalSource(source: Extract<LibrarySource, { type: "local" }>, staging: string, localBase: string): Promise<void> {
+  const root = join(localBase, source.path);
+  for (const path of await regularFiles(root)) {
+    const target = join(staging, source.pack, path);
+    await mkdir(dirname(target), { recursive: true });
+    await writeFile(target, await readFile(join(root, path)));
+  }
 }
 
 async function fetchFilesSource(source: Extract<LibrarySource, { type: "files" }>, staging: string): Promise<void> {
@@ -118,10 +129,13 @@ export async function fetchLibrary({
   lock,
   dest,
   githubBase = "https://codeload.github.com",
+  localBase = process.cwd(),
 }: {
   lock: LibraryLock;
   dest: string;
   githubBase?: string;
+  /** What the `path` of a local source is relative to: the repository's root. */
+  localBase?: string;
 }): Promise<{ fetched: string[]; kept: string[] }> {
   await mkdir(dest, { recursive: true });
   const present = await readdir(dest);
@@ -140,6 +154,7 @@ export async function fetchLibrary({
         continue;
       }
       if (source.type === "github") await fetchGithubSource(source, staging, githubBase);
+      else if (source.type === "local") await copyLocalSource(source, staging, localBase);
       else await fetchFilesSource(source, staging);
       const actual = await treeDigest(join(staging, source.pack));
       if (actual !== expected) throw new Error(`${source.pack} : sha256 attendue ${expected}, obtenue ${actual}`);

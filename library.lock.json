@@ -15,6 +15,20 @@
       ]
     },
     {
+      "pack": "flag-icons",
+      "type": "github",
+      "repo": "lipis/flag-icons",
+      "commit": "ac7e0eb3259eb62aa6100c435607e2fe03896a97",
+      "license": "MIT",
+      "licenseFile": "LICENSE",
+      "include": [
+        "flags/4x3/*.svg",
+        "country.json",
+        "LICENSE"
+      ],
+      "sha256": "ab9d4b109629bb17bfffddce3444089c9d82b7001db9b410e584e916f63a4930"
+    },
+    {
       "pack": "fluent-emoji",
       "type": "github",
       "repo": "microsoft/fluentui-emoji",
@@ -30,6 +44,13 @@
         "LICENSE"
       ],
       "sha256": "7f99db11e12f9fe090a0651536066c283e828cc5add52dfdd3782d39c93cf485"
+    },
+    {
+      "pack": "humaaans",
+      "type": "local",
+      "license": "CC0-1.0",
+      "path": "vendor/library/humaaans",
+      "sha256": "3b144cb79c489da4d62764f441938f12125d199523155d1fef3db170d8772128"
     },
     {
       "pack": "hyperframes-registry",
@@ -78,6 +99,21 @@
           "sha256": "5627ac6e29dadb77ca9a2cbf36da3e372450b7fc789a0352028a3fce059e7404"
         }
       ]
+    },
+    {
+      "pack": "lucide",
+      "type": "github",
+      "repo": "lucide-icons/lucide",
+      "commit": "03eae6069edfc373673bd05d723491f05ba936e3",
+      "license": "ISC",
+      "licenseFile": "LICENSE",
+      "include": [
+        "icons/*.svg",
+        "icons/*.json",
+        "categories/*.json",
+        "LICENSE"
+      ],
+      "sha256": "6b73828647739972d1d1060597766c7435aa02cae2399e9c840561aff2d26a51"
     },
     {
       "pack": "open-peeps",
@@ -550,6 +586,22 @@
           "sha256": "604e17c6380d4b2de328ff1d325ae9ae588f59ea8a62fcce567bc195e793a973"
         }
       ]
+    },
+    {
+      "pack": "phosphor",
+      "type": "github",
+      "repo": "phosphor-icons/core",
+      "commit": "2b75f3ad12b420c9504ef05df8d2564a28f8500e",
+      "license": "MIT",
+      "licenseFile": "LICENSE",
+      "include": [
+        "assets/regular/*.svg",
+        "!assets/regular/*-logo.svg",
+        "!assets/regular/*-logo-*.svg",
+        "src/icons.ts",
+        "LICENSE"
+      ],
+      "sha256": "54ba1371a0aafea188f02278c8ef72571df5e4a3f00f98849e70824121c7d2bc"
     }
   ]
 }
