@@ -16,6 +16,7 @@ const LICENSES: Record<LibraryLicense, string> = {
   MIT: "Licence MIT",
   ISC: "Licence ISC",
   "Apache-2.0": "Licence Apache 2.0",
+  "Unicode-3.0": "Licence Unicode v3",
 };
 
 export default async function AboutPage() {

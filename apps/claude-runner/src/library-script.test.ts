@@ -45,6 +45,7 @@ describe("library.mjs search", () => {
     expect(ids("telephones")).toEqual(["icone-telephone"]);
     expect(ids("phone")).toEqual(["icone-telephone"]);
     expect(ids("Fusée")).toEqual(["emoji-fusee"]);
+    expect(ids("cœur")).toEqual(ids("coeur"));
   });
 
   it("puts the asset that matches the most words first, the same way every time", () => {
@@ -87,6 +88,16 @@ describe("library.mjs add", () => {
     expect(out).toContain("assets/library/emoji/rocket.png");
     expect(existsSync(join(workspace, "videos/demo/assets/library/emoji/rocket.png"))).toBe(true);
     expect(credits().assets).toEqual([expect.objectContaining({ file: "assets/library/emoji/rocket.png", id: "emoji-fusee", license: "CC0-1.0" })]);
+  });
+
+  it("copies a file under a name a src takes as it is", () => {
+    mkdirSync(join(workspace, "library/emoji/Thumbs up/3D"), { recursive: true });
+    writeFileSync(join(workspace, "library/emoji/Thumbs up/3D/piñata_(3d).png"), "png");
+    const catalog = JSON.parse(readFileSync(join(workspace, "library/catalog.json"), "utf8"));
+    catalog.entries.push({ ...ENTRIES[3], id: "emoji-pouce", file: "emoji/Thumbs up/3D/piñata_(3d).png" });
+    writeFileSync(join(workspace, "library/catalog.json"), JSON.stringify(catalog));
+    expect(library("add", "emoji-pouce", "videos/demo").out).toContain("assets/library/emoji/Thumbs-up/3D/pinata_-3d-.png");
+    expect(existsSync(join(workspace, "videos/demo/assets/library/emoji/Thumbs-up/3D/pinata_-3d-.png"))).toBe(true);
   });
 
   it("duplicates neither the file nor the credit when run again", () => {

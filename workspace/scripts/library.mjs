@@ -52,6 +52,8 @@ function words(text) {
     .normalize("NFD")
     .replace(/\p{M}/gu, "")
     .toLowerCase()
+    .replace(/œ/g, "oe")
+    .replace(/æ/g, "ae")
     .split(/[^a-z0-9]+/)
     .filter((word) => word && !STOPWORDS.has(word))
     .map((word) => (word.length > 3 && /[sx]$/.test(word) && !/ss$/.test(word) ? word.slice(0, -1) : word));
@@ -64,7 +66,7 @@ function related(word, known) {
 }
 
 /**
- * Each word of the query scores on the best place it is found: a tag (3), the title or the id (2), the start of a
+ * Each word of the query scores where it is found: a tag (3) plus the title (2), else the id (2), else the start of a
  * longer word or a word with an ending (1). More words found first, then the score, then the id: the same query gives the same list.
  */
 function search(entries, query, kind, formats) {
@@ -78,12 +80,15 @@ function search(entries, query, kind, formats) {
       continue;
     }
     const tags = new Set([...entry.tags.fr, ...entry.tags.en].flatMap(words));
-    const named = new Set([...words(entry.title), ...words(entry.id)]);
+    const title = new Set(words(entry.title));
+    const named = new Set([...title, ...words(entry.id)]);
     const all = [...tags, ...named];
     let found = 0;
     let score = 0;
     for (const word of asked) {
-      const points = tags.has(word) ? 3 : named.has(word) ? 2 : all.some((known) => related(word, known)) ? 1 : 0;
+      // What the asset is called counts on top of its tags: « fusée » finds the rocket before the astronaut tagged so.
+      let points = (tags.has(word) ? 3 : 0) + (title.has(word) ? 2 : 0);
+      if (!points) points = named.has(word) ? 2 : all.some((known) => related(word, known)) ? 1 : 0;
       if (points > 0) found += 1;
       score += points;
     }
@@ -162,7 +167,12 @@ function runAdd() {
 
   const source = join(LIBRARY, entry.file);
   if (!existsSync(source)) fail(`${id} : fichier absent de la bibliothèque (${entry.file})`);
-  const name = colour ? entry.file.replace(/\.svg$/, `-${colour.slice(1).toLowerCase()}.svg`) : entry.file;
+  // Copied under a name a `src` takes as it is: no space, accent or bracket (« Thumbs up/… » becomes « Thumbs-up/… »).
+  const safe = entry.file
+    .split("/")
+    .map((segment) => segment.normalize("NFD").replace(/\p{M}/gu, "").replace(/[^A-Za-z0-9._-]+/g, "-"))
+    .join("/");
+  const name = colour ? safe.replace(/\.svg$/, `-${colour.slice(1).toLowerCase()}.svg`) : safe;
   // A component of the registry goes where `hyperframes add` would put it: the mount snippet expects it there.
   const component = entry.kind === "component";
   const target = component ? join(videoDir, "compositions", "components", basename(name)) : join(videoDir, "assets", "library", name);

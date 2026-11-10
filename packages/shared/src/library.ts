@@ -5,11 +5,11 @@ import { z } from "zod";
  * each asset for them; `library.lock.json` pins where each pack comes from, since the files are not in the repository.
  */
 
-export const LIBRARY_LICENSES = ["CC0-1.0", "public-domain", "MIT", "ISC", "Apache-2.0"] as const;
+export const LIBRARY_LICENSES = ["CC0-1.0", "public-domain", "MIT", "ISC", "Apache-2.0", "Unicode-3.0"] as const;
 export type LibraryLicense = (typeof LIBRARY_LICENSES)[number];
 
 /** Licenses whose text must ship with the app. */
-const LICENSES_WITH_NOTICE: readonly LibraryLicense[] = ["MIT", "ISC", "Apache-2.0"];
+const LICENSES_WITH_NOTICE: readonly LibraryLicense[] = ["MIT", "ISC", "Apache-2.0", "Unicode-3.0"];
 
 export const LIBRARY_KINDS = ["character", "object", "icon", "flag", "illustration", "avatar", "map", "sound", "device", "component", "transition"] as const;
 export type LibraryKind = (typeof LIBRARY_KINDS)[number];

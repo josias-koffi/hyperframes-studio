@@ -146,4 +146,12 @@ describe("the library of the repository", () => {
     const pinned = libraryLockSchema.parse(JSON.parse(readFileSync(join(repo, "library.lock.json"), "utf8")));
     expect(libraryProblems(shipped, pinned, () => true)).toEqual([]);
   });
+
+  it("keeps only the default tone of the emojis with skin tones", () => {
+    const shipped = libraryCatalogSchema.parse(JSON.parse(readFileSync(join(repo, "workspace/library/catalog.json"), "utf8")));
+    const emojis = shipped.entries.filter((entry) => entry.pack === "fluent-emoji");
+    expect(emojis.filter((entry) => /\/(Light|Medium-Light|Medium|Medium-Dark|Dark)\//.test(entry.file))).toEqual([]);
+    expect(emojis.some((entry) => entry.file.includes("/Default/"))).toBe(true);
+    expect(emojis.filter((entry) => entry.format === "png").every((entry) => (entry.dimensions?.width ?? 0) <= 320 && entry.useWhen.includes("320 px"))).toBe(true);
+  });
 });

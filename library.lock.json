@@ -2,6 +2,36 @@
   "version": 1,
   "sources": [
     {
+      "pack": "cldr-annotations",
+      "type": "files",
+      "license": "Unicode-3.0",
+      "licenseFile": "LICENSE",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/unicode-org/cldr-json/7d2b9cb11cec08f4d333ad73209deb3df0711c3b/LICENSE",
+          "path": "LICENSE",
+          "sha256": "220ba0e1c43b99530d2d5bdb892a99dca0989414f51ab695ecd90163eaa1ec3b"
+        }
+      ]
+    },
+    {
+      "pack": "fluent-emoji",
+      "type": "github",
+      "repo": "microsoft/fluentui-emoji",
+      "commit": "1ffb34c752ecf5d402f04cfb4b392c77f57c54bc",
+      "license": "MIT",
+      "licenseFile": "LICENSE",
+      "include": [
+        "assets/*/3D/*.png",
+        "assets/*/Default/3D/*.png",
+        "assets/*/Flat/*.svg",
+        "assets/*/Default/Flat/*.svg",
+        "assets/*/metadata.json",
+        "LICENSE"
+      ],
+      "sha256": "7f99db11e12f9fe090a0651536066c283e828cc5add52dfdd3782d39c93cf485"
+    },
+    {
       "pack": "hyperframes-registry",
       "type": "files",
       "license": "Apache-2.0",
