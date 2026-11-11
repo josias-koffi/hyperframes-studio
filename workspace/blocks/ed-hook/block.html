@@ -52,22 +52,12 @@
         .edh-highlight-wrap[data-empty="true"] {
           display: none;
         }
-        .edh-dot {
-          width: 22px;
-          height: 22px;
-          border-radius: 50%;
-          background: {{accent}};
-          margin-top: 64px;
-        }
         @media (min-aspect-ratio: 1/1) {
           .edh-line {
             font-size: 112px;
           }
           .edh-rule {
             margin-bottom: 40px;
-          }
-          .edh-dot {
-            margin-top: 40px;
           }
         }
       </style>
@@ -81,7 +71,6 @@
           <div id="{{@id}}-highlight-wrap" class="edh-mask edh-highlight-wrap">
             <p id="{{@id}}-highlight" class="edh-line edh-highlight" data-label="Mise en avant">{{highlight}}</p>
           </div>
-          <div id="{{@id}}-dot" class="edh-dot" data-label="Point d'accent"></div>
         </div>
       </div>
 
@@ -95,7 +84,6 @@
           tl.fromTo("#{{@id}}-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "power3.inOut" }, 0);
           tl.fromTo("#{{@id}}-text", { yPercent: 105 }, { yPercent: 0, duration: 0.9, ease: "expo.out" }, 0.15);
           if (hasHighlight) tl.fromTo("#{{@id}}-highlight", { yPercent: 105 }, { yPercent: 0, duration: 0.9, ease: "expo.out" }, 0.45);
-          tl.fromTo("#{{@id}}-dot", { scale: 0 }, { scale: 1, duration: 0.5, ease: "power3.out" }, 0.8);
           // A slow rise keeps the page alive while it is read.
           tl.fromTo("#{{@id}}-stack", { y: 0 }, { y: -18, duration: duration, ease: "none", immediateRender: false }, 0);
           tl.to({}, { duration: duration }, 0);
