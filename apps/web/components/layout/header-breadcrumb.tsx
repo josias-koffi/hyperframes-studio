@@ -16,6 +16,7 @@ import { useCrumbLabels } from "./crumb-label";
 const SEGMENTS: Record<string, string> = {
   projects: "Projets",
   templates: "Templates",
+  blocks: "Blocs",
   new: "Nouvelle création",
   assets: "Assets",
   brief: "Brief",

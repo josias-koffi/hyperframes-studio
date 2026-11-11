@@ -2,6 +2,7 @@
 
 import {
   BookOpenIcon,
+  BlocksIcon,
   BotIcon,
   BoxesIcon,
   ChartColumnIcon,
@@ -36,6 +37,7 @@ const ITEMS = [
   { href: "/", icon: LayoutDashboardIcon, title: "Tableau de bord" },
   { href: "/projects", icon: FolderKanbanIcon, title: "Projets" },
   { href: "/templates", icon: LayoutTemplateIcon, title: "Templates" },
+  { href: "/blocks", icon: BlocksIcon, title: "Blocs" },
   { href: "/assets", icon: FolderOpenIcon, title: "Assets" },
   { href: "/settings/ai", icon: BotIcon, title: "Modèles IA" },
 ];

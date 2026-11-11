@@ -5,6 +5,7 @@ import { AiModule } from "./ai/ai.module";
 import { AssetsController } from "./assets/assets.controller";
 import { AuthContextMiddleware } from "./auth/auth-context.middleware";
 import { AuthModule } from "./auth/auth.module";
+import { BlocksController } from "./blocks/blocks.controller";
 import { CreationsModule } from "./creations/creations.module";
 import { DatabaseModule } from "./database/database.module";
 import { EditorModule } from "./editor/editor.module";
@@ -17,7 +18,7 @@ import { StorageModule } from "./storage/storage.module";
 
 @Module({
   imports: [DatabaseModule, AuthModule, AiModule, QueuesModule, StorageModule, CreationsModule, EditorModule, ProjectsModule, IterationsModule],
-  controllers: [HealthController, AssetsController, LibraryController],
+  controllers: [HealthController, AssetsController, BlocksController, LibraryController],
 })
 export class AppModule implements NestModule {
   /** Every request, public or not, runs inside the request context that carries its signed-in person. */
