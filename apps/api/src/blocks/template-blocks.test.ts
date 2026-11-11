@@ -11,6 +11,7 @@ const scene = `<template>
   <div id="card" data-composition-id="card" data-width="1080" data-height="1920">
     <h2 id="title" data-var-text="headline" data-label="Titre">Soldes</h2>
     <p id="tag" style="color: var(--accent)" data-label="Étiquette">-30 %</p>
+    <img id="icon" src="assets/library/star.svg" alt="" data-label="Icône" />
   </div>
   <script>
     const tl = gsap.timeline({ paused: true });
@@ -33,6 +34,8 @@ async function workspace() {
   await mkdir(join(video, "compositions"), { recursive: true });
   await writeFile(join(video, "index.html"), index);
   await writeFile(join(video, "compositions/card.html"), scene);
+  await mkdir(join(video, "assets/library"), { recursive: true });
+  await writeFile(join(video, "assets/library/star.svg"), '<svg xmlns="http://www.w3.org/2000/svg"/>');
   await writeFile(
     join(video, "VARIABLES.json"),
     JSON.stringify([
@@ -60,7 +63,11 @@ describe("blockFromTemplate", () => {
     const result = await blockFromTemplate(dir, video, body, { check: async (_ws, _tpl, block) => (checked.push(block.manifest.id), null) });
     expect(result).toMatchObject({ manifest: { id: "carte-promo", duration: { default: 4.5 }, example: { headline: "Soldes", accent: "#E11D48" } } });
     expect(checked).toEqual(["carte-promo"]);
-    expect(await readFile(join(dir, "blocks-user/carte-promo/block.html"), "utf8")).toContain("{{headline}}");
+    const saved = await readFile(join(dir, "blocks-user/carte-promo/block.html"), "utf8");
+    expect(saved).toContain("{{headline}}");
+    // The template's icon travels inside the block: the videos that use it do not have the file.
+    expect(saved).toContain('src="data:image/svg+xml;base64,');
+    expect(saved).not.toContain("assets/library/star.svg");
     const { blocks } = await loadBlocks(dir);
     expect(blocks.has("carte-promo")).toBe(true);
     expect(blocks.has("hook-kinetic")).toBe(true);

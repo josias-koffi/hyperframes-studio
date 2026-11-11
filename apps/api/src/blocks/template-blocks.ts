@@ -16,6 +16,29 @@ import {
 
 const run = promisify(execFile);
 
+/** The heaviest file of a template a block carries inside itself. */
+const MAX_INLINE_BYTES = 512 * 1024;
+const MIME: Record<string, string> = { svg: "image/svg+xml", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", webp: "image/webp", gif: "image/gif", avif: "image/avif", woff2: "font/woff2", ttf: "font/ttf" };
+
+/**
+ * A block has no folder of files in the videos that use it: the template's fixed files a scene shows (an icon of the
+ * library, a texture) go inside the block as data URIs. A prop's file (`{{logo}}`) stays a path, given by each video.
+ */
+async function inlineAssets(block: LoadedBlock, templateDir: string): Promise<{ block: LoadedBlock } | { errors: string[] }> {
+  const errors: string[] = [];
+  const references = [...block.html.matchAll(/(?:\ssrc="|\shref="|url\(\s*["']?)((?:\.\/)?assets\/[^"')\s{}]+)/g)].map((match) => match[1]);
+  let html = block.html;
+  for (const path of new Set(references)) {
+    const extension = path.split(".").pop()?.toLowerCase() ?? "";
+    const file = await readFile(join(templateDir, path)).catch(() => null);
+    if (!file) errors.push(`fichier introuvable dans le template : ${path}`);
+    else if (!MIME[extension]) errors.push(`fichier que le bloc ne sait pas emporter : ${path}`);
+    else if (file.length > MAX_INLINE_BYTES) errors.push(`fichier trop lourd pour être emporté par le bloc (${Math.round(file.length / 1024)} Ko, 512 au plus) : ${path}`);
+    else html = html.split(path).join(`data:${MIME[extension]};base64,${file.toString("base64")}`);
+  }
+  return errors.length ? { errors } : { block: { ...block, html } };
+}
+
 /** A scene of a template that can become a block: a sub-composition, or the whole root composition. */
 export type TemplateScene = { path: string; label: string; duration: number };
 
@@ -110,10 +133,12 @@ export async function blockFromTemplate(
   const html = await readFile(join(videoDir, scene.path), "utf8");
   const result = templateSceneToBlock({ html, variables, duration: scene.duration, ...body });
   if (!result.block) return { errors: result.errors };
+  const carried = await inlineAssets(result.block, videoDir);
+  if ("errors" in carried) return carried;
   const { blocks } = await loadBlocks(workspaceDir);
   if (blocks.has(body.id)) return { errors: [`un bloc porte déjà l'id « ${body.id} »`] };
-  const report = await check(workspaceDir, videoDir, result.block);
+  const report = await check(workspaceDir, videoDir, carried.block);
   if (report) return { errors: [`le bloc ne passe pas check :\n${report}`] };
-  await saveUserBlock(workspaceDir, result.block);
-  return { manifest: result.block.manifest };
+  await saveUserBlock(workspaceDir, carried.block);
+  return { manifest: carried.block.manifest };
 }

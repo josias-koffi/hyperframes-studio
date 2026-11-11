@@ -87,8 +87,11 @@ export function templateSceneToBlock(input: TemplateBlockInput): TemplateBlockRe
 
   const props: Record<string, BlockProp> = {};
   const example: Record<string, string> = {};
+  // A prop id is camelCase (`product_name` → `productName`); the variable it comes from, by prop id.
+  const sources = new Map<string, CompositionVariable>();
   for (const variable of input.variables) {
     const name = escapeRegExp(variable.id);
+    const key = variable.id.replace(/_+([a-zA-Z0-9])/g, (_, char: string) => char.toUpperCase()).replace(/_/g, "");
     const textBinding = new RegExp(`(<([a-z0-9]+)\\b[^>]*?)\\s+data-var-text="${name}"([^>]*>)([^<]*)`, "g");
     const srcBinding = new RegExp(`<[a-z0-9]+\\b[^>]*\\bdata-var-src="${name}"[^>]*>`, "g");
     const cssBinding = new RegExp(`var\\(\\s*--${name}\\s*(?:,[^()]*(?:\\([^()]*\\)[^()]*)*)?\\)`, "g");
@@ -99,14 +102,15 @@ export function templateSceneToBlock(input: TemplateBlockInput): TemplateBlockRe
     const used = found(textBinding) || image || found(cssBinding) || (/getVariables\(\)/.test(html) && scriptBinding.test(html));
     if (!used) continue;
     html = html
-      .replace(textBinding, (_, open: string, _tag: string, rest: string) => `${open}${rest}{{${variable.id}}}`)
+      .replace(textBinding, (_, open: string, _tag: string, rest: string) => `${open}${rest}{{${key}}}`)
       .replace(srcBinding, (tag) => {
         const bare = tag.replace(new RegExp(`\\s+data-var-src="${name}"`), "");
-        return /\ssrc="[^"]*"/.test(bare) ? bare.replace(/\ssrc="[^"]*"/, ` src="{{${variable.id}}}"`) : bare.replace(/^<([a-z0-9]+)/, `<$1 src="{{${variable.id}}}"`);
+        return /\ssrc="[^"]*"/.test(bare) ? bare.replace(/\ssrc="[^"]*"/, ` src="{{${key}}}"`) : bare.replace(/^<([a-z0-9]+)/, `<$1 src="{{${key}}}"`);
       })
-      .replace(cssBinding, `{{${variable.id}}}`);
-    props[variable.id] = propFor(variable, image);
-    example[variable.id] = String(variable.default);
+      .replace(cssBinding, `{{${key}}}`);
+    props[key] = propFor(variable, image);
+    example[key] = String(variable.default);
+    sources.set(key, variable);
   }
 
   // A script that reads the variables gets them from the block's root, where the filled values are written.
@@ -116,12 +120,12 @@ export function templateSceneToBlock(input: TemplateBlockInput): TemplateBlockRe
     html = html.replace(/<([a-z]+) id="root"/, `<$1 id="root"${attributes}`);
     const reader = `(function () { const root = document.querySelector('[data-composition-id="{{@id}}"]'); const read = (name) => root ? root.getAttribute("data-tv-" + name) : null; return { ${keys
       .map((key) => {
-        const prop = props[key];
+        // The script reads the template's names: the object keeps them.
+        const variable = sources.get(key)!;
         const value = `read("${key.toLowerCase()}")`;
-        const variable = input.variables.find((candidate) => candidate.id === key)!;
-        if (variable.type === "number") return `${key}: Number(${value})`;
-        if (variable.type === "boolean") return `${key}: ${value} === "true"`;
-        return prop ? `${key}: ${value}` : "";
+        if (variable.type === "number") return `"${variable.id}": Number(${value})`;
+        if (variable.type === "boolean") return `"${variable.id}": ${value} === "true"`;
+        return `"${variable.id}": ${value}`;
       })
       .join(", ")} }; })()`;
     html = html.replace(/window\.__hyperframes\.getVariables\(\)/g, reader);

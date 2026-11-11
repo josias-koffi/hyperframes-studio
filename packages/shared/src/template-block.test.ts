@@ -85,6 +85,22 @@ describe("templateSceneToBlock", () => {
     expect(out.files["compositions/scenes/s1.html"]).toContain(">Soldes</h1>");
   });
 
+  it("names a prop in camelCase after a variable with underscores", () => {
+    const sub = `<template><div id="card" data-composition-id="card"><p id="t" data-var-text="product_name">x</p><p style="color: var(--accent_color)">y</p></div>
+<script>const { product_name } = window.__hyperframes.getVariables(); const tl = gsap.timeline({ paused: true }); window.__timelines["card"] = tl;</script></template>`;
+    const contract: CompositionVariable[] = [
+      { id: "product_name", label: "Produit", type: "string", default: "Framesmith" },
+      { id: "accent_color", label: "Accent", type: "color", default: "#5B3DF5" },
+    ];
+    const { block, errors } = templateSceneToBlock({ html: sub, variables: contract, duration: 3, ...meta });
+    expect(errors).toEqual([]);
+    expect(block!.manifest.example).toEqual({ productName: "Framesmith", accentColor: "#5B3DF5" });
+    const filled = fillBlock(block!, { productName: "Studio" }, { id: "x", duration: 3, width: 1080, height: 1920 });
+    expect(filled).toContain(">Studio</p>");
+    expect(filled).toContain("color: #5B3DF5");
+    expect(filled).toContain('"product_name": read("productname")');
+  });
+
   it("reads a sub-composition, and refuses a scene without its timeline", () => {
     const sub = `<template><div id="card" data-composition-id="card" data-width="1080" data-height="1920"><p id="t" data-var-text="headline">x</p></div>
 <script>const tl = gsap.timeline({ paused: true }); window.__timelines["card"] = tl;</script></template>`;
