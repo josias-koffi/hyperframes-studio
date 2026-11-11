@@ -1,6 +1,21 @@
 import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { aiDefaults, aiModels, creations, jobs, projects, userAiSettings, users, type Database } from "@studio/db";
-import { AI_MODEL_KINDS, FAL_MODEL_KINDS, mediaPriceOf, MODEL_SLOTS, VISION_SLOTS, type AiModelKind, type AiPreferences, type MediaPrice, type ResolvedAi } from "@studio/shared";
+import {
+  AI_MODEL_KINDS,
+  aiPreferencesSchema,
+  AGENT_BACKENDS,
+  FAL_MODEL_KINDS,
+  mediaPriceOf,
+  MODEL_SLOTS,
+  OPENROUTER_MODEL_KINDS,
+  slotModelsFor,
+  STEP_MODEL_KIND,
+  VISION_SLOTS,
+  type AiModelKind,
+  type AiPreferences,
+  type MediaPrice,
+  type ResolvedAi,
+} from "@studio/shared";
 import { and, asc, desc, eq, gte, isNotNull, sql } from "drizzle-orm";
 import { currentUser } from "../auth/request-context";
 import { DATABASE } from "../database/database.module";
@@ -8,7 +23,10 @@ import type { CreateAiModel, OpenRouterSearch, UpdateAiModel, UserAiSettingsInpu
 import { fetchOpenRouterModels, fetchZdrModels } from "./openrouter-catalog";
 import { MissingModelError, resolveAi } from "./resolve-ai";
 
-const EMPTY: AiPreferences = { models: {}, media: {} };
+const EMPTY: AiPreferences = { models: {}, claudeModels: {}, media: {} };
+
+/** Preferences saved before a field existed (`claudeModels`) get its default. */
+const normalized = (preferences: unknown): AiPreferences => aiPreferencesSchema.parse(preferences ?? {});
 
 @Injectable()
 export class AiService {
@@ -63,7 +81,7 @@ export class AiService {
     const byId = new Map(models.map((model) => [model.id, model]));
     let updated = 0;
     for (const row of await this.db.select().from(aiModels)) {
-      if ((FAL_MODEL_KINDS as readonly string[]).includes(row.kind)) continue;
+      if (!OPENROUTER_MODEL_KINDS.includes(row.kind)) continue;
       const model = byId.get(row.openrouterId);
       const values = model
         ? { capabilities: model.capabilities, pricing: model.pricing, contextLength: model.contextLength }
@@ -98,7 +116,7 @@ export class AiService {
 
   async getDefaults(): Promise<AiPreferences> {
     const [row] = await this.db.select().from(aiDefaults).where(eq(aiDefaults.id, "default"));
-    return row?.preferences ?? EMPTY;
+    return row ? normalized(row.preferences) : EMPTY;
   }
 
   async saveDefaults(preferences: AiPreferences) {
@@ -114,7 +132,7 @@ export class AiService {
     const user = currentUser();
     const [row] = await this.db.select().from(userAiSettings).where(eq(userAiSettings.userId, user.id));
     return {
-      preferences: row?.preferences ?? EMPTY,
+      preferences: row ? normalized(row.preferences) : EMPTY,
       agentBackend: row?.agentBackend ?? "opencode",
       defaults: await this.getDefaults(),
     };
@@ -141,7 +159,8 @@ export class AiService {
     const enabled = Object.fromEntries(
       AI_MODEL_KINDS.map((kind) => [kind, new Set(enabledRows.filter((row) => row.kind === kind).map((row) => row.openrouterId))]),
     ) as Record<AiModelKind, Set<string>>;
-    const vision = new Set(enabledRows.filter((row) => row.kind === "agent" && row.capabilities.includes("vision")).map((row) => row.openrouterId));
+    const stepKinds = new Set(Object.values(STEP_MODEL_KIND));
+    const vision = new Set(enabledRows.filter((row) => stepKinds.has(row.kind) && row.capabilities.includes("vision")).map((row) => row.openrouterId));
     const prices: Record<string, MediaPrice> = {};
     for (const row of enabledRows.filter((candidate) => FAL_MODEL_KINDS.includes(candidate.kind))) {
       const price = mediaPriceOf(row.kind, row.pricing);
@@ -149,7 +168,7 @@ export class AiService {
     }
     try {
       return resolveAi({
-        user: own ? { preferences: own.preferences, agentBackend: own.agentBackend } : null,
+        user: own ? { preferences: normalized(own.preferences), agentBackend: own.agentBackend } : null,
         defaults,
         enabled,
         vision,
@@ -165,13 +184,17 @@ export class AiService {
   private async assertInCatalog(preferences: AiPreferences) {
     const enabled = await this.listEnabled();
     const find = (kind: AiModelKind, id: string) => enabled.find((row) => row.kind === kind && row.openrouterId === id);
-    for (const slot of MODEL_SLOTS) {
-      const id = preferences.models[slot];
-      if (!id) continue;
-      const model = find("agent", id);
-      if (!model) throw new BadRequestException(`Modèle « ${id} » non proposé pour l'étape ${slot}.`);
-      if (VISION_SLOTS.includes(slot) && !model.capabilities.includes("vision"))
-        throw new BadRequestException(`${model.label} ne lit pas les images : il ne peut pas servir à l'étape ${slot}.`);
+    // The step models of each engine, among the catalog models of that engine's kind.
+    for (const backend of AGENT_BACKENDS) {
+      const slots = slotModelsFor(preferences, backend);
+      for (const slot of MODEL_SLOTS) {
+        const id = slots[slot];
+        if (!id) continue;
+        const model = find(STEP_MODEL_KIND[backend], id);
+        if (!model) throw new BadRequestException(`Modèle « ${id} » non proposé pour l'étape ${slot}.`);
+        if (VISION_SLOTS.includes(slot) && !model.capabilities.includes("vision"))
+          throw new BadRequestException(`${model.label} ne lit pas les images : il ne peut pas servir à l'étape ${slot}.`);
+      }
     }
     const { ttsModel, ttsVoice, musicModel } = preferences.media;
     const tts = ttsModel ? find("tts", ttsModel) : undefined;

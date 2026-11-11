@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { mediaChoiceSchema } from "./agents";
+import { mediaChoiceSchema, type AgentBackend } from "./agents";
 import { AGENT_STEPS, isShotStep, type GenerationStep } from "./jobs";
 
 /**
@@ -19,12 +19,25 @@ export const VISION_SLOTS: readonly ModelSlot[] = ["footage", "visual"];
  */
 export const OPTIONAL_SLOTS: readonly ModelSlot[] = ["footage", "visual", "escalation"];
 
-/** A model per slot (missing slots fall back to the next level) and the audio models. */
+const slotModels = z.partialRecord(z.enum(MODEL_SLOTS), z.string().min(1));
+
+/**
+ * A model per slot for each engine (missing slots fall back to the next level) and the audio models. `models` holds
+ * OpenRouter ids (OpenCode), `claudeModels` the catalog's Claude Code models: switching engines keeps both choices.
+ */
 export const aiPreferencesSchema = z.object({
-  models: z.partialRecord(z.enum(MODEL_SLOTS), z.string().min(1)).default({}),
+  models: slotModels.default({}),
+  claudeModels: slotModels.default({}),
   media: mediaChoiceSchema.default({}),
 });
 export type AiPreferences = z.infer<typeof aiPreferencesSchema>;
+/** Preferences as stored: a row saved before a field existed lacks it, `aiPreferencesSchema` fills it in. */
+export type StoredAiPreferences = z.input<typeof aiPreferencesSchema>;
+
+/** The slot choices of one engine in a set of preferences. */
+export function slotModelsFor(preferences: Pick<StoredAiPreferences, "models" | "claudeModels"> | undefined, backend: AgentBackend): Partial<Record<ModelSlot, string>> {
+  return (backend === "claude-code" ? preferences?.claudeModels : preferences?.models) ?? {};
+}
 
 /**
  * The slot whose model a job uses: an editor change has its own, a review comment keeps the step's. A comment on a

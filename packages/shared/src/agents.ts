@@ -9,13 +9,21 @@ export type AgentBackend = (typeof AGENT_BACKENDS)[number];
 
 /**
  * `agent`, `tts` and `music` are OpenRouter models; `image` and `video` are fal endpoints (`fal-ai/…`), which generate
- * the keyframes and the shots of a realistic création, priced in the catalog (`MEDIA_PRICE_KEYS`).
+ * the keyframes and the shots of a realistic création, priced in the catalog (`MEDIA_PRICE_KEYS`). `claude` is a model
+ * of the `claude` command (an alias such as `sonnet`, or an id such as `claude-opus-5-5`), run on the person's own
+ * subscription when their engine is Claude Code.
  */
-export const AI_MODEL_KINDS = ["agent", "tts", "music", "image", "video"] as const;
+export const AI_MODEL_KINDS = ["agent", "tts", "music", "image", "video", "claude"] as const;
 export type AiModelKind = (typeof AI_MODEL_KINDS)[number];
 
 /** The fal kinds: their id is a fal endpoint, their price is set by the admin (fal's catalog is not OpenRouter's). */
 export const FAL_MODEL_KINDS: readonly AiModelKind[] = ["image", "video"];
+
+/** The kinds OpenRouter knows: the others (fal, Claude Code) are added by hand and never read from OpenRouter. */
+export const OPENROUTER_MODEL_KINDS: readonly AiModelKind[] = ["agent", "tts", "music"];
+
+/** The kind of the models that work at the generation steps, per engine. */
+export const STEP_MODEL_KIND: Record<AgentBackend, AiModelKind> = { opencode: "agent", "claude-code": "claude" };
 
 /** Where a fal model's price sits in `ai_models.pricing` (USD, as a string): per image, per second of video. */
 export const MEDIA_PRICE_KEYS = { image: "perImage", video: "perSecond", videoWithAudio: "perSecondAudio" } as const;

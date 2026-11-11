@@ -57,6 +57,7 @@ export function ModelDialog({
   const [pending, startTransition] = useTransition();
   const editing = Boolean(model);
   const fal = FAL_MODEL_KINDS.includes(form.kind);
+  const claude = form.kind === "claude";
   const priceFields =
     form.kind === "image"
       ? [{ key: MEDIA_PRICE_KEYS.image, label: "Prix par image ($)", placeholder: "0.003" }]
@@ -113,19 +114,21 @@ export function ModelDialog({
                 ? "Le nom et la description s'affichent dans les choix des utilisateurs."
                 : fal
                   ? "Endpoint fal tel qu'il figure sur la page du modèle, et son prix : fal ne le donne pas à l'appel."
-                  : "Identifiant tel qu'OpenRouter le connaît : éditeur/modèle."}
+                  : claude
+                    ? "Un modèle de la commande claude, sur l'abonnement de chaque utilisateur : un alias (sonnet, opus, haiku) suit toujours la dernière version, un id la fige."
+                    : "Identifiant tel qu'OpenRouter le connaît : éditeur/modèle."}
             </DialogDescription>
           </DialogHeader>
           <FieldGroup>
             <div className="grid gap-4 sm:grid-cols-[1fr_10rem]">
               <Field>
-                <FieldLabel htmlFor="model-id">{fal ? "Endpoint fal" : "Identifiant OpenRouter"}</FieldLabel>
+                <FieldLabel htmlFor="model-id">{fal ? "Endpoint fal" : claude ? "Alias ou id Claude" : "Identifiant OpenRouter"}</FieldLabel>
                 <Input
                   id="model-id"
                   required
                   disabled={editing}
                   className="font-mono text-sm"
-                  placeholder={form.kind === "image" ? "fal-ai/flux/schnell" : form.kind === "video" ? "fal-ai/kling-video/v3/pro/image-to-video" : "mistralai/voxtral-mini-tts-2603"}
+                  placeholder={form.kind === "image" ? "fal-ai/flux/schnell" : form.kind === "video" ? "fal-ai/kling-video/v3/pro/image-to-video" : claude ? "sonnet" : "mistralai/voxtral-mini-tts-2603"}
                   value={form.openrouterId}
                   onChange={(event) => setForm({ ...form, openrouterId: event.target.value })}
                 />
@@ -133,7 +136,12 @@ export function ModelDialog({
               </Field>
               <Field>
                 <FieldLabel htmlFor="model-kind">Type</FieldLabel>
-                <Select value={form.kind} onValueChange={(kind) => setForm({ ...form, kind: kind as AiModelKind })} disabled={editing}>
+                <Select
+                  value={form.kind}
+                  // Claude models read images and answer in a JSON schema: the visual check may use them.
+                  onValueChange={(kind) => setForm({ ...form, kind: kind as AiModelKind, ...(kind === "claude" && form.capabilities.length === 0 ? { capabilities: ["vision", "tools", "structured"] } : {}) })}
+                  disabled={editing}
+                >
                   <SelectTrigger id="model-kind" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -161,7 +169,7 @@ export function ModelDialog({
                 onChange={(event) => setForm({ ...form, description: event.target.value })}
               />
             </Field>
-            {form.kind === "agent" && (
+            {(form.kind === "agent" || claude) && (
               <Field>
                 <FieldLabel>Capacités</FieldLabel>
                 <div className="flex flex-wrap gap-4">
@@ -180,7 +188,9 @@ export function ModelDialog({
                     </label>
                   ))}
                 </div>
-                <FieldDescription>Lues sur OpenRouter à l&apos;import. Seul un modèle avec vision peut analyser les rushs ou faire le contrôle visuel.</FieldDescription>
+                <FieldDescription>
+                  {claude ? "À cocher toi-même." : "Lues sur OpenRouter à l'import."} Seul un modèle avec vision peut analyser les rushs ou faire le contrôle visuel.
+                </FieldDescription>
               </Field>
             )}
             {fal && (

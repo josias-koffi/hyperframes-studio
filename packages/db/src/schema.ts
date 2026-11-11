@@ -6,7 +6,7 @@ import {
   GENERATION_STEPS,
   JOB_STATUSES,
   RENDER_FORMATS,
-  type AiPreferences,
+  type StoredAiPreferences,
   type ModelCapability,
 } from "@studio/shared";
 import {
@@ -279,7 +279,7 @@ export const aiModels = pgTable(
 /** Platform defaults (a single row, `id = 'default'`): what a user gets for every slot they leave empty. */
 export const aiDefaults = pgTable("ai_defaults", {
   id: text("id").primaryKey().default("default"),
-  preferences: jsonb("preferences").$type<AiPreferences>().notNull().default({ models: {}, media: {} }),
+  preferences: jsonb("preferences").$type<StoredAiPreferences>().notNull().default({ models: {}, media: {} }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -288,7 +288,7 @@ export const userAiSettings = pgTable("user_ai_settings", {
   userId: uuid("user_id")
     .primaryKey()
     .references(() => users.id, { onDelete: "cascade" }),
-  preferences: jsonb("preferences").$type<AiPreferences>().notNull().default({ models: {}, media: {} }),
+  preferences: jsonb("preferences").$type<StoredAiPreferences>().notNull().default({ models: {}, media: {} }),
   /** `claude-code` is only accepted for an admin (their own Claude Code subscription). */
   agentBackend: agentBackend("agent_backend").notNull().default("opencode"),
   ...timestamps,

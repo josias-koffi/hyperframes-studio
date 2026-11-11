@@ -1,11 +1,13 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { homedir } from "node:os";
+import { join } from "node:path";
 import { createDatabaseClient, createJobBus, jobs } from "@studio/db";
 import { claudeJobSchema, QUEUES, type AgentBackend, type ClaudeJob } from "@studio/shared";
 import { createStorage } from "@studio/storage";
 import { agentEnv } from "./agent-env";
 import { createClaudeCodeRunner } from "./agents/claude-code";
+import { createClaudeChat } from "./claude-chat";
 import { createOpencodeHttpClient, createOpencodeRunner, startOpencodeServer } from "./agents/opencode";
 import { createOpencodeServer } from "./agents/opencode-server";
 import type { AgentRunner } from "./agents/types";
@@ -49,16 +51,14 @@ export async function startClaudeRunner() {
   };
 
   // The person's own Claude Code subscription, through the `claude` command logged in on this machine.
-  const claudeCode = createClaudeCodeRunner({
-    bin: config.claudeBin,
-    skillsDir: config.skillsDir,
-    workspaceDir: config.workspaceDir,
-    env: agentEnv(dirs, {
-      ...Object.fromEntries(CLAUDE_CODE_ENV.filter((key) => process.env[key]).map((key) => [key, process.env[key] as string])),
-      // The agents write bash: under zsh, a glob that matches nothing aborts the whole command.
-      CLAUDE_CODE_SHELL: "/bin/bash",
-    }),
+  const claudeEnv = agentEnv(dirs, {
+    ...Object.fromEntries(CLAUDE_CODE_ENV.filter((key) => process.env[key]).map((key) => [key, process.env[key] as string])),
+    // The agents write bash: under zsh, a glob that matches nothing aborts the whole command.
+    CLAUDE_CODE_SHELL: "/bin/bash",
   });
+  const claudeCode = createClaudeCodeRunner({ bin: config.claudeBin, skillsDir: config.skillsDir, workspaceDir: config.workspaceDir, env: claudeEnv });
+  // The blocks engine's structured calls on the same subscription, without tools, from a folder of their own.
+  const claudeChat = createClaudeChat({ bin: config.claudeBin, cwd: join(config.agentTmpDir, "claude-chat"), env: claudeEnv });
 
   // One `opencode serve` for the app, behind a password of its own, started by the first OpenCode turn.
   const opencode = createOpencodeServer({
@@ -98,6 +98,7 @@ export async function startClaudeRunner() {
         enqueueNext,
         runnerFor: (backend) => runners[backend],
         proxy,
+        claudeChat,
       }),
     {
       concurrency: config.concurrency,

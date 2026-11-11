@@ -4,17 +4,35 @@ import type { StudioEvent, TokenUsage } from "@studio/shared";
 export type ChatPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string | ChatPart[] };
 
-/** Where structured calls go: the job's proxy token, so each call is billed to the job like the voice and music. */
+export type ChatAnswer = { ok: true; content: string; usage?: TokenUsage; costUsd: number } | { ok: false; status: number; error: string };
+
+/** One answer of a model to a conversation, in the given JSON schema (`jsonSchema`) or as any JSON object. */
+export type ChatRequest = { model: string; messages: ChatMessage[]; name: string; schema: Record<string, unknown>; jsonSchema: boolean; timeoutMs: number };
+
+/** Who answers a structured call: OpenRouter (the default) or Claude Code (`claude-chat.ts`). */
+export type ChatTransport = (request: ChatRequest) => Promise<ChatAnswer>;
+
+/**
+ * Where structured calls go: `chat` when the job's engine is Claude Code, else OpenRouter with the job's proxy token,
+ * so each call is billed to the job like the voice and music.
+ */
 export type ModelCallContext = {
   openrouter: { baseUrl: string; token: string } | null;
+  chat?: ChatTransport | null;
   timeoutMs: number;
   onEvent: (event: StudioEvent) => Promise<void> | void;
   fetchImpl?: typeof fetch;
 };
 
-type ChatAnswer = { ok: true; content: string; usage?: TokenUsage; costUsd: number } | { ok: false; status: number; error: string };
+/** Whether a structured call can be made at all: through Claude Code, or OpenRouter with a token. */
+export const canCallModel = (ctx: Pick<ModelCallContext, "openrouter" | "chat">): boolean => Boolean(ctx.chat ?? ctx.openrouter);
 
-async function chat(ctx: ModelCallContext, model: string, messages: ChatMessage[], name: string, schema: Record<string, unknown>, jsonSchema: boolean): Promise<ChatAnswer> {
+function chat(ctx: ModelCallContext, model: string, messages: ChatMessage[], name: string, schema: Record<string, unknown>, jsonSchema: boolean): Promise<ChatAnswer> {
+  if (ctx.chat) return ctx.chat({ model, messages, name, schema, jsonSchema, timeoutMs: ctx.timeoutMs });
+  return openrouterChat(ctx, model, messages, name, schema, jsonSchema);
+}
+
+async function openrouterChat(ctx: ModelCallContext, model: string, messages: ChatMessage[], name: string, schema: Record<string, unknown>, jsonSchema: boolean): Promise<ChatAnswer> {
   const fetchImpl = ctx.fetchImpl ?? fetch;
   const response = await fetchImpl(`${ctx.openrouter!.baseUrl}/chat/completions`, {
     method: "POST",

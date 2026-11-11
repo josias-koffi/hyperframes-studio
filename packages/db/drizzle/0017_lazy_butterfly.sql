@@ -1,0 +1,1 @@
+ALTER TYPE "public"."ai_model_kind" ADD VALUE 'claude';

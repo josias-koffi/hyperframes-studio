@@ -27,6 +27,7 @@ export const MODEL_KIND_META: Record<AiModelKind, { label: string; plural: strin
   music: { label: "Musique", plural: "Modèles de musique" },
   image: { label: "Image (fal)", plural: "Modèles d'image (fal)" },
   video: { label: "Vidéo (fal)", plural: "Modèles vidéo (fal)" },
+  claude: { label: "Claude Code", plural: "Modèles Claude Code" },
 };
 
 /** A fal model's catalog price: "0.06 $/s (0.4 $/s avec son)", "0.003 $/image", or null when none is set. */

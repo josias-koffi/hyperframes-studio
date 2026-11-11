@@ -23,7 +23,7 @@ import { agentEnv } from "./agent-env";
 import type { AgentRunner, AgentTurnResult } from "./agents/types";
 import { runBlocksStep, runCommand } from "./blocks";
 import { grantedDirs, grantedDirsNote, stringsOf } from "./granted-dirs";
-import { addUsage, type Escalation } from "./structured";
+import { addUsage, type ChatTransport, type Escalation } from "./structured";
 import type { RunnerConfig } from "./config";
 import type { OpenrouterProxy } from "./openrouter-proxy";
 import { buildPrompt } from "./prompt";
@@ -40,42 +40,31 @@ export type ProcessDeps = {
   runnerFor: (backend: AgentBackend) => AgentRunner | null;
   /** Hands out the OpenRouter tokens of `scripts/audio.mjs`; null when no key is configured. */
   proxy: Pick<OpenrouterProxy, "grant"> | null;
+  /**
+   * The blocks engine's structured calls on Claude Code (`claude -p` on the person's subscription); null when this
+   * environment has no `claude` command. On OpenCode they go to OpenRouter through the proxy.
+   */
+  claudeChat?: ChatTransport | null;
 };
 
-/** Jobs enqueued before backends were chosen per user ran on Claude Code with the runner's step models. */
-export function agentFor(job: ClaudeJob, config: Pick<RunnerConfig, "stepModels">): AgentChoice {
+/**
+ * The engine and model of a job, from its owner's settings frozen into it when it was queued (the slot of its step,
+ * or `edit`). Null when those settings name no model for that slot: the runner chooses none itself.
+ */
+export function agentFor(job: Pick<ClaudeJob, "ai" | "step" | "mode">): AgentChoice | null {
   const model = job.ai?.models[modelSlotFor(job)];
-  // A comment on a keyframe or a shot rewrites the storyboard: the storyboard's model.
-  const step = isShotStep(job.step) ? "storyboard" : job.step;
-  return job.ai && model ? { backend: job.ai.backend, model } : { backend: "claude-code", model: config.stepModels[step] };
+  return job.ai && model ? { backend: job.ai.backend, model } : null;
 }
 
 /**
- * The OpenRouter model of the blocks engine: the step model of an OpenCode job, else `BLOCKS_MODEL` (a Claude Code
- * alias means nothing to OpenRouter).
+ * The job's escalation model, the stronger one a step falls back to after two failures, and its visual check's
+ * model, which reads the contact sheet: both from the owner's settings, of the job's engine. Null: no escalation (or
+ * the escalation model is the one that failed), no visual check.
  */
-export function blocksModelFor(job: ClaudeJob, config: Pick<RunnerConfig, "blocksModel">): string | null {
-  const model = job.ai?.models[modelSlotFor(job)];
-  return job.ai?.backend === "opencode" && model ? model : config.blocksModel;
-}
-
-/**
- * The OpenRouter models of the escalation and of the visual check: the owner's slots on OpenCode, else
- * `ESCALATION_MODEL` and `VISUAL_MODEL`. Null: no escalation, no visual check.
- */
-export function blocksSlotModels(job: ClaudeJob, config: Pick<RunnerConfig, "escalationModel" | "visualModel">): { escalation: string | null; visual: string | null } {
-  if (job.ai?.backend === "opencode") return { escalation: job.ai.models.escalation ?? null, visual: job.ai.models.visual ?? null };
-  return { escalation: config.escalationModel, visual: config.visualModel };
-}
-
-/**
- * The agent a build falls back to after two failed checks: the owner's escalation slot on OpenCode, else
- * `CLAUDE_MODEL_ESCALATION` (Opus by default) on Claude Code. Null when it is the model that already failed.
- */
-export function escalationAgentFor(job: ClaudeJob, config: Pick<RunnerConfig, "escalationAgentModel" | "stepModels">): string | null {
-  const own = agentFor(job, config);
-  const model = job.ai?.backend === "opencode" ? (job.ai.models.escalation ?? null) : config.escalationAgentModel;
-  return model && model !== own.model ? model : null;
+export function slotModelsFor(job: Pick<ClaudeJob, "ai" | "step" | "mode">): { escalation: string | null; visual: string | null } {
+  const own = agentFor(job)?.model;
+  const escalation = job.ai?.models.escalation ?? null;
+  return { escalation: escalation && escalation !== own ? escalation : null, visual: job.ai?.models.visual ?? null };
 }
 
 /** What `npm run check` found wrong in an agent's build, sent back to it. */
@@ -209,15 +198,30 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
     const dirsNote = grantedDirsNote(allowedDirs, job.slug);
     if (allowedDirs.length) await report.event({ kind: "log", level: "info", text: `Dossiers ouverts à l'agent : ${allowedDirs.join(", ")}` });
 
-    let agent: AgentChoice;
+    // The model of the step comes from the owner's settings, whatever the engine: the runner chooses none itself.
+    const chosen = agentFor(job);
+    if (!chosen) {
+      const engine = job.ai?.backend === "claude-code" ? "Claude Code" : "OpenCode";
+      const text = `Aucun modèle ${engine} pour l'étape « ${modelSlotFor(job)} » : choisis-le dans les réglages IA ou dans les modèles par défaut.`;
+      await report.event({ kind: "log", level: "error", text });
+      await report.status("failed", { resultText: text });
+      return;
+    }
+    const agent: AgentChoice = chosen;
+    const slots = slotModelsFor(job);
     let result: AgentTurnResult;
     let escalation: Escalation | undefined;
     if (usesBlocks(creation) && BLOCKS_STEPS.includes(job.step) && job.mode !== "edit") {
-      // The blocks engine: a structured call and code, no agent turn and no session, but for a custom scene.
-      agent = { backend: "opencode", model: blocksModelFor(job, config) ?? "aucun" };
-      const slots = blocksSlotModels(job, config);
-      const sceneAgent = agentFor(job, config);
-      const sceneRunner = deps.runnerFor(sceneAgent.backend);
+      // The blocks engine: structured calls and code, no agent turn and no session, but for a custom scene. On Claude
+      // Code its calls go through `claude -p`, on OpenCode to OpenRouter through the job's proxy token.
+      const onClaudeCode = agent.backend === "claude-code";
+      if (onClaudeCode && !deps.claudeChat) {
+        const text = "Le moteur blocs ne trouve pas la commande claude sur ce poste : installe Claude Code et connecte-le, ou passe sur OpenCode.";
+        await report.event({ kind: "log", level: "error", text });
+        await report.status("failed", { resultText: text, backend: agent.backend, model: agent.model });
+        return;
+      }
+      const sceneRunner = deps.runnerFor(agent.backend);
       const step = await runBlocksStep({
         workspaceDir: config.workspaceDir,
         slug: job.slug,
@@ -233,16 +237,17 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
         campaign,
         creation: { type: creation.type, kind: creation.kind, brief: creation.brief },
         feedback: job.feedback,
-        model: blocksModelFor(job, config),
+        model: agent.model,
         escalationModel: slots.escalation,
         visualModel: slots.visual,
         openrouter: media ? { baseUrl: media.baseUrl, token: media.token } : null,
+        chat: onClaudeCode ? deps.claudeChat : undefined,
         env: agentEnv({ home: homedir(), tmp: config.agentTmpDir }, {}),
         timeoutMs: config.timeoutMs,
         onEvent: (event) => report.event(event),
         customScene: sceneRunner
           ? async (prompt) => {
-              const turn = await sceneRunner.run({ prompt: prompt + dirsNote, sessionId: null, model: sceneAgent.model, cwd: config.workspaceDir, timeoutMs: config.timeoutMs, allowedDirs, onEvent: (event) => report.event(event) });
+              const turn = await sceneRunner.run({ prompt: prompt + dirsNote, sessionId: null, model: agent.model, cwd: config.workspaceDir, timeoutMs: config.timeoutMs, allowedDirs, onEvent: (event) => report.event(event) });
               return { ok: turn.ok, resultText: turn.resultText, usage: turn.usage, costUsd: turn.costUsd };
             }
           : undefined,
@@ -251,7 +256,6 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
       escalation = step.escalation;
       if (!step.ok && step.resultText) await report.event({ kind: "log", level: "error", text: step.resultText });
     } else {
-      agent = agentFor(job, config);
       const prompt = await buildPrompt(config.promptsDir, {
         step: job.step,
         type: creation.type,
@@ -281,7 +285,7 @@ export async function processClaudeJob(job: ClaudeJob, deps: ProcessDeps): Promi
       result = await turn({ prompt: prompt + dirsNote, sessionId: job.feedback && sameBackend ? (job.resumeSessionId ?? creation.claudeSessionId) : null, model: agent.model });
       if (result.ok && job.step === "build") {
         const env = agentEnv({ home: homedir(), tmp: config.agentTmpDir }, {});
-        const verified = await verifyBuild({ job, config, env, report, turn, first: result, model: agent.model, escalationModel: escalationAgentFor(job, config) });
+        const verified = await verifyBuild({ job, config, env, report, turn, first: result, model: agent.model, escalationModel: slots.escalation });
         result = verified.result;
         escalation = verified.escalation;
       }

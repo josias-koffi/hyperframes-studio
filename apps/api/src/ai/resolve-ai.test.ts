@@ -7,12 +7,14 @@ const enabled: ResolveAiInput["enabled"] = {
   music: new Set(["google/lyria-3-clip-preview"]),
   image: new Set(["fal-ai/flux/schnell"]),
   video: new Set(["fal-ai/ltx-2.3/image-to-video", "fal-ai/veo3.1/image-to-video"]),
+  claude: new Set(["claude-opus-5-5", "sonnet"]),
 };
 const defaults = {
   models: { build: "anthropic/claude-opus", brief: "qwen/qwen3-coder" },
+  claudeModels: { build: "claude-opus-5-5", brief: "sonnet" },
   media: { ttsModel: "mistralai/voxtral-mini-tts", ttsVoice: "fr_marie_neutral", musicModel: "google/lyria-3-clip-preview" },
 };
-const base: ResolveAiInput = { user: null, defaults, enabled, vision: new Set(["openai/gpt-5"]) };
+const base: ResolveAiInput = { user: null, defaults, enabled, vision: new Set(["openai/gpt-5", "claude-opus-5-5"]) };
 
 describe("resolveAi", () => {
   it("uses the platform defaults, the build's for every slot left empty", () => {
@@ -37,13 +39,25 @@ describe("resolveAi", () => {
     expect(own({ ttsVoice: "alloy" })).toMatchObject({ ttsModel: "mistralai/voxtral-mini-tts", ttsVoice: "fr_marie_neutral" });
   });
 
-  it("runs Claude Code for whoever chose it, on its subscription, with the runner's own models", () => {
-    const user = { agentBackend: "claude-code" as const, preferences: { models: {}, media: {} } };
-    expect(resolveAi({ ...base, user })).toMatchObject({ backend: "claude-code", models: {} });
+  it("runs Claude Code for whoever chose it with the Claude models of the settings, the user's over the platform's", () => {
+    const user = { agentBackend: "claude-code" as const, preferences: { models: { build: "openai/gpt-5" }, claudeModels: { storyboard: "sonnet" }, media: {} } };
+    const ai = resolveAi({ ...base, user });
+    expect(ai.backend).toBe("claude-code");
+    expect(ai.models).toMatchObject({ brief: "sonnet", storyboard: "sonnet", build: "claude-opus-5-5", edit: "claude-opus-5-5", visual: "claude-opus-5-5" });
+    // An OpenRouter id never reaches Claude Code, nor a Claude model OpenCode.
+    expect(Object.values(ai.models)).not.toContain("openai/gpt-5");
+    expect(Object.values(resolveAi(base).models)).not.toContain("sonnet");
   });
 
-  it("refuses to start when no model can be found for a slot", () => {
-    expect(() => resolveAi({ ...base, defaults: { models: {}, media: {} } })).toThrow(MissingModelError);
+  it("takes only the catalog's enabled Claude models", () => {
+    const user = { agentBackend: "claude-code" as const, preferences: { models: {}, claudeModels: { build: "opus-retired" }, media: {} } };
+    expect(resolveAi({ ...base, user }).models.build).toBe("claude-opus-5-5");
+  });
+
+  it("refuses to start when no model can be found for a slot, naming the Claude catalog on Claude Code", () => {
+    expect(() => resolveAi({ ...base, defaults: { models: {}, claudeModels: {}, media: {} } })).toThrow(MissingModelError);
+    const user = { agentBackend: "claude-code" as const, preferences: { models: {}, claudeModels: {}, media: {} } };
+    expect(() => resolveAi({ ...base, user, defaults: { ...defaults, claudeModels: {} } })).toThrow(/modèles Claude au catalogue/);
   });
 
   it("fills a vision slot only with a model that reads images, and leaves it empty otherwise", () => {

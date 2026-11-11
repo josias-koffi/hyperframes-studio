@@ -1,6 +1,6 @@
 "use client";
 
-import { MODEL_SLOTS, REALISTIC_BUDGET_EUR, VISION_SLOTS, type AgentBackend, type AiPreferences, type ModelSlot } from "@studio/shared/browser";
+import { AGENT_BACKENDS, MODEL_SLOTS, REALISTIC_BUDGET_EUR, slotModelsFor, VISION_SLOTS, type AgentBackend, type AiPreferences, type ModelSlot } from "@studio/shared/browser";
 import { AudioLinesIcon, BotIcon, ClapperboardIcon, CpuIcon, MusicIcon, SaveIcon, TerminalSquareIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
@@ -47,31 +47,38 @@ export function PreferencesForm({ mode, models, value, fallback, backend }: Prop
       music: models.filter((model) => model.kind === "music"),
       image: models.filter((model) => model.kind === "image"),
       video: models.filter((model) => model.kind === "video"),
+      claude: models.filter((model) => model.kind === "claude"),
     }),
     [models],
   );
   const labelOf = (id: string | undefined) => (id ? (models.find((model) => model.openrouterId === id)?.label ?? id) : undefined);
-  const onClaudeCode = engine === "claude-code";
+  /** The step models of an engine: OpenRouter models on OpenCode, the catalog's Claude models on Claude Code. */
+  const stepModels = (slotsEngine: AgentBackend) => (slotsEngine === "claude-code" ? byKind.claude : byKind.agent);
 
-  const vision = (id: string | undefined) => byKind.agent.some((model) => model.openrouterId === id && model.capabilities.includes("vision"));
+  const vision = (slotsEngine: AgentBackend, id: string | undefined) =>
+    stepModels(slotsEngine).some((model) => model.openrouterId === id && model.capabilities.includes("vision"));
 
   /** The models a slot may take: a vision slot only those that read images. */
-  const choicesFor = (slot: ModelSlot) => (VISION_SLOTS.includes(slot) ? byKind.agent.filter((model) => model.capabilities.includes("vision")) : byKind.agent);
+  const choicesFor = (slotsEngine: AgentBackend, slot: ModelSlot) =>
+    VISION_SLOTS.includes(slot) ? stepModels(slotsEngine).filter((model) => model.capabilities.includes("vision")) : stepModels(slotsEngine);
 
   /** What the « par défaut » option of a slot stands for. */
-  function inherited(slot: ModelSlot): string {
+  function inherited(slotsEngine: AgentBackend, slot: ModelSlot): string {
     const visionSlot = VISION_SLOTS.includes(slot);
     if (mode === "defaults") return slot === "build" ? "Aucun" : visionSlot ? "Le build s'il lit les images" : "Comme le build";
-    const id = [fallback?.models[slot], fallback?.models.build].find((candidate) => candidate && (!visionSlot || vision(candidate)));
+    const defaults = slotModelsFor(fallback, slotsEngine);
+    const id = [defaults[slot], defaults.build].find((candidate) => candidate && (!visionSlot || vision(slotsEngine, candidate)));
     return labelOf(id) ?? (visionSlot ? "Aucun modèle avec vision" : "Aucun");
   }
 
-  function setModel(slot: ModelSlot, next: string) {
+  /** Each engine keeps its own choices: OpenRouter ids in `models`, Claude models in `claudeModels`. */
+  function setModel(slotsEngine: AgentBackend, slot: ModelSlot, next: string) {
+    const field = slotsEngine === "claude-code" ? "claudeModels" : "models";
     setPrefs((current) => {
-      const models = { ...current.models };
+      const models = { ...current[field] };
       if (next === INHERIT) delete models[slot];
       else models[slot] = next;
-      return { ...current, models };
+      return { ...current, [field]: models };
     });
   }
 
@@ -112,7 +119,7 @@ export function PreferencesForm({ mode, models, value, fallback, backend }: Prop
             {(
               [
                 { value: "opencode", icon: CpuIcon, title: "OpenCode · OpenRouter", text: "Les modèles choisis ci-dessous, facturés à la génération." },
-                { value: "claude-code", icon: TerminalSquareIcon, title: "Claude Code · abonnement", text: "Sonnet et Opus par étape, sur ton abonnement Claude." },
+                { value: "claude-code", icon: TerminalSquareIcon, title: "Claude Code · abonnement", text: "Les modèles Claude choisis ci-dessous, sur ton abonnement Claude." },
               ] as const
             ).map((option) => (
               <button
@@ -139,54 +146,68 @@ export function PreferencesForm({ mode, models, value, fallback, backend }: Prop
         </SectionCard>
       )}
 
-      <SectionCard
-        title={
-          <span className="flex items-center gap-2">
-            <BotIcon className="size-4 text-primary" />
-            Génération
-          </span>
-        }
-        description={
-          onClaudeCode
-            ? "Avec Claude Code, chaque étape garde ses modèles Claude : ces choix servent quand tu repasses sur OpenCode."
-            : mode === "defaults"
-              ? `Le modèle de chaque étape pour tous les utilisateurs qui n'ont rien choisi. Le build sert de défaut général. ${OPENROUTER_PRIVACY}`
-              : `Le modèle qui travaille à chaque étape. Laisse « par défaut » pour suivre les choix de la plateforme. ${OPENROUTER_PRIVACY}`
-        }
-      >
-        {byKind.agent.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Aucun modèle de génération n&apos;est proposé pour l&apos;instant.</p>
-        ) : (
-          <FieldGroup className={cn("gap-0 divide-y", onClaudeCode && "opacity-60")}>
-            {MODEL_SLOTS.map((slot) => (
-              <Field key={slot} className="py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
-                <FieldContent>
-                  <FieldLabel htmlFor={`model-${slot}`}>{MODEL_SLOT_META[slot].label}</FieldLabel>
-                  <FieldDescription>{MODEL_SLOT_META[slot].hint}</FieldDescription>
-                </FieldContent>
-                <Select value={prefs.models[slot] ?? INHERIT} onValueChange={(next) => setModel(slot, next)} disabled={onClaudeCode}>
-                  <SelectTrigger id={`model-${slot}`} className="w-full sm:w-72 sm:shrink-0">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={INHERIT}>
-                      <span className="text-muted-foreground">Par défaut · {inherited(slot)}</span>
-                    </SelectItem>
-                    {choicesFor(slot).map((model) => (
-                      <SelectItem key={model.id} value={model.openrouterId}>
-                        <span className="flex flex-col">
-                          <span>{model.label}</span>
-                          {tokenPrice(model) && <span className="text-xs text-muted-foreground">{tokenPrice(model)}</span>}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            ))}
-          </FieldGroup>
-        )}
-      </SectionCard>
+      {(mode === "defaults" ? AGENT_BACKENDS : [engine]).map((slotsEngine) => {
+        const claudeSlots = slotsEngine === "claude-code";
+        const choices = claudeSlots ? byKind.claude : byKind.agent;
+        const chosen = slotModelsFor(prefs, slotsEngine);
+        return (
+          <SectionCard
+            key={slotsEngine}
+            title={
+              <span className="flex items-center gap-2">
+                {claudeSlots ? <TerminalSquareIcon className="size-4 text-primary" /> : <BotIcon className="size-4 text-primary" />}
+                {mode === "defaults" ? `Génération · ${claudeSlots ? "Claude Code" : "OpenCode"}` : "Génération"}
+              </span>
+            }
+            description={
+              claudeSlots
+                ? mode === "defaults"
+                  ? "Le modèle Claude de chaque étape pour les utilisateurs sur Claude Code qui n'ont rien choisi. Le build sert de défaut général."
+                  : "Le modèle Claude de chaque étape, sur ton abonnement. Laisse « par défaut » pour suivre les choix de la plateforme."
+                : mode === "defaults"
+                  ? `Le modèle de chaque étape pour tous les utilisateurs qui n'ont rien choisi. Le build sert de défaut général. ${OPENROUTER_PRIVACY}`
+                  : `Le modèle qui travaille à chaque étape. Laisse « par défaut » pour suivre les choix de la plateforme. ${OPENROUTER_PRIVACY}`
+            }
+          >
+            {choices.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {claudeSlots
+                  ? "Aucun modèle Claude n'est proposé : un administrateur doit en ajouter au catalogue des modèles (type Claude Code)."
+                  : "Aucun modèle de génération n'est proposé pour l'instant."}
+              </p>
+            ) : (
+              <FieldGroup className="gap-0 divide-y">
+                {MODEL_SLOTS.map((slot) => (
+                  <Field key={slot} className="py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+                    <FieldContent>
+                      <FieldLabel htmlFor={`model-${slotsEngine}-${slot}`}>{MODEL_SLOT_META[slot].label}</FieldLabel>
+                      <FieldDescription>{MODEL_SLOT_META[slot].hint}</FieldDescription>
+                    </FieldContent>
+                    <Select value={chosen[slot] ?? INHERIT} onValueChange={(next) => setModel(slotsEngine, slot, next)}>
+                      <SelectTrigger id={`model-${slotsEngine}-${slot}`} className="w-full sm:w-72 sm:shrink-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={INHERIT}>
+                          <span className="text-muted-foreground">Par défaut · {inherited(slotsEngine, slot)}</span>
+                        </SelectItem>
+                        {choicesFor(slotsEngine, slot).map((model) => (
+                          <SelectItem key={model.id} value={model.openrouterId}>
+                            <span className="flex flex-col">
+                              <span>{model.label}</span>
+                              {!claudeSlots && tokenPrice(model) && <span className="text-xs text-muted-foreground">{tokenPrice(model)}</span>}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                ))}
+              </FieldGroup>
+            )}
+          </SectionCard>
+        );
+      })}
 
       <SectionCard
         title={

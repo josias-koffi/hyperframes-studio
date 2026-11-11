@@ -1,16 +1,6 @@
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
-import { AGENT_STEPS, resolveFromRoot, resolveWorkspaceDir, type AgentStep } from "@studio/shared";
-
-/**
- * Steps that follow a recipe (write BRIEF.md and VARIABLES.json, run scripts/audio.mjs) run on Sonnet; the footage
- * analysis, which reads the rush as images, and the storyboard and the build, where the video is designed, run on
- * `CLAUDE_MODEL` (Opus by default). `CLAUDE_MODEL_<STEP>` overrides either. Every step names its model: `--resume`
- * without `--model` keeps the model of the previous step.
- */
-const RECIPE_STEP_MODEL = "sonnet";
-const DESIGN_STEP_MODEL = "opus";
-const RECIPE_STEPS: readonly AgentStep[] = ["brief", "variables", "media"];
+import { resolveFromRoot, resolveWorkspaceDir } from "@studio/shared";
 
 export type RunnerConfig = {
   /** HyperFrames workspace (CLAUDE.md, scripts, videos/<slug>). The agents run from here. */
@@ -24,11 +14,6 @@ export type RunnerConfig = {
    * references and scripts are refused in a headless run otherwise.
    */
   skillsDir: string;
-  model: string | null;
-  /** Model of each step: `CLAUDE_MODEL_<STEP>`, else Sonnet for recipe steps, else `model`, else Opus. */
-  stepModels: Record<AgentStep, string>;
-  /** Claude Code model a build falls back to after two failed checks: `CLAUDE_MODEL_ESCALATION`, else Opus. */
-  escalationAgentModel: string;
   /** Hard limit for one Claude step. */
   timeoutMs: number;
   opencodeBin: string;
@@ -44,15 +29,6 @@ export type RunnerConfig = {
   /** The OpenRouter key, used only by the proxy the agents call: they never see it. */
   openrouterApiKey: string | null;
   openrouterBaseUrl: string;
-  /**
-   * OpenRouter model of the blocks engine's structured calls when the job's owner runs Claude Code, whose models
-   * OpenRouter does not know by alias. An OpenCode job uses its own step model.
-   */
-  blocksModel: string | null;
-  /** OpenRouter model the blocks engine falls back to after two failures, for an owner on Claude Code. */
-  escalationModel: string | null;
-  /** OpenRouter model with vision for the visual check of a build, for an owner on Claude Code. */
-  visualModel: string | null;
   /** The fal key, used only by the proxy `scripts/shots.mjs` calls (the realistic créations' shots). */
   falApiKey: string | null;
   falQueueUrl: string;
@@ -65,15 +41,6 @@ export function resolveRunnerConfig(env: NodeJS.ProcessEnv = process.env): Runne
     promptsDir: resolveFromRoot(env.PROMPTS_DIR?.trim() || "prompts", env),
     claudeBin: env.CLAUDE_BIN?.trim() || "claude",
     skillsDir: env.CLAUDE_SKILLS_DIR?.trim() || join(homedir(), ".claude", "skills"),
-    model: env.CLAUDE_MODEL?.trim() || null,
-    stepModels: Object.fromEntries(
-      AGENT_STEPS.map((step) => [
-        step,
-        env[`CLAUDE_MODEL_${step.toUpperCase()}`]?.trim() ||
-          (RECIPE_STEPS.includes(step) ? RECIPE_STEP_MODEL : env.CLAUDE_MODEL?.trim() || DESIGN_STEP_MODEL),
-      ]),
-    ) as Record<AgentStep, string>,
-    escalationAgentModel: env.CLAUDE_MODEL_ESCALATION?.trim() || DESIGN_STEP_MODEL,
     timeoutMs: Number.parseInt(env.CLAUDE_STEP_TIMEOUT_MS ?? "", 10) || 60 * 60 * 1000,
     opencodeBin: env.OPENCODE_BIN?.trim() || "opencode",
     opencodeIdleMs: Number.parseInt(env.OPENCODE_IDLE_MS ?? "", 10) || 60 * 1000,
@@ -81,9 +48,6 @@ export function resolveRunnerConfig(env: NodeJS.ProcessEnv = process.env): Runne
     agentTmpDir: env.AGENT_TMP_DIR?.trim() || join(tmpdir(), "studio-agent"),
     openrouterApiKey: env.OPENROUTER_API_KEY?.trim() || null,
     openrouterBaseUrl: env.OPENROUTER_BASE_URL?.trim() || "https://openrouter.ai/api/v1",
-    blocksModel: env.BLOCKS_MODEL?.trim() || null,
-    escalationModel: env.ESCALATION_MODEL?.trim() || null,
-    visualModel: env.VISUAL_MODEL?.trim() || null,
     falApiKey: env.FAL_KEY?.trim() || null,
     falQueueUrl: env.FAL_QUEUE_URL?.trim() || "https://queue.fal.run",
   };

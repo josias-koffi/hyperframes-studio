@@ -2,28 +2,30 @@ import { chmod, mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { resolveRunnerConfig } from "./config";
 import type { StudioEvent } from "@studio/shared";
 import type { AgentTurnResult } from "./agents/types";
-import { agentFor, escalationAgentFor, verifyBuild } from "./process-job";
+import { agentFor, slotModelsFor, verifyBuild } from "./process-job";
 import { writeStudioEnv } from "./workspace";
 
-const config = resolveRunnerConfig({ WORKSPACE_DIR: "/ws" });
 const base = { jobId: "00000000-0000-4000-8000-000000000001", creationId: "00000000-0000-4000-8000-000000000002", slug: "demo" };
 const ai = { backend: "opencode" as const, models: { build: "anthropic/claude-opus", edit: "openai/gpt-5-mini" }, media: {} };
 
 describe("agentFor", () => {
-  it("runs a job without settings on Claude Code with the runner's step model", () => {
-    expect(agentFor({ ...base, step: "build" }, config)).toEqual({ backend: "claude-code", model: config.stepModels.build });
-  });
-
   it("takes the step's model from the owner's settings, and the edit model for an editor change", () => {
-    expect(agentFor({ ...base, step: "build", ai }, config)).toEqual({ backend: "opencode", model: "anthropic/claude-opus" });
-    expect(agentFor({ ...base, step: "build", mode: "edit", ai }, config)).toEqual({ backend: "opencode", model: "openai/gpt-5-mini" });
+    expect(agentFor({ ...base, step: "build", ai })).toEqual({ backend: "opencode", model: "anthropic/claude-opus" });
+    expect(agentFor({ ...base, step: "build", mode: "edit", ai })).toEqual({ backend: "opencode", model: "openai/gpt-5-mini" });
   });
 
-  it("falls back to the runner default when the settings name no model for the step", () => {
-    expect(agentFor({ ...base, step: "brief", ai }, config)).toEqual({ backend: "claude-code", model: config.stepModels.brief });
+  it("runs a Claude Code job on the Claude model of its settings", () => {
+    expect(agentFor({ ...base, step: "storyboard", ai: { backend: "claude-code", models: { storyboard: "claude-opus-5-5" }, media: {} } })).toEqual({
+      backend: "claude-code",
+      model: "claude-opus-5-5",
+    });
+  });
+
+  it("chooses no model itself: none without settings, or when they name none for the step", () => {
+    expect(agentFor({ ...base, step: "build" })).toBeNull();
+    expect(agentFor({ ...base, step: "brief", ai })).toBeNull();
   });
 });
 
@@ -48,12 +50,18 @@ describe("writeStudioEnv", () => {
   });
 });
 
-describe("escalationAgentFor", () => {
-  it("takes the owner's escalation slot on OpenCode, Opus on Claude Code, and none when it is the failing model", () => {
-    expect(escalationAgentFor({ ...base, step: "build", ai: { ...ai, models: { ...ai.models, escalation: "anthropic/claude-sonnet" } } }, config)).toBe("anthropic/claude-sonnet");
-    expect(escalationAgentFor({ ...base, step: "build", ai }, config)).toBeNull();
-    expect(escalationAgentFor({ ...base, step: "build", ai: { ...ai, models: { ...ai.models, escalation: "anthropic/claude-opus" } } }, config)).toBeNull();
-    expect(escalationAgentFor({ ...base, step: "brief" }, config)).toBe("opus");
+describe("slotModelsFor", () => {
+  it("takes the escalation and the visual check from the owner's settings, on either engine", () => {
+    expect(slotModelsFor({ ...base, step: "build", ai: { ...ai, models: { ...ai.models, escalation: "anthropic/claude-sonnet", visual: "google/gemini" } } })).toEqual({
+      escalation: "anthropic/claude-sonnet",
+      visual: "google/gemini",
+    });
+    expect(slotModelsFor({ ...base, step: "build", ai: { backend: "claude-code", models: { build: "sonnet", escalation: "opus" }, media: {} } })).toEqual({ escalation: "opus", visual: null });
+  });
+
+  it("has no escalation when it is the failing model, or without settings", () => {
+    expect(slotModelsFor({ ...base, step: "build", ai: { ...ai, models: { ...ai.models, escalation: "anthropic/claude-opus" } } }).escalation).toBeNull();
+    expect(slotModelsFor({ ...base, step: "brief" })).toEqual({ escalation: null, visual: null });
   });
 });
 

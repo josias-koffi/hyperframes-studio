@@ -109,6 +109,7 @@ export function ModelsCatalog({ models }: { models: AiModel[] }) {
       header: "Prix / voix",
       cell: ({ row }) => {
         const model = row.original;
+        if (model.kind === "claude") return <span className="text-sm text-muted-foreground">Abonnement</span>;
         if (model.kind === "tts") return <span className="text-sm text-muted-foreground">{model.voices.length ? `${model.voices.length} voix` : "Voix libre"}</span>;
         if (model.kind === "image" || model.kind === "video")
           return <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">{mediaPriceLabel(model) ?? "Prix à renseigner"}</span>;
@@ -119,7 +120,7 @@ export function ModelsCatalog({ models }: { models: AiModel[] }) {
       id: "capabilities",
       header: "Capacités",
       cell: ({ row }) =>
-        row.original.kind === "agent" ? (
+        row.original.kind === "agent" || row.original.kind === "claude" ? (
           <span className="flex flex-wrap gap-1">
             {row.original.capabilities.length === 0 && <span className="text-sm text-muted-foreground">—</span>}
             {row.original.capabilities.map((capability) => (
