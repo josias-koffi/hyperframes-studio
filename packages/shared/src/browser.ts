@@ -10,6 +10,7 @@ export * from "./library";
 export * from "./opencode-events";
 export * from "./queues";
 export * from "./storyboard";
+export * from "./template-block";
 export * from "./variables";
 export * from "./visual-review";
 export * from "./shot-guard";

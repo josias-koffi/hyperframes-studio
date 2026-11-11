@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
-import { extname } from "node:path";
-import { Body, Controller, Delete, Get, Inject, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Put, Query, Req, Res } from "@nestjs/common";
+import { extname, join } from "node:path";
+import { BadRequestException, Body, Controller, Delete, Get, Inject, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Put, Query, Req, Res } from "@nestjs/common";
 import { renders, type Database } from "@studio/db";
 import { resolveWorkspaceDir } from "@studio/shared";
 import type { Storage } from "@studio/storage";
@@ -27,6 +27,7 @@ import {
 import { CreationsService } from "./creations.service";
 import { JobsService } from "./jobs.service";
 import { listRenders } from "./renders";
+import { blockFromTemplate, makeBlockSchema, templateScenes, type MakeBlockBody } from "../blocks/template-blocks";
 import { resolveVideoFile } from "./workspace-files";
 
 const PREVIEW_TYPES: Record<string, string> = {
@@ -92,6 +93,23 @@ export class CreationsController {
   @Post(":id/variables/apply")
   applyVariables(@Param("id", ParseUUIDPipe) id: string) {
     return this.creations.applyVariables(id);
+  }
+
+  /** The scenes of a built template that can become a block of the blocks engine. */
+  @Get(":id/block-scenes")
+  async blockScenes(@Param("id", ParseUUIDPipe) id: string) {
+    const creation = await this.creations.template(id);
+    return templateScenes(resolveVideoFile(resolveWorkspaceDir(), creation.slug, ".")!);
+  }
+
+  /** A scene of the template made into a block (`blocks-user/`), once `check` passes on it. */
+  @Post(":id/blocks")
+  async makeBlock(@Param("id", ParseUUIDPipe) id: string, @Body(new ZodPipe(makeBlockSchema)) body: MakeBlockBody) {
+    const creation = await this.creations.template(id);
+    const workspace = resolveWorkspaceDir();
+    const result = await blockFromTemplate(workspace, join(workspace, "videos", creation.slug), body);
+    if ("errors" in result) throw new BadRequestException(result.errors.join("\n"));
+    return result.manifest;
   }
 
   @Get(":id/jobs")

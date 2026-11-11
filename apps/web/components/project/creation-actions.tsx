@@ -1,9 +1,10 @@
 "use client";
 
-import { EllipsisIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import { BlocksIcon, EllipsisIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { BlockFromTemplateDialog } from "@/components/project/block-from-template-dialog";
 import { DeleteDialog, NameDialog } from "@/components/studio/entity-dialogs";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -25,7 +26,7 @@ export function CreationActions({
   size?: "default" | "sm";
 }) {
   const router = useRouter();
-  const [dialog, setDialog] = useState<"rename" | "delete" | null>(null);
+  const [dialog, setDialog] = useState<"rename" | "delete" | "block" | null>(null);
   const noun = creation.kind === "template" ? "le template" : CREATION_TYPE_META[creation.type].noun;
 
   async function rename(name: string) {
@@ -65,6 +66,12 @@ export function CreationActions({
             <PencilIcon />
             Renommer
           </DropdownMenuItem>
+          {creation.kind === "template" && (
+            <DropdownMenuItem onSelect={() => setDialog("block")}>
+              <BlocksIcon />
+              Transformer une scène en bloc
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem variant="destructive" disabled={deleteBlocked} onSelect={() => setDialog("delete")}>
             <Trash2Icon />
             Supprimer
@@ -78,6 +85,9 @@ export function CreationActions({
         initial={creation.name}
         onSubmit={rename}
       />
+      {creation.kind === "template" && (
+        <BlockFromTemplateDialog creationId={creation.id} open={dialog === "block"} onOpenChange={(open) => setDialog(open ? "block" : null)} />
+      )}
       <DeleteDialog
         open={dialog === "delete"}
         onOpenChange={(open) => setDialog(open ? "delete" : null)}
