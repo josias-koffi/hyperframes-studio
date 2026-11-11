@@ -17,15 +17,19 @@ export type OpencodeClient = {
 export function createOpencodeHttpClient(baseUrl: string, password?: string): OpencodeClient {
   const url = (path: string, directory: string) => `${baseUrl}${path}?directory=${encodeURIComponent(directory)}`;
   const auth: Record<string, string> = password ? { authorization: `Basic ${Buffer.from(`opencode:${password}`).toString("base64")}` } : {};
-  const call = async (path: string, directory: string, body?: unknown) => {
+  const call = async (path: string, directory: string, body?: unknown, accepted: readonly number[] = []) => {
     const response = await fetch(url(path, directory), {
       method: "POST",
       headers: { "content-type": "application/json", ...auth },
       body: JSON.stringify(body ?? {}),
     });
-    if (!response.ok) throw new Error(`OpenCode ${path}: HTTP ${response.status} ${(await response.text()).slice(0, 500)}`);
+    if (!response.ok && !accepted.includes(response.status)) {
+      throw new Error(`OpenCode ${path}: HTTP ${response.status} ${(await response.text()).slice(0, 500)}`);
+    }
     return response;
   };
+  // A rejected permission rejects every other pending one of the session: replying to those is a 404, not a failure.
+  const reply = (requestId: string, directory: string, body: unknown) => call(`/permission/${requestId}/reply`, directory, body, [404]);
 
   return {
     async createSession(directory, title) {
@@ -39,10 +43,10 @@ export function createOpencodeHttpClient(baseUrl: string, password?: string): Op
       await call(`/session/${sessionId}/abort`, directory);
     },
     async rejectPermission(directory, requestId, message) {
-      await call(`/permission/${requestId}/reply`, directory, { reply: "reject", message });
+      await reply(requestId, directory, { reply: "reject", message });
     },
     async allowPermission(directory, requestId) {
-      await call(`/permission/${requestId}/reply`, directory, { reply: "once" });
+      await reply(requestId, directory, { reply: "once" });
     },
     async events(directory, signal) {
       const response = await fetch(url("/event", directory), { headers: { accept: "text/event-stream", ...auth }, signal });

@@ -39,6 +39,8 @@
       "*": "ask",
       "{env:AGENT_SKILLS_DIR}/**": "allow",
       "{env:HOME}/.claude/skills/**": "allow",
+      "{env:HOME}/.config/opencode/skills/**": "allow",
+      "{env:HOME}/.agents/skills/**": "allow",
       "{env:TMPDIR}/**": "allow"
     },
     "bash": {

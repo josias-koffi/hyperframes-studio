@@ -1,6 +1,6 @@
 import type { StudioEvent } from "@studio/shared";
 import { describe, expect, it, vi } from "vitest";
-import { createOpencodeRunner, parseSse, type OpencodeClient } from "./opencode";
+import { createOpencodeHttpClient, createOpencodeRunner, parseSse, type OpencodeClient } from "./opencode";
 
 /** A client whose event stream replays `events` once the prompt is sent, then stays open. */
 function fakeClient(events: unknown[], { hang = false } = {}) {
@@ -108,6 +108,21 @@ describe("createOpencodeRunner", () => {
     expect(result.ok).toBe(false);
     expect(client.calls).toContain("abort ses_new");
     expect(events).toContainEqual({ kind: "log", level: "error", text: "OpenCode step timed out after 50 ms" });
+  });
+});
+
+describe("createOpencodeHttpClient", () => {
+  it("ignores a permission already settled by the server, but not other errors", async () => {
+    const fetch = vi.fn(async (url: string) => new Response("{}", { status: url.includes("/permission/") ? 404 : 500 }));
+    vi.stubGlobal("fetch", fetch);
+    try {
+      const client = createOpencodeHttpClient("http://oc", "pw");
+      await client.rejectPermission("/ws", "per_1", "non");
+      await client.allowPermission("/ws", "per_2");
+      await expect(client.abort("/ws", "ses_1")).rejects.toThrow("HTTP 500");
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
 
