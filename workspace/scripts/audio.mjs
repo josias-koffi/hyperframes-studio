@@ -2,7 +2,8 @@
 // Audio de l'étape « médias » avec les fournisseurs du workspace (OpenRouter, voir CLAUDE.md) :
 //   tts       une prise Voxtral par frame de SCRIPT.md     → assets/audio/voxtral/NN.mp3 (brut)
 //   normalize crête à TTS_PEAK_DB, 48 kHz mono              → assets/audio/voice/NN.wav
-//   music     Lyria (MUSIC_MODEL), coupée et fondue         → assets/audio/music/bgm.mp3 (brut dans .media/music/)
+//   music     Lyria (MUSIC_MODEL), entière et fondue        → assets/audio/music/bgm.mp3 (brut dans .media/music/)
+//             la composition la coupe à la durée de la vidéo (data-duration, data-fade-out)
 //   meta      timings des mots (whisper, langue --lang)     → audio_meta.json (forme faceless-explainer)
 //
 // Usage, depuis la racine du workspace :
@@ -18,7 +19,6 @@ import { join } from "node:path";
 import { alignWords } from "./align-words.mjs";
 
 const HYPERFRAMES = "hyperframes@0.8.134";
-const MUSIC_TAIL_S = 1.5;
 const MUSIC_FADE_S = 2;
 const BGM_VOLUME = 0.18;
 
@@ -124,14 +124,6 @@ function normalize() {
   }
 }
 
-function voiceTotal() {
-  const dir = join(video, "assets/audio/voice");
-  if (!existsSync(dir)) return 0;
-  return readdirSync(dir)
-    .filter((n) => n.endsWith(".wav"))
-    .reduce((sum, n) => sum + duration(join(dir, n)), 0);
-}
-
 async function music() {
   if (!musicPrompt) return console.log("music : pas de --music, aucune musique");
   const { base, key } = requireKey();
@@ -170,8 +162,10 @@ async function music() {
   const raw = join(mediaDir, `lyria-raw.${magic === "RIFF" ? "wav" : "mp3"}`);
   writeFileSync(raw, buf);
 
-  // Coupée à la durée donnée, sinon à celle de la voix + une queue, avec un fondu de sortie.
-  const length = Math.min(duration(raw), fixedDuration ?? voiceTotal() + MUSIC_TAIL_S);
+  // Coupée à la durée donnée, sinon gardée entière : avec une voix, la vidéo dure plus que la voix (scènes étirées,
+  // silences, dernière scène), et sa longueur n'est connue qu'au build. La composition coupe la musique à sa place
+  // (`data-duration` = durée de la vidéo) et la fond à cet endroit (`data-fade-out`).
+  const length = Math.min(duration(raw), fixedDuration ?? Infinity);
   const out = join(video, "assets/audio/music/bgm.mp3");
   mkdirSync(join(video, "assets/audio/music"), { recursive: true });
   execFileSync("ffmpeg", [
