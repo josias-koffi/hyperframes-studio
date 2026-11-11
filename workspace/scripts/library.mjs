@@ -29,11 +29,13 @@ const STOPWORDS = new Set(
 
 const argv = process.argv.slice(2);
 const [command, ...rest] = argv;
+/** The options that take a value; `--json` takes none. Any other argument is text, even one starting with `--`. */
+const VALUE_FLAGS = ["--kind", "--format", "--limit", "--color"];
 const flag = (name, fallback) => {
   const index = rest.indexOf(`--${name}`);
   return index >= 0 && index + 1 < rest.length ? rest[index + 1] : fallback;
 };
-const positional = rest.filter((arg, index) => !arg.startsWith("--") && !(index > 0 && rest[index - 1].startsWith("--") && rest[index - 1] !== "--json"));
+const positional = rest.filter((arg, index) => arg !== "--json" && !VALUE_FLAGS.includes(arg) && !(index > 0 && VALUE_FLAGS.includes(rest[index - 1])));
 
 function fail(message) {
   console.error(message);

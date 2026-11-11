@@ -18,8 +18,8 @@ import {
   type ShotStep,
   assembleStills,
   assembleVideo,
-  blockManifestSchema,
   blocksCatalog,
+  loadBlocks,
   blocksVariablesAnswerSchema,
   blocksVariablesJsonSchema,
   BINDABLE_VARIABLE_TYPES,
@@ -64,7 +64,7 @@ import {
   type StudioEvent,
   type TokenUsage,
 } from "@studio/shared";
-import { addUsage, ANSWERS_WITHOUT_ESCALATION, structuredCall, type Escalation } from "./structured";
+import { addUsage, ANSWERS_WITHOUT_ESCALATION, canCallModel, structuredCall, type ChatTransport, type Escalation } from "./structured";
 
 /**
  * What a blocks step hands back to `processClaudeJob`, in the shape of an agent turn. `costUsd` is what the agent
@@ -90,14 +90,19 @@ export type BlocksContext = {
   feedback?: string;
   /** What the brief and the variables are written from; without it, those steps cannot run. */
   creation?: { type: CreationType; kind: CreationKind; brief: Record<string, unknown> };
-  /** OpenRouter id of the model of the structured calls (brief, variables, storyboard, a build comment). */
+  /**
+   * Model of the structured calls (brief, variables, storyboard, a build comment), from the owner's settings: an
+   * OpenRouter id on OpenCode, a Claude model on Claude Code.
+   */
   model: string | null;
-  /** OpenRouter id of the stronger model a call falls back to after two refused answers or two failed checks. */
+  /** The stronger model a call falls back to after two refused answers or two failed checks. */
   escalationModel?: string | null;
-  /** OpenRouter id of a model with vision that reads the contact sheet after the build; null: no visual check. */
+  /** A model with vision that reads the contact sheet after the build; null: no visual check. */
   visualModel?: string | null;
-  /** The job's proxy token: the call is billed to the job like the voice and the music. */
+  /** The job's proxy token: the voice and the music, and on OpenCode the structured calls, billed to the job. */
   openrouter: { baseUrl: string; token: string } | null;
+  /** Claude Code answers the structured calls instead of OpenRouter (`claude-chat.ts`). */
+  chat?: ChatTransport | null;
   /** Environment of the workspace scripts (`audio.mjs`, the HyperFrames CLI). */
   env: Record<string, string>;
   timeoutMs: number;
@@ -124,22 +129,7 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
-/** The blocks of the workspace (`blocks/<id>/block.json` + `block.html`), synced from the app's skeleton. */
-export async function loadBlocks(workspaceDir: string): Promise<{ manifests: BlockManifest[]; blocks: Map<string, LoadedBlock> }> {
-  const root = join(workspaceDir, "blocks");
-  const manifests: BlockManifest[] = [];
-  const blocks = new Map<string, LoadedBlock>();
-  for (const entry of (await readdir(root).catch(() => [])).sort()) {
-    const dir = join(root, entry);
-    if (!(await exists(join(dir, "block.json")))) continue;
-    const manifest = blockManifestSchema.parse(JSON.parse(await readFile(join(dir, "block.json"), "utf8")));
-    if (manifest.id !== entry) throw new Error(`blocks/${entry}/block.json : l'id « ${manifest.id} » doit être le nom du dossier`);
-    manifests.push(manifest);
-    blocks.set(manifest.id, { manifest, html: await readFile(join(dir, "block.html"), "utf8") });
-  }
-  if (manifests.length === 0) throw new Error(`aucun bloc dans ${root}`);
-  return { manifests, blocks };
-}
+export { loadBlocks };
 
 /**
  * Files the model may point at: everything under `assets/` but the audio and the shots the studio writes itself.
@@ -164,8 +154,23 @@ const execFileAsync = promisify(execFile);
 /** Assets of the library offered to the storyboard: the images a block can show. */
 export const LIBRARY_SUGGESTIONS = 30;
 const LIBRARY_IMAGE_FORMATS = "svg,png,webp";
-/** The words of the brief the search reads: past that, a brief only repeats itself. */
-const LIBRARY_QUERY_CHARS = 4000;
+/** Searches made from one brief, and the results each one may offer. */
+const LIBRARY_QUERIES = 12;
+const LIBRARY_PER_QUERY = 8;
+
+/**
+ * What a brief asks to show, one search each: its lines, without the front matter, the headings, the short labels
+ * and the assumptions. A whole brief in one search matches everything a little (« clé », « train »); a line matches
+ * what it is about (a laptop and a phone, two colleagues).
+ */
+export function libraryQueries(text: string): string[] {
+  const body = text.replace(/^---\n[\s\S]*?\n---\n/, "").split(/^## Hypothèses$/m)[0];
+  const lines = body
+    .split("\n")
+    .map((line) => line.replace(/^[\s#>*•\d.-]+/, "").trim())
+    .filter((line) => line.split(/\s+/).length >= 3);
+  return [...new Set(lines)].slice(0, LIBRARY_QUERIES);
+}
 
 /** `node scripts/library.mjs …` in the workspace, the agents' own command; its JSON answer. */
 async function libraryCommand(ctx: Pick<BlocksContext, "workspaceDir" | "env">, args: string[]): Promise<unknown> {
@@ -188,10 +193,20 @@ export async function librarySuggestions(ctx: BlocksContext, query: string, curr
     ref.slice(LIBRARY_REF_PREFIX.length),
   );
   try {
-    const found = (await libraryCommand(ctx, ["search", query.slice(0, LIBRARY_QUERY_CHARS), "--format", LIBRARY_IMAGE_FORMATS, "--limit", String(LIBRARY_SUGGESTIONS)])) as LibraryEntry[];
+    const results: LibraryEntry[][] = [];
+    for (const line of libraryQueries(query)) {
+      results.push((await libraryCommand(ctx, ["search", line, "--format", LIBRARY_IMAGE_FORMATS, "--limit", String(LIBRARY_PER_QUERY)])) as LibraryEntry[]);
+    }
     const kept = used.length ? ((await libraryCommand(ctx, ["get", ...used])) as LibraryEntry[]) : [];
-    const ids = new Set(kept.map((entry) => entry.id));
-    return [...kept, ...found.filter((entry) => !ids.has(entry.id))];
+    // In turn, each search's best first: every line of the brief gets its say before any gets its eighth.
+    const offered = new Map(kept.map((entry) => [entry.id, entry]));
+    for (let rank = 0; rank < LIBRARY_PER_QUERY && offered.size < kept.length + LIBRARY_SUGGESTIONS; rank++) {
+      for (const found of results) {
+        const entry = found[rank];
+        if (entry && !offered.has(entry.id) && offered.size < kept.length + LIBRARY_SUGGESTIONS) offered.set(entry.id, entry);
+      }
+    }
+    return [...offered.values()];
   } catch (error) {
     await ctx.onEvent({ kind: "log", level: "error", text: `Bibliothèque d'assets indisponible : ${error instanceof Error ? error.message : String(error)}` });
     return [];
@@ -693,6 +708,7 @@ export function customScenePrompt({
     "Le workspace livre des assets libres, sans réseau : personnages, objets, icônes, drapeaux, appareils (téléphone, laptop, tablette), illustrations. Ils rendent mieux qu'un dessin en HTML.",
     `- Avant de dessiner un objet, un appareil, un personnage, une icône ou un drapeau, cherche-le, en français puis en anglais : \`node scripts/library.mjs search "<mots>" [--kind <type>]\`. Si rien ne convient, cherche dans le registre (\`/hyperframes-registry\`). Dessine-le seulement après ces deux recherches vides.`,
     `- Pour l'utiliser : \`node scripts/library.mjs add <id> videos/${slug}\` (\`--color #RRGGBB\` pour teindre une icône d'une seule couleur), puis le chemin affiché dans un \`<img>\`. Ne copie jamais un fichier de \`library/\` à la main : \`add\` tient les crédits. N'affiche pas une image bitmap plus grande que la taille indiquée par la recherche.`,
+    `- Un appareil (téléphone, ordinateur, tablette) : cherche d'abord un composant qui le dessine écran compris (\`node scripts/library.mjs search "<appareil>" --kind component\`). Un appareil que tu dessines montre toujours quelque chose à l'écran (l'interface décrite, une vidéo, une carte) : jamais un écran vide ou noir.`,
     "",
     "## Format du fichier",
     "",
@@ -763,6 +779,100 @@ async function buildCustomScenes(
 /** A round of the build: STORYBOARD.json assembled, its custom scenes written and `check` run on the result. */
 type BuildRound = BlocksStepResult & { assembled?: AssembledVideo; storyboard?: Storyboard; checkOutput?: string };
 
+/** The assembled composition into the video folder; the scenes are regenerated, a removed one must not linger. */
+async function writeAssembled(dir: string, assembled: Pick<AssembledVideo, "indexHtml" | "files">): Promise<void> {
+  await rm(join(dir, "compositions", "scenes"), { recursive: true, force: true });
+  await writeFile(join(dir, "index.html"), assembled.indexHtml);
+  for (const [path, html] of Object.entries(assembled.files)) {
+    await mkdir(dirname(join(dir, path)), { recursive: true });
+    await writeFile(join(dir, path), html);
+  }
+}
+
+/** Where the storyboard's frames go: one image per scene, shown by `storyboard.html`. */
+export const PLANCHE_DIR = "planche";
+
+/**
+ * Stands in for a custom scene the build has not written yet, in the storyboard's frames: its description on a plain
+ * background. The build writes the real scene over it (no `.sha` marks it as written).
+ */
+export function customScenePlaceholder(sceneId: string, description: string, width: number, height: number): string {
+  const id = sceneCompositionId(sceneId);
+  const text = description.replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[char] ?? char);
+  return [
+    "<template>",
+    "  <style>",
+    "    #root { position: absolute; inset: 0; overflow: hidden; background: #ece9e3; font-family: system-ui, sans-serif; }",
+    "    .ph-box { position: absolute; inset: 8%; display: flex; flex-direction: column; justify-content: center; gap: 32px; border: 6px dashed #b9b2a6; border-radius: 40px; padding: 8%; color: #4a463f; }",
+    "    .ph-kicker { font-size: 44px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #8a857c; }",
+    "    .ph-text { font-size: 40px; line-height: 1.35; }",
+    "  </style>",
+    `  <div id="root" data-composition-id="${id}" data-width="${width}" data-height="${height}">`,
+    `    <div id="${id}-box" class="ph-box" data-label="Scène sur mesure">`,
+    `      <p id="${id}-kicker" class="ph-kicker">Scène sur mesure, écrite au build</p>`,
+    `      <p id="${id}-text" class="ph-text">${text}</p>`,
+    "    </div>",
+    "  </div>",
+    "  <script>",
+    "    window.__timelines = window.__timelines || {};",
+    `    window.__timelines["${id}"] = gsap.timeline({ paused: true });`,
+    "  </script>",
+    "</template>",
+    "",
+  ].join("\n");
+}
+
+/**
+ * The storyboard's frames: the video assembled from STORYBOARD.json, without its sound (the voice does not exist yet),
+ * captured at the middle of each scene into `planche/<scene>.png`, then shown by `storyboard.html`. A custom scene the
+ * build has not written yet shows its description. A realistic video has no frames before its shots; a capture that
+ * fails leaves the text planche.
+ */
+async function renderPlanche(ctx: BlocksContext, manifests: BlockManifest[], blocks: Map<string, LoadedBlock>): Promise<void> {
+  if (ctx.format.realistic) return;
+  const dir = videoDir(ctx);
+  const read = await readStoryboard(ctx, manifests);
+  if (!read.storyboard) return;
+  const library = await resolveLibraryRefs(ctx, read.storyboard, manifests);
+  if (library.errors.length) {
+    await ctx.onEvent({ kind: "log", level: "error", text: `Planche sans images : ${library.errors.join(" ; ")}` });
+    return;
+  }
+  if (library.changed) await saveStoryboard(ctx, library.storyboard, manifests, read.warnings);
+  const { storyboard } = library;
+  const { width, height, variables } = ctx.format;
+  const assembled = ctx.format.frames
+    ? assembleStills({ storyboard, blocks, width, height, variables })
+    : assembleVideo({ storyboard, blocks, width, height, audio: null, sfx: [], variables });
+  await writeAssembled(dir, assembled);
+  for (const scene of storyboard.scenes.filter((candidate) => candidate.block === CUSTOM_BLOCK)) {
+    const file = join(dir, customScenePath(scene.id));
+    if (await exists(join(dir, ".media", "custom", `${scene.id}.sha`))) continue;
+    await mkdir(dirname(file), { recursive: true });
+    await writeFile(file, customScenePlaceholder(scene.id, scene.props.description ?? "", width, height));
+  }
+  const snapshots = join(dir, "snapshots");
+  await rm(snapshots, { recursive: true, force: true });
+  if (!(await snapshot(ctx, assembled))) return;
+  const planche = join(dir, PLANCHE_DIR);
+  await rm(planche, { recursive: true, force: true });
+  await mkdir(planche, { recursive: true });
+  const shots = (await readdir(snapshots)).filter((name) => /^frame-\d+-at-.*\.png$/.test(name)).sort();
+  const frames: Record<string, string> = {};
+  for (const [index, timing] of assembled.timings.entries()) {
+    const shot = shots.find((name) => Number(name.slice(6, name.indexOf("-at-"))) === index);
+    if (!shot) continue;
+    const data = await readFile(join(snapshots, shot));
+    await writeFile(join(planche, `${timing.id}.png`), data);
+    // Inside the page: the studio shows it in a sandboxed frame, whose requests carry no session cookie.
+    frames[timing.id] = `data:image/png;base64,${data.toString("base64")}`;
+  }
+  // These captures were for the planche: the build takes its own.
+  await rm(snapshots, { recursive: true, force: true });
+  await writeFile(join(dir, "storyboard.html"), renderStoryboardHtml(storyboard, manifests, frames));
+  await ctx.onEvent({ kind: "log", level: "info", text: `Planche du storyboard : ${Object.keys(frames).length} images.` });
+}
+
 async function assembleAndCheck(ctx: BlocksContext, manifests: BlockManifest[], blocks: Map<string, LoadedBlock>): Promise<BuildRound> {
   const dir = videoDir(ctx);
   const read = await readStoryboard(ctx, manifests);
@@ -781,13 +891,7 @@ async function assembleAndCheck(ctx: BlocksContext, manifests: BlockManifest[], 
     ? assembleStills({ storyboard, blocks, width, height, variables })
     : assembleVideo({ storyboard, blocks, width, height, audio, sfx, variables });
   if (!ctx.format.frames) await recordSounds(dir, assembled.sfx);
-  // The scenes are regenerated from STORYBOARD.json: a scene removed from the storyboard must not linger.
-  await rm(join(dir, "compositions", "scenes"), { recursive: true, force: true });
-  await writeFile(join(dir, "index.html"), assembled.indexHtml);
-  for (const [path, html] of Object.entries(assembled.files)) {
-    await mkdir(dirname(join(dir, path)), { recursive: true });
-    await writeFile(join(dir, path), html);
-  }
+  await writeAssembled(dir, assembled);
   await ctx.onEvent({ kind: "log", level: "info", text: `Composition assemblée : ${storyboard.scenes.length} scènes, ${assembled.duration} s.` });
   const custom = await buildCustomScenes(ctx, storyboard, assembled);
   if (!custom.ok) return custom;
@@ -846,7 +950,7 @@ async function visualCheck(
   storyboard: Storyboard,
 ): Promise<{ corrected: Storyboard | null; text: string | null; usage?: TokenUsage }> {
   const sheet = join(videoDir(ctx), "snapshots", "contact-sheet.jpg");
-  if (!ctx.visualModel || !ctx.openrouter || !(await exists(sheet))) return { corrected: null, text: null };
+  if (!ctx.visualModel || !canCallModel(ctx) || !(await exists(sheet))) return { corrected: null, text: null };
   await ctx.onEvent({ kind: "log", level: "info", text: `Contrôle visuel de la planche par ${ctx.visualModel}.` });
   const image = `data:image/jpeg;base64,${(await readFile(sheet)).toString("base64")}`;
   // The build passed: a vision model that times out or a network error only skips the check.
@@ -961,7 +1065,7 @@ async function buildStep(ctx: BlocksContext, manifests: BlockManifest[], blocks:
     const escalating = failures === CHECK_REPAIRS;
     const model = escalating ? (ctx.escalationModel && ctx.escalationModel !== ctx.model ? ctx.escalationModel : null) : ctx.model;
     const failed = `Le check HyperFrames a échoué sur la composition assemblée :\n${round.checkOutput}`;
-    if (failures > CHECK_REPAIRS || !model || !ctx.openrouter) return finish({ ok: false, resultText: failed });
+    if (failures > CHECK_REPAIRS || !model || !canCallModel(ctx)) return finish({ ok: false, resultText: failed });
     await ctx.onEvent({
       kind: "log",
       level: "info",
@@ -1044,8 +1148,8 @@ export function briefUserPrompt({ campaign, brief, format, assets }: { campaign:
 
 const needsModel = (ctx: BlocksContext): BlocksStepResult | null =>
   !ctx.model
-    ? { ok: false, resultText: "Aucun modèle OpenRouter pour le moteur blocs : choisis OpenCode dans les réglages IA, ou renseigne BLOCKS_MODEL." }
-    : !ctx.openrouter
+    ? { ok: false, resultText: "Aucun modèle pour le moteur blocs : choisis celui de l'étape dans les réglages IA." }
+    : !canCallModel(ctx)
       ? { ok: false, resultText: "Clé OpenRouter absente : le moteur blocs ne peut pas appeler le modèle." }
       : null;
 
@@ -1203,7 +1307,7 @@ async function guardShots(ctx: BlocksContext, storyboard: Storyboard, ids: reado
   const unknown = shots.filter((scene) => !file.verdicts[keyOf(scene)]);
   let usage: TokenUsage | undefined;
   if (unknown.length) {
-    if (!ctx.model || !ctx.openrouter) return { refused: [], error: "aucun modèle OpenRouter pour contrôler les prompts" };
+    if (!ctx.model || !canCallModel(ctx)) return { refused: [], error: "aucun modèle pour contrôler les prompts" };
     await ctx.onEvent({ kind: "log", level: "info", text: `Contrôle des prompts (personnes réelles, marques) : ${unknown.map((scene) => scene.id).join(", ")}.` });
     const outcome = await structuredCall(ctx, {
       label: "Contrôle des prompts",
@@ -1368,7 +1472,10 @@ export async function runBlocksStep(ctx: BlocksContext): Promise<BlocksStepResul
   if (contract) ctx = { ...ctx, format: { ...ctx.format, variables: contract } };
   if (ctx.step === "storyboard") {
     const current = ctx.feedback ? (await readStoryboard(ctx, manifests)).storyboard : null;
-    return storyboardStep(ctx, manifests, current);
+    const written = await storyboardStep(ctx, manifests, current);
+    // The frames help the review, they do not decide it: a planche that cannot be drawn leaves the text one.
+    if (written.ok) await renderPlanche(ctx, manifests, blocks).catch((error: unknown) => ctx.onEvent({ kind: "log", level: "error", text: `Planche sans images : ${error instanceof Error ? error.message : String(error)}` }));
+    return written;
   }
   if (ctx.step === "keyframes" || ctx.step === "shots") return shotStep(ctx, manifests, ctx.step);
   if (ctx.step === "media") return mediaStep(ctx, manifests);

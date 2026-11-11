@@ -61,6 +61,10 @@ describe("library.mjs search", () => {
     expect(ids("personne bureau", "--limit", "1")).toEqual(["peep-assis-bureau"]);
   });
 
+  it("takes a text that starts with dashes (a brief's front matter) as the query, not as an option", () => {
+    expect(ids("---\nengine: blocks\n---\nUne fusée qui décolle", "--limit", "5")).toEqual(["emoji-fusee"]);
+  });
+
   it("describes each result with what the agent needs to choose it", () => {
     const { out, status } = library("search", "fusée");
     expect(status).toBe(0);

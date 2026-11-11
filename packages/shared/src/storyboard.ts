@@ -613,17 +613,24 @@ export function renderStoryboardMd(storyboard: Storyboard, manifests: readonly B
 const blockName = (byId: ReadonlyMap<string, BlockManifest>, id: string) => (id === CUSTOM_BLOCK ? "Scène sur mesure" : (byId.get(id)?.name ?? id));
 
 /** storyboard.html: the scenes as a grid of cards, for the review. */
-export function renderStoryboardHtml(storyboard: Storyboard, manifests: readonly BlockManifest[]): string {
+/**
+ * The storyboard's review page. `frames` gives a scene its image (a path relative to the video folder, rendered at
+ * the middle of the scene): the page then shows the frames first and folds each scene's settings away.
+ */
+export function renderStoryboardHtml(storyboard: Storyboard, manifests: readonly BlockManifest[], frames: Readonly<Record<string, string>> = {}): string {
   const byId = new Map(manifests.map((manifest) => [manifest.id, manifest]));
   const cards = storyboard.scenes
     .map((scene, index) => {
-      const props = Object.entries(scene.props)
+      const entries = Object.entries(scene.props)
         .map(([key, value]) => `<dt>${escapeHtml(key)}</dt><dd>${escapeHtml(value)}</dd>`)
         .join("");
+      const frame = frames[scene.id];
+      const props = frame ? `<details><summary>Réglages</summary><dl>${entries}</dl></details>` : `<dl>${entries}</dl>`;
+      const image = frame ? `<img class="frame" src="${escapeHtml(frame)}" alt="${escapeHtml(`Scène ${index + 1} : ${scene.title}`)}">` : "";
       const shot = scene.shot
         ? `<p class="shot"><strong>Plan généré</strong> ${escapeHtml(scene.shot.prompt)}${scene.shot.camera ? ` <em>${escapeHtml(scene.shot.camera)}</em>` : ""}</p>`
         : "";
-      return `<article><header><span>${index + 1}</span><h2>${escapeHtml(scene.title)}</h2><em>${scene.duration} s</em></header><p class="block">${escapeHtml(blockName(byId, scene.block))}</p>${shot}<dl>${props}</dl>${scene.voiceover ? `<blockquote>${escapeHtml(scene.voiceover)}</blockquote>` : ""}</article>`;
+      return `<article>${image}<header><span>${index + 1}</span><h2>${escapeHtml(scene.title)}</h2><em>${scene.duration} s</em></header><p class="block">${escapeHtml(blockName(byId, scene.block))}</p>${shot}${props}${scene.voiceover ? `<blockquote>${escapeHtml(scene.voiceover)}</blockquote>` : ""}</article>`;
     })
     .concat(
       storyboard.overlays.map((overlay) => {
@@ -647,6 +654,8 @@ dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:8px 0}dt{colo
 blockquote{margin:8px 0 0;padding-left:10px;border-left:3px solid #d9d4ca;color:#4a463f}
 .overlay{border-style:dashed}
 .shot{margin:6px 0;padding:8px;border-radius:6px;background:#f1eee8;font-size:13px}.style{margin:-8px 0 16px;color:#6b665e}
+.frame{display:block;width:100%;height:auto;margin:-4px 0 12px;border-radius:6px;border:1px solid #e3e0da;background:#ece9e3}
+details{margin:8px 0}summary{cursor:pointer;color:#8a857c;font-size:13px}
 </style></head>
 <body><h1>${escapeHtml(storyboard.title)}</h1>${storyboard.style ? `<p class="style">Style des plans : ${escapeHtml(storyboard.style)}</p>` : ""}<main>
 ${cards}

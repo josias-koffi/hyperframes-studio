@@ -108,8 +108,15 @@
             const start = items[0].start;
             const next = groups[g + 1];
             const end = Math.min(next ? next[0].start : duration, items[items.length - 1].end + 0.6, duration);
-            tl.fromTo(line, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.12, ease: "power2.out" }, start);
-            tl.to(line, { opacity: 0, duration: 0.08, ease: "none" }, Math.max(start + 0.12, end - 0.08));
+            // A group that follows the previous one without a pause replaces it at once: a fade would leave frames
+            // where the band is half transparent, hard to read on a light scene.
+            const previous = groups[g - 1];
+            const handoff = previous && start - previous[previous.length - 1].end <= 0.6;
+            if (handoff) tl.set(line, { opacity: 1 }, start);
+            else tl.fromTo(line, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.12, ease: "power2.out" }, start);
+            const followed = next && next[0].start <= end + 0.01;
+            if (followed) tl.set(line, { opacity: 0 }, end);
+            else tl.to(line, { opacity: 0, duration: 0.08, ease: "none" }, Math.max(start + 0.12, end - 0.08));
             items.forEach((word, w) => {
               const span = document.getElementById(line.id + "-word" + w);
               tl.to(span, { color: "{{highlight}}", duration: 0.06, ease: "none" }, word.start);

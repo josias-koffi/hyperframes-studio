@@ -15,6 +15,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { alignWords } from "./align-words.mjs";
 
 const HYPERFRAMES = "hyperframes@0.8.134";
 const MUSIC_TAIL_S = 1.5;
@@ -205,11 +206,12 @@ function meta() {
       if (run.status !== 0) throw new Error(`transcribe ${file}: ${run.stderr.slice(-1000)}`);
       const heard = JSON.parse(readFileSync(join(out, "transcript.json"), "utf8"));
       const want = tokens(script.get(frame) ?? "");
-      // Même nombre de mots : on garde l'orthographe du script avec les timings de whisper.
-      const aligned = heard.length === want.length;
-      const words = heard.map((w, i) => ({ id: `w${i}`, text: aligned ? want[i] : w.text, start: r3(w.start), end: r3(w.end) }));
+      // Toujours l'orthographe du script, avec les timings de whisper, même quand il coupe ou fusionne des mots.
+      const words = want.length
+        ? alignWords(want, heard).map((w, i) => ({ id: `w${i}`, text: w.text, start: r3(w.start), end: r3(w.end) }))
+        : heard.map((w, i) => ({ id: `w${i}`, text: w.text, start: r3(w.start), end: r3(w.end) }));
       voices.push({ frame, path: `assets/audio/voice/${file}`, duration_s: r3(duration(abs)), words });
-      console.log(`meta frame ${frame} : ${words.length} mots (${aligned ? "texte du script" : `texte whisper, ${heard.length}≠${want.length}`})`);
+      console.log(`meta frame ${frame} : ${words.length} mots (${want.length ? `texte du script${heard.length === want.length ? "" : `, aligné sur ${heard.length} mots entendus`}` : "texte whisper"})`);
     }
   } finally {
     rmSync(scratch, { recursive: true, force: true });
@@ -218,6 +220,14 @@ function meta() {
   const bgmPath = "assets/audio/music/bgm.mp3";
   const hasBgm = existsSync(join(video, bgmPath));
   const prompt = join(video, ".media/music/prompt.txt");
+  // Les bruitages sont placés au build : une nouvelle transcription ne les retire pas.
+  const metaPath = join(video, "audio_meta.json");
+  let sfx = [];
+  try {
+    sfx = existsSync(metaPath) ? (JSON.parse(readFileSync(metaPath, "utf8")).sfx ?? []) : [];
+  } catch {
+    sfx = [];
+  }
   const audioMeta = {
     ...(hasBgm && {
       bgm: {
@@ -229,9 +239,9 @@ function meta() {
     }),
     bgm_pending: false,
     voices,
-    sfx: [],
+    sfx,
   };
-  writeFileSync(join(video, "audio_meta.json"), `${JSON.stringify(audioMeta, null, 2)}\n`);
+  writeFileSync(metaPath, `${JSON.stringify(audioMeta, null, 2)}\n`);
   const total = voices.reduce((sum, v) => sum + v.duration_s, 0);
   console.log(`audio_meta.json : ${voices.length} voix, ${r3(total)} s de voix${hasBgm ? `, musique ${audioMeta.bgm.duration_s} s` : ", sans musique"}`);
 }

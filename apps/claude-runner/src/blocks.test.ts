@@ -1,10 +1,10 @@
-import { chmod, copyFile, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { chmod, copyFile, mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { assembleVideo, fillBlock, parseStoryboard, type StudioEvent } from "@studio/shared";
 import { describe, expect, it } from "vitest";
-import { availableAssets, librarySuggestions, loadBlocks, runBlocksStep, storyboardSystemPrompt, writeStoryboard, type BlocksContext } from "./blocks";
-import { blocksModelFor } from "./process-job";
+import { availableAssets, customScenePrompt, libraryQueries, librarySuggestions, loadBlocks, runBlocksStep, storyboardSystemPrompt, writeStoryboard, type BlocksContext } from "./blocks";
+import type { ChatRequest, ChatTransport } from "./structured";
 
 /** The workspace skeleton shipped with the app, whose blocks are tested as they are. */
 const SKELETON = resolve(__dirname, "../../../workspace");
@@ -220,6 +220,32 @@ describe("runBlocksStep", () => {
     expect(await calls()).toEqual(["audio videos/essai --music warm lofi --steps music,meta --duration 13"]);
   });
 
+  it("draws the storyboard's planche: one frame per scene, its description for a custom scene not written yet", async () => {
+    const withCustom = {
+      ...valid,
+      scenes: [valid.scenes[0], { id: "s2", title: "Schéma", block: "custom", duration: 6, props: { description: "Trois étapes reliées par une flèche." }, voiceover: "", transition: "cut" }, valid.scenes[2]],
+    };
+    const { dir, ctx, calls } = await fakeWorkspace(valid);
+    await writeFile(join(dir, "videos/essai/BRIEF.md"), "# Brief");
+    // `hyperframes snapshot` writes one frame per moment asked, numbered in their order, and a contact sheet.
+    await writeFile(
+      join(dir, "bin/npx"),
+      `#!/bin/sh\necho "npx $*" >> ${JSON.stringify(join(dir, "calls.log"))}\ncase "$*" in *snapshot*) d=${JSON.stringify(join(dir, "videos/essai/snapshots"))}; mkdir -p "$d"; for i in 00 01 02; do echo "png $i" > "$d/frame-$i-at-1s.png"; done; echo jpg > "$d/contact-sheet.jpg";; esac\n`,
+    );
+    const fetchImpl = (async () => answer(withCustom)) as unknown as typeof fetch;
+    const result = await runBlocksStep(ctx("storyboard", { fetchImpl }));
+    expect(result.ok).toBe(true);
+    expect((await calls()).some((call) => call.includes("snapshot videos/essai --at 1.5,6,11"))).toBe(true);
+    expect(await readFile(join(dir, "videos/essai/planche/s2.png"), "utf8")).toBe("png 01\n");
+    const html = await readFile(join(dir, "videos/essai/storyboard.html"), "utf8");
+    // Inside the page: the studio's sandboxed frame sends no session cookie with an image request.
+    expect(html).toContain(`<img class="frame" src="data:image/png;base64,${Buffer.from("png 00\n").toString("base64")}"`);
+    expect(html).toContain("<summary>Réglages</summary>");
+    expect(await readFile(join(dir, "videos/essai/compositions/custom/s2.html"), "utf8")).toContain("Trois étapes reliées par une flèche.");
+    // The captures were the planche's: the build takes its own.
+    expect(await readdir(join(dir, "videos/essai")).then((names) => names.includes("snapshots"))).toBe(false);
+  });
+
   it("refuses a template whose contract has variables the blocks cannot show, before any call", async () => {
     const { dir, ctx } = await fakeWorkspace(valid);
     await writeFile(join(dir, "videos/essai/VARIABLES.json"), JSON.stringify([{ id: "price", type: "number", label: "Prix", default: 29 }]));
@@ -328,6 +354,24 @@ describe("structured steps and escalation", () => {
     expect(md).toContain("# Thermo, le café chaud 3 h");
     expect(md).toContain("- 3 h à 60 °C");
     expect(md).not.toContain("## Son");
+  });
+
+  it("asks Claude Code instead of OpenRouter when the job's engine is Claude Code, without an OpenRouter key", async () => {
+    const { dir, ctx } = await fakeWorkspace(valid);
+    const requests: ChatRequest[] = [];
+    const chat: ChatTransport = async (request) => {
+      requests.push(request);
+      return { ok: true, content: JSON.stringify(brief), costUsd: 0 };
+    };
+    const fetchImpl = (async () => {
+      throw new Error("OpenRouter must not be called");
+    }) as unknown as typeof fetch;
+    const creation = { type: "video" as const, kind: "oneshot" as const, brief: { message: "Une tasse qui garde le café chaud", engine: "blocks" } };
+    const result = await runBlocksStep(ctx("brief", { fetchImpl, chat, openrouter: null, model: "claude-sonnet-5-5", creation }));
+    expect(result).toMatchObject({ ok: true });
+    expect(requests).toHaveLength(1);
+    expect(requests[0]).toMatchObject({ model: "claude-sonnet-5-5", name: "brief", jsonSchema: true });
+    expect(JSON.parse(await readFile(join(dir, "videos/essai/BRIEF.json"), "utf8")).title).toBe(brief.title);
   });
 
   it("writes a template's VARIABLES.json, refusing a default longer than its maxLength", async () => {
@@ -472,15 +516,6 @@ describe("availableAssets", () => {
   });
 });
 
-describe("blocksModelFor", () => {
-  const base = { jobId: "00000000-0000-4000-8000-000000000000", creationId: "00000000-0000-4000-8000-000000000001", slug: "essai", step: "storyboard" as const };
-  it("uses the step model of an OpenCode job, else BLOCKS_MODEL", () => {
-    expect(blocksModelFor({ ...base, ai: { backend: "opencode", models: { storyboard: "deepseek/deepseek-v4" }, media: {} } }, { blocksModel: "x/y" })).toBe("deepseek/deepseek-v4");
-    expect(blocksModelFor({ ...base, ai: { backend: "claude-code", models: { storyboard: "opus" }, media: {} } }, { blocksModel: "x/y" })).toBe("x/y");
-    expect(blocksModelFor(base, { blocksModel: null })).toBeNull();
-  });
-});
-
 const phone = {
   id: "icone-telephone",
   kind: "icon",
@@ -517,6 +552,27 @@ describe("the asset library in a blocks video", () => {
     const found = await librarySuggestions(ctx("storyboard"), "Une pub pour une app d'appels téléphoniques");
     expect(found.map((entry) => entry.id)).toEqual(["icone-telephone"]);
     expect(await librarySuggestions(ctx("storyboard"), "dinosaure", withPhone as never)).toHaveLength(1);
+  });
+
+  it("searches a brief line by line, its front matter, headings and assumptions aside", async () => {
+    const brief = [
+      "---",
+      "engine: blocks",
+      'music: "light, upbeat, instrumental"',
+      "---",
+      "# Thermo",
+      "",
+      "## Contenu",
+      "- Montrer un téléphone qui sonne.",
+      "- Une personne assise à son bureau.",
+      "",
+      "## Hypothèses",
+      "- Aucun prix affiché dans la vidéo.",
+    ].join("\n");
+    expect(libraryQueries(brief)).toEqual(["Montrer un téléphone qui sonne.", "Une personne assise à son bureau."]);
+    const { dir, ctx } = await fakeWorkspace(valid);
+    await withLibrary(dir);
+    expect((await librarySuggestions(ctx("storyboard"), brief)).map((entry) => entry.id)).toContain("icone-telephone");
   });
 
   it("lists them among the available files and accepts only the ids it offered", async () => {
@@ -585,5 +641,15 @@ describe("the asset library in a blocks video", () => {
     const result = await runBlocksStep(ctx("build"));
     expect(result).toMatchObject({ ok: false });
     expect(result.resultText).toMatch(/scène s2 : library:disparu ne peut pas être ajouté \(Asset inconnu/);
+  });
+});
+
+describe("customScenePrompt", () => {
+  it("sends the agent to the library, and to a registry component for a device, never an empty screen", () => {
+    const prompt = customScenePrompt({ slug: "essai", sceneId: "s3", description: "Un ordinateur et un téléphone.", duration: 4, width: 1080, height: 1920, safeBottom: 380, colors: ["#FF5A1F"] });
+    expect(prompt).toContain("node scripts/library.mjs search");
+    expect(prompt).toContain("--kind component");
+    expect(prompt).toContain("jamais un écran vide");
+    expect(prompt).toContain("Les 380 px du bas du cadre sont réservés aux sous-titres");
   });
 });
