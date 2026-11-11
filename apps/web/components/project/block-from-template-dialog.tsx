@@ -81,7 +81,8 @@ export function BlockFromTemplateDialog({ creationId, open, onOpenChange }: { cr
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="block-scene">Scène</FieldLabel>
-              <Select value={scene} onValueChange={setScene} disabled={!scenes?.length}>
+              {/* Radix sends an empty value when its options arrive after the value: never a scene. */}
+              <Select value={scene} onValueChange={(value) => value && setScene(value)} disabled={!scenes?.length}>
                 <SelectTrigger id="block-scene" className="w-full">
                   <SelectValue placeholder={scenes ? "Aucune scène" : "Chargement…"} />
                 </SelectTrigger>
