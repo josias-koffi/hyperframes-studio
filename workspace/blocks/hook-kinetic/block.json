@@ -1,5 +1,6 @@
 {
   "id": "hook-kinetic",
+  "family": "neutral",
   "name": "Accroche choc",
   "description": "Une phrase en très gros caractères qui monte ligne par ligne, avec un mot ou une suite de mots en couleur d'accent sur une seconde ligne.",
   "useWhen": "Première scène d'une pub ou d'un TikTok : la question ou la promesse qui arrête le défilement. Aussi pour une transition forte au milieu.",

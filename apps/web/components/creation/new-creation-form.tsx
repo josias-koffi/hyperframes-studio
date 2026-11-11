@@ -11,6 +11,7 @@ import {
   type Aspect,
   type CreationKind,
   type CreationType,
+  DEFAULT_BLOCK_FAMILY,
 } from "@studio/shared/browser";
 import {
   ArrowLeftIcon,
@@ -46,6 +47,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { clientApi, type Creation, type Project } from "@/lib/api";
+import { FamilyChoice, familyName } from "@/components/creation/family-choice";
 import { uploadAsset } from "@/lib/assets";
 import { creationHref } from "@/lib/creation-state";
 import { cn } from "@/lib/utils";
@@ -342,6 +344,7 @@ export function NewCreationForm({
   const [start, setStart] = useState<StartPoint>("idea");
   const [workflow, setWorkflow] = useState<string | null>(null);
   const [engine, setEngine] = useState<Engine>("agent");
+  const [family, setFamily] = useState<string>(DEFAULT_BLOCK_FAMILY);
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [audience, setAudience] = useState("");
@@ -423,7 +426,10 @@ export function NewCreationForm({
       }
       const brief: Record<string, unknown> = { message, audience, language: "fr", notes };
       if (kind === "template" && filledSuggestions.length > 0) brief.variables = filledSuggestions;
-      if (blocksAvailable && engine === "blocks") brief.engine = "blocks";
+      if (blocksAvailable && engine === "blocks") {
+        brief.engine = "blocks";
+        brief.family = family;
+      }
       if (realistic) brief.referenceConsent = referenceConsent;
       const footage = video && start === "footage";
       setProgress(`Création ${type === "image" ? "de l'image" : type === "carousel" ? "du carrousel" : "de la vidéo"}…`);
@@ -577,6 +583,7 @@ export function NewCreationForm({
                   ))}
                 </div>
                 {blocksAvailable && <EngineChoice engine={engine} onChange={setEngine} />}
+                {blocksAvailable && engine === "blocks" && <FamilyChoice family={family} onChange={setFamily} />}
               </>
             )}
 
@@ -761,6 +768,7 @@ export function NewCreationForm({
                   )}
                 </FieldGroup>
                 {!video && !realistic && <EngineChoice engine={engine} onChange={setEngine} />}
+                {!video && !realistic && engine === "blocks" && <FamilyChoice family={family} onChange={setFamily} />}
               </>
             )}
 
@@ -907,7 +915,11 @@ export function NewCreationForm({
           isNewProject={projectId === "new"}
           name={name}
           workflowLabel={chosen?.label}
-          engineLabel={blocksAvailable ? ENGINES.find((option) => option.value === engine)?.label : undefined}
+          engineLabel={
+            blocksAvailable
+              ? `${ENGINES.find((option) => option.value === engine)?.label ?? ""}${engine === "blocks" ? ` · ${familyName(family)}` : ""}`
+              : undefined
+          }
           format={format}
           frame={footage ? null : ASPECTS[aspect].width / ASPECTS[aspect].height}
           cover={cover}

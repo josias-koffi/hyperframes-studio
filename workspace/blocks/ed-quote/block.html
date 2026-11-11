@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: {{background}};
+          color: {{textColor}};
+          font-family: "Inter", system-ui, sans-serif;
+        }
+        .edq-stack {
+          position: absolute;
+          left: 9%;
+          right: 9%;
+          top: 24px;
+          bottom: calc({{@safeBottom}}px + 24px);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+        .edq-mark {
+          font-family: "Playfair Display", Georgia, serif;
+          font-size: 320px;
+          font-weight: 900;
+          line-height: 0.6;
+          height: 150px;
+          color: {{accent}};
+        }
+        .edq-stars {
+          font-size: 44px;
+          letter-spacing: 0.18em;
+          color: {{accent}};
+          margin-bottom: 32px;
+        }
+        .edq-stars[data-empty="true"] {
+          display: none;
+        }
+        .edq-text {
+          font-family: "Playfair Display", Georgia, serif;
+          font-style: italic;
+          font-weight: 400;
+          font-size: 76px;
+          line-height: 1.2;
+          text-wrap: balance;
+        }
+        .edq-rule {
+          width: 120px;
+          height: 3px;
+          background: {{textColor}};
+          transform-origin: left center;
+          margin: 56px 0 32px;
+        }
+        .edq-author {
+          font-size: 34px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+        }
+        .edq-role {
+          font-size: 34px;
+          font-weight: 400;
+          opacity: 0.7;
+          margin-top: 10px;
+        }
+        .edq-role[data-empty="true"] {
+          display: none;
+        }
+        @media (min-aspect-ratio: 1/1) {
+          .edq-mark {
+            font-size: 240px;
+            height: 110px;
+          }
+          .edq-text {
+            font-size: 62px;
+            max-width: 82%;
+          }
+          .edq-rule {
+            margin: 36px 0 24px;
+          }
+        }
+      </style>
+
+      <div id="root" data-composition-id="{{@id}}" data-width="{{@width}}" data-height="{{@height}}">
+        <div id="{{@id}}-stack" class="edq-stack">
+          <p id="{{@id}}-mark" class="edq-mark" data-label="Guillemet">“</p>
+          <p id="{{@id}}-stars" class="edq-stars" data-label="Étoiles"></p>
+          <blockquote id="{{@id}}-text" class="edq-text" data-label="Citation">{{quote}}</blockquote>
+          <div id="{{@id}}-rule" class="edq-rule" data-label="Filet"></div>
+          <p id="{{@id}}-author" class="edq-author" data-label="Auteur">{{author}}</p>
+          <p id="{{@id}}-role" class="edq-role" data-label="Qualité">{{role}}</p>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const duration = {{@duration}};
+          const count = Number("{{stars}}") || 0;
+          const stars = document.getElementById("{{@id}}-stars");
+          if (stars) {
+            stars.textContent = "★".repeat(count) + "☆".repeat(count ? 5 - count : 0);
+            stars.setAttribute("data-empty", count ? "false" : "true");
+          }
+          const role = document.getElementById("{{@id}}-role");
+          const hasRole = role && role.textContent.trim();
+          if (!hasRole) role.setAttribute("data-empty", "true");
+          const tl = gsap.timeline({ paused: true });
+          tl.fromTo("#{{@id}}-mark", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8, ease: "expo.out" }, 0);
+          if (count) tl.fromTo("#{{@id}}-stars", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0.2);
+          tl.fromTo("#{{@id}}-text", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 0.3);
+          tl.fromTo("#{{@id}}-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "power3.inOut" }, 0.9);
+          tl.fromTo("#{{@id}}-author", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.6, ease: "power3.out" }, 1.1);
+          if (hasRole) tl.fromTo("#{{@id}}-role", { opacity: 0 }, { opacity: 0.7, duration: 0.6, ease: "power2.out" }, 1.25);
+          tl.fromTo("#{{@id}}-stack", { y: 0 }, { y: -16, duration: duration, ease: "none", immediateRender: false }, 0);
+          tl.to({}, { duration: duration }, 0);
+          window.__timelines["{{@id}}"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

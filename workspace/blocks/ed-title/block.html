@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: {{background}};
+          color: {{textColor}};
+          font-family: "Inter", system-ui, sans-serif;
+        }
+        .edt-stack {
+          position: absolute;
+          left: 9%;
+          right: 9%;
+          top: 24px;
+          bottom: calc({{@safeBottom}}px + 24px);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+        .edt-kicker-row {
+          display: flex;
+          align-items: center;
+          gap: 24px;
+          margin-bottom: 44px;
+        }
+        .edt-kicker-row[data-empty="true"] {
+          display: none;
+        }
+        .edt-kicker-rule {
+          width: 72px;
+          height: 3px;
+          background: {{accent}};
+          transform-origin: left center;
+        }
+        .edt-kicker {
+          font-size: 32px;
+          font-weight: 700;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          color: {{accent}};
+        }
+        .edt-mask {
+          overflow: hidden;
+          padding-bottom: 0.08em;
+        }
+        .edt-title {
+          font-family: "Playfair Display", Georgia, serif;
+          font-size: 108px;
+          line-height: 1.04;
+          font-weight: 900;
+          letter-spacing: -0.02em;
+          text-wrap: balance;
+        }
+        .edt-rule {
+          height: 2px;
+          background: {{textColor}};
+          opacity: 0.85;
+          transform-origin: left center;
+          margin: 52px 0 40px;
+        }
+        .edt-subtitle {
+          font-size: 44px;
+          line-height: 1.35;
+          font-weight: 400;
+          opacity: 0.78;
+          text-wrap: pretty;
+        }
+        .edt-subtitle[data-empty="true"] {
+          display: none;
+        }
+        @media (min-aspect-ratio: 1/1) {
+          .edt-title {
+            font-size: 96px;
+          }
+          .edt-subtitle {
+            font-size: 38px;
+            max-width: 70%;
+          }
+          .edt-rule {
+            margin: 36px 0 28px;
+          }
+        }
+      </style>
+
+      <div id="root" data-composition-id="{{@id}}" data-width="{{@width}}" data-height="{{@height}}">
+        <div id="{{@id}}-stack" class="edt-stack">
+          <div id="{{@id}}-kicker-row" class="edt-kicker-row">
+            <div id="{{@id}}-kicker-rule" class="edt-kicker-rule" data-label="Filet du sur-titre"></div>
+            <p id="{{@id}}-kicker" class="edt-kicker" data-label="Sur-titre">{{kicker}}</p>
+          </div>
+          <div class="edt-mask">
+            <h2 id="{{@id}}-title" class="edt-title" data-label="Titre">{{title}}</h2>
+          </div>
+          <div id="{{@id}}-rule" class="edt-rule" data-label="Filet"></div>
+          <p id="{{@id}}-subtitle" class="edt-subtitle" data-label="Sous-titre">{{subtitle}}</p>
+        </div>
+      </div>
+
+      <script>
+        (function () {
+          const duration = {{@duration}};
+          const kicker = document.getElementById("{{@id}}-kicker");
+          const subtitle = document.getElementById("{{@id}}-subtitle");
+          const hasKicker = kicker && kicker.textContent.trim();
+          const hasSubtitle = subtitle && subtitle.textContent.trim();
+          if (!hasKicker) document.getElementById("{{@id}}-kicker-row").setAttribute("data-empty", "true");
+          if (!hasSubtitle) subtitle.setAttribute("data-empty", "true");
+          const tl = gsap.timeline({ paused: true });
+          if (hasKicker) {
+            tl.fromTo("#{{@id}}-kicker-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power3.inOut" }, 0);
+            tl.fromTo("#{{@id}}-kicker", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.6, ease: "power3.out" }, 0.2);
+          }
+          tl.fromTo("#{{@id}}-title", { yPercent: 105 }, { yPercent: 0, duration: 0.95, ease: "expo.out" }, 0.25);
+          tl.fromTo("#{{@id}}-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "power3.inOut" }, 0.6);
+          if (hasSubtitle) tl.fromTo("#{{@id}}-subtitle", { opacity: 0, y: 24 }, { opacity: 0.78, y: 0, duration: 0.8, ease: "power3.out" }, 0.9);
+          tl.fromTo("#{{@id}}-stack", { y: 0 }, { y: -16, duration: duration, ease: "none", immediateRender: false }, 0);
+          tl.to({}, { duration: duration }, 0);
+          window.__timelines["{{@id}}"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

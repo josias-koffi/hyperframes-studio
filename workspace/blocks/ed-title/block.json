@@ -1,0 +1,17 @@
+{
+  "id": "ed-title",
+  "family": "editorial",
+  "name": "Titre éditorial",
+  "description": "Un sur-titre en petites capitales espacées sur un filet, un grand titre à empattements révélé derrière un masque, puis une phrase d'explication en texte courant.",
+  "useWhen": "Pour poser une idée, un bénéfice, une étape ou un chapitre, avec la tenue d'un article de magazine.",
+  "props": {
+    "kicker": { "type": "text", "label": "Sur-titre court (catégorie, étape, chiffre)", "maxLength": 28, "required": false, "default": "" },
+    "title": { "type": "text", "label": "Titre", "maxLength": 56 },
+    "subtitle": { "type": "text", "label": "Phrase d'explication", "maxLength": 110, "required": false, "default": "" },
+    "accent": { "type": "color", "label": "Couleur d'accent (sur-titre)", "required": false, "default": "#9E1B32" },
+    "background": { "type": "color", "label": "Couleur de fond (papier)", "required": false, "default": "#F3EFE6" },
+    "textColor": { "type": "color", "label": "Couleur du texte (encre)", "required": false, "default": "#1A1714" }
+  },
+  "duration": { "min": 2, "max": 8, "default": 4 },
+  "example": { "kicker": "Nouveau", "title": "La tasse qui garde le chaud", "subtitle": "Trois heures à 60 °C, sans batterie ni recharge." }
+}

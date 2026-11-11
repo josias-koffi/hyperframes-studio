@@ -51,6 +51,13 @@ describe("the shipped blocks", () => {
       "captions-karaoke",
       "cta-end",
       "device-mockup",
+      "ed-cta",
+      "ed-hook",
+      "ed-list",
+      "ed-quote",
+      "ed-stat",
+      "ed-sting",
+      "ed-title",
       "hook-kinetic",
       "logo-sting",
       "lower-third",
@@ -211,6 +218,26 @@ async function fakeWorkspace(storyboard: unknown, { checkFailures = 0 } = {}) {
   });
   return { dir, ctx, calls: async () => (await readFile(calls, "utf8").catch(() => "")).trim().split("\n").filter(Boolean) };
 }
+
+describe("block families", () => {
+  it("offers the storyboard only the blocks of the création's family, and refuses a block of another", async () => {
+    const prompts: string[] = [];
+    const fetchImpl = (async (_url: string, init: RequestInit) => {
+      prompts.push(JSON.parse(String(init.body)).messages[0].content);
+      return answer(valid);
+    }) as unknown as typeof fetch;
+    const { dir, ctx } = await fakeWorkspace(valid);
+    await writeFile(join(dir, "videos/essai/BRIEF.md"), "# Brief");
+    await rm(join(dir, "videos/essai/STORYBOARD.json"));
+    const creation = { type: "video" as const, kind: "oneshot" as const, brief: { family: "editorial" } };
+    const result = await runBlocksStep(ctx("storyboard", { fetchImpl, creation }));
+    expect(prompts[0]).toContain("### ed-hook");
+    expect(prompts[0]).toContain("### captions-karaoke");
+    expect(prompts[0]).not.toContain("### hook-kinetic");
+    // `valid` is made of neutral blocks: never accepted for an editorial video.
+    expect(result.ok).toBe(false);
+  });
+});
 
 describe("runBlocksStep", () => {
   it("makes the music alone, as long as the storyboard, when there is no voice", async () => {

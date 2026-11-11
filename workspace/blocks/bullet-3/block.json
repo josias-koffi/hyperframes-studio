@@ -1,5 +1,6 @@
 {
   "id": "bullet-3",
+  "family": "neutral",
   "name": "Trois points",
   "description": "Un titre puis deux ou trois points numérotés qui entrent l'un après l'autre, chacun avec sa pastille de couleur d'accent.",
   "useWhen": "Pour lister des bénéfices, des étapes ou des raisons : trois idées courtes qui se lisent d'un coup d'œil.",

@@ -53,6 +53,11 @@ export type SoundCue = z.infer<typeof soundCueSchema>;
 
 export const blockManifestSchema = z.object({
   id: slugIdSchema,
+  /**
+   * The family whose layout and motion the block shares (`neutral`, `editorial`…): a video takes its scenes from one
+   * family. A block without a family (captions, footage, a device) goes with every family.
+   */
+  family: slugIdSchema.optional(),
   name: z.string().min(1),
   /** One sentence: what the block shows. */
   description: z.string().min(1),
@@ -80,6 +85,25 @@ export const blockManifestSchema = z.object({
   sfx: z.array(soundCueSchema).optional(),
 });
 export type BlockManifest = z.infer<typeof blockManifestSchema>;
+
+/** The family of a création made with blocks before families existed, or whose brief names none. */
+export const DEFAULT_BLOCK_FAMILY = "neutral";
+
+/** The families shipped with the app, as the studio names them; a family of the user's own blocks shows its id. */
+export const BLOCK_FAMILIES: Readonly<Record<string, { name: string; description: string }>> = {
+  neutral: { name: "Neutre", description: "Aplats francs, sans empattements, mouvements vifs : direct et efficace." },
+  editorial: { name: "Éditorial", description: "Papier, empattements, filets et italiques : la tenue d'un magazine, mouvements posés." },
+};
+
+/** The family a création's brief chose (`brief.family`), or the default one. */
+export function blockFamilyOf(brief: Readonly<Record<string, unknown>> | null | undefined): string {
+  return typeof brief?.family === "string" && brief.family ? brief.family : DEFAULT_BLOCK_FAMILY;
+}
+
+/** The blocks a storyboard of that family may use: its own, and those of no family (captions, footage, devices). */
+export function blocksOfFamily<T extends Pick<BlockManifest, "family">>(manifests: readonly T[], family: string): T[] {
+  return manifests.filter((manifest) => !manifest.family || manifest.family === family);
+}
 
 /** The scene a block cannot cover: an agent writes its sub-composition from `props.description`. */
 export const CUSTOM_BLOCK = "custom";

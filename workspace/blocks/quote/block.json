@@ -1,5 +1,6 @@
 {
   "id": "quote",
+  "family": "neutral",
   "name": "Citation",
   "description": "Une citation ou un avis client en grand, avec de grands guillemets d'accent, des étoiles facultatives et l'auteur en dessous.",
   "useWhen": "Pour la preuve sociale : un avis client, un témoignage, une phrase d'expert ou de presse. Toujours une citation réelle tirée du brief, jamais inventée.",

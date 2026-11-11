@@ -1,6 +1,12 @@
 import { fillBlock, type BlockWord, type LoadedBlock } from "./storyboard";
 
 const GSAP_SRC = "https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js";
+/**
+ * The families' fonts, which the HyperFrames renderer embeds on its own: a browser that has not installed them gets
+ * them from Google Fonts, so the preview looks like the render.
+ */
+const FONTS_HREF =
+  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&display=block";
 const PREVIEW_ID = "preview";
 /** The words a captions block shows in its preview, spread over the block's default length. */
 const SAMPLE_SPEECH = "Voici les sous-titres, mot à mot, calés sur la voix off de la vidéo.";
@@ -36,6 +42,7 @@ export function blockPreviewHtml(block: LoadedBlock, { width = 1080, height = 19
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
+    <link rel="stylesheet" href="${FONTS_HREF}" />
     <script src="${gsapSrc}"></script>
     <style>
       html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #18181b; }

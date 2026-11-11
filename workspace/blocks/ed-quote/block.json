@@ -1,0 +1,18 @@
+{
+  "id": "ed-quote",
+  "family": "editorial",
+  "name": "Citation éditoriale",
+  "description": "Un grand guillemet à empattements couleur d'accent, la citation en italique, puis sous un filet l'auteur en petites capitales et sa qualité, comme un exergue de magazine.",
+  "useWhen": "Pour un avis client, un témoignage ou une phrase de presse fournis par le brief. N'invente jamais de citation.",
+  "props": {
+    "quote": { "type": "text", "label": "Texte de la citation, sans guillemets", "maxLength": 120 },
+    "author": { "type": "text", "label": "Auteur (prénom, nom ou média)", "maxLength": 40 },
+    "role": { "type": "text", "label": "Qualité de l'auteur (cliente depuis 2023, fondatrice de…)", "maxLength": 48, "required": false, "default": "" },
+    "stars": { "type": "enum", "label": "Note en étoiles, 0 pour ne pas en afficher", "options": ["0", "3", "4", "5"], "required": false, "default": "0" },
+    "accent": { "type": "color", "label": "Couleur du guillemet et des étoiles", "required": false, "default": "#9E1B32" },
+    "background": { "type": "color", "label": "Couleur de fond (papier)", "required": false, "default": "#F3EFE6" },
+    "textColor": { "type": "color", "label": "Couleur du texte (encre)", "required": false, "default": "#1A1714" }
+  },
+  "duration": { "min": 3, "max": 8, "default": 5 },
+  "example": { "quote": "J'ai fait ma première pub en dix minutes, et elle a cartonné.", "author": "Léa Martin", "role": "Fondatrice de Maison Léa", "stars": "5" }
+}

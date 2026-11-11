@@ -1,5 +1,6 @@
 {
   "id": "stat-countup",
+  "family": "neutral",
   "name": "Chiffre clé",
   "description": "Un très grand chiffre qui compte depuis zéro jusqu'à sa valeur, avec un préfixe ou une unité, et une phrase qui dit ce qu'il mesure.",
   "useWhen": "Pour un chiffre fort et vérifiable du brief : un pourcentage, un nombre de clients, un gain de temps ou d'argent. N'invente jamais de chiffre.",

@@ -1,0 +1,16 @@
+{
+  "id": "ed-sting",
+  "family": "editorial",
+  "name": "Signature éditoriale",
+  "description": "Le logo posé au centre entre deux filets qui se tracent depuis le milieu, la signature en italique à empattements dessous, sur fond papier.",
+  "useWhen": "Avant-dernière ou dernière scène : la marque signe la vidéo, sobrement.",
+  "props": {
+    "logo": { "type": "image", "label": "Logo, chemin dans assets/" },
+    "tagline": { "type": "text", "label": "Signature sous le logo", "maxLength": 40, "required": false, "default": "" },
+    "accent": { "type": "color", "label": "Couleur du point sous la signature", "required": false, "default": "#9E1B32" },
+    "background": { "type": "color", "label": "Couleur de fond (papier)", "required": false, "default": "#F3EFE6" },
+    "textColor": { "type": "color", "label": "Couleur des filets et de la signature", "required": false, "default": "#1A1714" }
+  },
+  "duration": { "min": 1.5, "max": 4, "default": 2.5 },
+  "example": { "logo": "assets/uploads/logo.png", "tagline": "Vos vidéos, en cinq minutes" }
+}

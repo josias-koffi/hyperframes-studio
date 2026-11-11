@@ -19,6 +19,8 @@ import {
   assembleStills,
   assembleVideo,
   blocksCatalog,
+  blockFamilyOf,
+  blocksOfFamily,
   loadBlocks,
   blocksVariablesAnswerSchema,
   blocksVariablesJsonSchema,
@@ -1466,7 +1468,10 @@ async function missingShots(ctx: BlocksContext, storyboard: Storyboard): Promise
 export async function runBlocksStep(ctx: BlocksContext): Promise<BlocksStepResult> {
   if (ctx.step === "brief") return briefStep(ctx);
   if (ctx.step === "variables") return variablesStep(ctx);
-  const { manifests, blocks } = await loadBlocks(ctx.workspaceDir);
+  const loaded = await loadBlocks(ctx.workspaceDir);
+  // The storyboard picks among the blocks of the création's family; assembling still knows every block.
+  const manifests = blocksOfFamily(loaded.manifests, blockFamilyOf(ctx.creation?.brief));
+  const { blocks } = loaded;
   const contract = await readContract(ctx);
   if (typeof contract === "string") return { ok: false, resultText: contract };
   if (contract) ctx = { ...ctx, format: { ...ctx.format, variables: contract } };

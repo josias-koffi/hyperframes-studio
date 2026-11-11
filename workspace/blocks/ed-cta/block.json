@@ -1,0 +1,19 @@
+{
+  "id": "ed-cta",
+  "family": "editorial",
+  "name": "Appel à l'action éditorial",
+  "description": "Un titre de fin à empattements révélé derrière un masque, un bouton rectangulaire à fin contour avec une flèche couleur d'accent, le lien en petites capitales et le logo en pied de page.",
+  "useWhen": "Dernière scène : ce que le spectateur doit faire maintenant (essayer, commander, s'abonner), sur un ton posé.",
+  "props": {
+    "headline": { "type": "text", "label": "Titre de fin", "maxLength": 40 },
+    "action": { "type": "text", "label": "Texte du bouton, un verbe à l'impératif", "maxLength": 24 },
+    "link": { "type": "text", "label": "Lien, site ou compte à afficher sous le bouton", "maxLength": 40, "required": false, "default": "" },
+    "logo": { "type": "image", "label": "Logo, chemin dans assets/ (facultatif)", "required": false, "default": "" },
+    "accent": { "type": "color", "label": "Couleur de la flèche et du filet", "required": false, "default": "#9E1B32" },
+    "background": { "type": "color", "label": "Couleur de fond (papier)", "required": false, "default": "#F3EFE6" },
+    "textColor": { "type": "color", "label": "Couleur du texte et du bouton (encre)", "required": false, "default": "#1A1714" }
+  },
+  "duration": { "min": 2, "max": 6, "default": 3 },
+  "example": { "headline": "Essaie-la 30 jours", "action": "Commander", "link": "tasse.fr", "logo": "assets/uploads/logo.png" },
+  "sfx": [{ "sounds": ["sfx-notification-success-chime"], "at": 0.8 }]
+}

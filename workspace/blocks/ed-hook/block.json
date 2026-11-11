@@ -1,0 +1,16 @@
+{
+  "id": "ed-hook",
+  "family": "editorial",
+  "name": "Accroche éditoriale",
+  "description": "Une phrase en grand caractère à empattements qui se révèle ligne par ligne derrière un masque, la fin en italique couleur d'accent, posée sur un filet fin, comme une une de magazine.",
+  "useWhen": "Première scène : la question ou la promesse qui arrête le défilement, sur un ton posé et premium. Aussi pour relancer au milieu.",
+  "props": {
+    "text": { "type": "text", "label": "Phrase principale, courte et percutante", "maxLength": 48 },
+    "highlight": { "type": "text", "label": "Fin de phrase en italique couleur d'accent", "maxLength": 32, "required": false, "default": "" },
+    "accent": { "type": "color", "label": "Couleur d'accent", "required": false, "default": "#9E1B32" },
+    "background": { "type": "color", "label": "Couleur de fond (papier)", "required": false, "default": "#F3EFE6" },
+    "textColor": { "type": "color", "label": "Couleur du texte (encre)", "required": false, "default": "#1A1714" }
+  },
+  "duration": { "min": 1.5, "max": 5, "default": 2.8 },
+  "example": { "text": "Ton café refroidit ?", "highlight": "Plus jamais." }
+}
