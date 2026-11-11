@@ -72,6 +72,16 @@ describe("templateSceneToBlock", () => {
     expect(filled).toContain('data-composition-id="scene-s2" data-width="1080" data-height="1920"');
   });
 
+  it("plays the template's motion faster in a scene shorter than the template's, never slower", () => {
+    const { block } = templateSceneToBlock({ html: indexHtml, variables, duration: 6, ...meta });
+    const short = fillBlock(block!, {}, { id: "s", duration: 4, width: 1080, height: 1920 });
+    expect(short).toContain("const source = 6;");
+    expect(short).toContain("const slot = 4;");
+    expect(short).toContain("inner.timeScale(source / slot);");
+    // The scene's own timeline is nested in the one registered in its place.
+    expect(short).toContain('window.__timelines["s"] = outer;');
+  });
+
   it("assembles in a storyboard like a shipped block", () => {
     const { block } = templateSceneToBlock({ html: indexHtml, variables, duration: 6, ...meta });
     const manifests = [block!.manifest];

@@ -20,6 +20,28 @@ export type TemplateBlockInput = {
 
 export type TemplateBlockResult = { block: LoadedBlock; errors: [] } | { block: null; errors: string[] };
 
+/**
+ * The script a block made from a template ends with: a scene shorter than the template's plays the template's motion
+ * faster (template length / scene length), so every entrance still happens in time; a longer one keeps its pace and
+ * holds. The scene's timeline is nested in one the block registers in its place, so the pace holds however it is sought.
+ */
+export function templatePaceScript(sourceDuration: number): string {
+  return `<script>
+  (function () {
+    // A scene shorter than the template's plays its motion faster, so that it all shows.
+    const inner = window.__timelines["{{@id}}"];
+    const source = ${sourceDuration};
+    const slot = {{@duration}};
+    if (!inner || slot >= source) return;
+    const outer = gsap.timeline({ paused: true });
+    inner.paused(false);
+    outer.add(inner, 0);
+    inner.timeScale(source / slot);
+    window.__timelines["{{@id}}"] = outer;
+  })();
+</script>`;
+}
+
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const r1 = (value: number) => Math.round(value * 10) / 10;
 
@@ -150,7 +172,7 @@ export function templateSceneToBlock(input: TemplateBlockInput): TemplateBlockRe
   const manifest: BlockManifest = parsed.data;
   const block: LoadedBlock = {
     manifest,
-    html: `<!doctype html>\n<html>\n  <head>\n    <meta charset="UTF-8" />\n  </head>\n  <body>\n    <template>\n${html.trim()}\n    </template>\n  </body>\n</html>\n`,
+    html: `<!doctype html>\n<html>\n  <head>\n    <meta charset="UTF-8" />\n  </head>\n  <body>\n    <template>\n${html.trim()}\n${templatePaceScript(duration)}\n    </template>\n  </body>\n</html>\n`,
   };
   try {
     fillBlock(block, example, { id: "check", duration, width: 1080, height: 1920 });
